@@ -13,6 +13,28 @@ Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getti
 
 ## Basic Commands
 
+### Running the Vite Dev Server
+
+This app integrates with a Vue frontend located in `vue_frontend`.
+
+##### With Docker
+The Vite dev server will automatically run in docker when started with the docker-compose.local.yml configuration.
+```sh
+docker-compose -f docker-compose.local.yml up
+```
+
+##### From the console
+Alternatively you, may run the Vite dev server directly from the project directory:
+```sh
+cd vue_frontend
+npm install
+npm run dev
+````
+
+For more information, refer to the [Vue3 Vite Django Cookiecutter project](https://github.com/ilikerobots/cookiecutter-vue-django).
+
+
+
 ### Setting Up Your Users
 
 - To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
@@ -95,6 +117,26 @@ The following details how to deploy this application.
 ### Heroku
 
 See detailed [cookiecutter-django Heroku documentation](https://cookiecutter-django.readthedocs.io/en/latest/3-deployment/deployment-on-heroku.html).
+
+### Vue
+
+For production deployment, the Vue frontend must be built into static resources, which will be served
+using the same Django staticfiles strategy as the rest of your site.  
+
+If you are using the production Docker configuration, this will be performed automatically when the images are built.  
+
+Otherwise, you must build the static assets yourself as part of your build and deploy process, sometime before the 
+`collectstatic` management command is run. The static assets may be built by running `npm run build` from within the 
+`vue_frontend` directory. The resulting files will be placed into the `awe_system_ui/static/vue` directory 
+and are handled subsequently as standard static assets. 
+
+Note the setting `VUE_FRONTEND_USE_DEV_SERVER` dictates whether your Django app will be expecting to serve Vue assets 
+from the Vite Dev Server or from a static build.  This setting defaults to the same as `DEBUG`, but can be modified as 
+needed.
+If you wish to build static Vue assets on the local Docker configuration, you may run:
+`docker-compose -f local.yml run vite vite build`
+
+For more information, refer to the [Vue3 Vite Django Cookiecutter project](https://github.com/ilikerobots/cookiecutter-vue-django).
 
 ### Docker
 

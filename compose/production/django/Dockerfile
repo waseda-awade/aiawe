@@ -1,4 +1,15 @@
 
+
+FROM node:18-bullseye-slim as vite-builder
+
+ARG APP_HOME=/app
+COPY . ${APP_HOME}
+WORKDIR ${APP_HOME}/vue_frontend
+
+COPY ./vue_frontend/package.json ${APP_HOME}
+RUN npm install
+RUN npm run build && npm cache clean --force
+
 # define an alias for the specific python version used in this file.
 FROM docker.io/python:3.12.8-slim-bookworm AS python
 
@@ -85,6 +96,7 @@ RUN chmod +x /start-flower
 
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
+COPY --from=vite-builder --chown=django:django ${APP_HOME}/awe_system_ui/static/vue ${APP_HOME}/awe_system_ui/static/vue
 
 # make django owner of the WORKDIR directory as well.
 RUN chown -R django:django ${APP_HOME}

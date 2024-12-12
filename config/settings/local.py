@@ -79,5 +79,9 @@ INSTALLED_APPS += ["django_extensions"]
 
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-eager-propagates
 CELERY_TASK_EAGER_PROPAGATES = True
+# Vue
+# -------------------------------------------------------------------------------
+VUE_FRONTEND_USE_DEV_SERVER = True
+
 # Your stuff...
 # ------------------------------------------------------------------------------

@@ -78,3 +78,18 @@ services:
     ports:
       - '5555:5555'
     command: /start-flower
+
+  vite:
+    build:
+      context: .
+      dockerfile: ./compose/local/vite/Dockerfile
+    image: awe_system_ui_local_vite
+    container_name: awe_system_ui_local_vite
+    depends_on:
+      - django
+    volumes:
+      - .:/app:z
+      - /app/vue_frontend/node_modules
+    command: vite dev
+    ports:
+      - '5173:5173'
