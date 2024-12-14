@@ -38,6 +38,12 @@ EMAIL_PORT = 1025
 # http://whitenoise.evans.io/en/latest/django.html#using-whitenoise-in-development
 INSTALLED_APPS = ["whitenoise.runserver_nostatic", *INSTALLED_APPS]
 
+# CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174"
+    ]  # Add your frontend URL here.
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # django-debug-toolbar
 # ------------------------------------------------------------------------------
