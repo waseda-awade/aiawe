@@ -35,6 +35,10 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Pipfile (these are used to create local environment)
+Pipfile
+Pipfile.lock
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
