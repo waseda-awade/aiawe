@@ -3,8 +3,8 @@
       <h1>Login</h1>
       <form @submit.prevent="login">
         <div>
-          <label for="username">Username:</label>
-          <input v-model="username" id="username" type="text" required
+          <label for="email">Email:</label>
+          <input v-model="email" id="email" type="text" required
                  @input="resetError">
         </div>
         <div>
@@ -30,14 +30,14 @@
     },
     data() {
       return {
-        username: "",
+        email: "",
         password: "",
         error: ""
       }
     },
     methods: {
       async login(){
-        await this.authStore.login(this.username, this.password, this.$router)
+        await this.authStore.login(this.email, this.password, this.$router)
         if (!this.authStore.isAuthenticated){
           this.error = 'Login failed. Please check your credentials.'
         }

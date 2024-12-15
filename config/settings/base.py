@@ -309,13 +309,17 @@ CELERY_TASK_SEND_SENT_EVENT = True
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
 # https://docs.allauth.org/en/latest/account/configuration.html
-ACCOUNT_AUTHENTICATION_METHOD = "username"
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_ADAPTER = "awe_system_ui.users.adapters.AccountAdapter"
+ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True  # use email verification by code
+# ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 # https://docs.allauth.org/en/latest/account/forms.html
 ACCOUNT_FORMS = {"signup": "awe_system_ui.users.forms.UserSignupForm"}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
@@ -352,9 +356,9 @@ SPECTACULAR_SETTINGS = {
 # Vue
 # -------------------------------------------------------------------------------
 VUE_FRONTEND_USE_DEV_SERVER = DEBUG
-VUE_FRONTEND_DEV_SERVER_URL = 'http://localhost:5173'
-VUE_FRONTEND_DEV_SERVER_PATH = 'src/'
-VUE_FRONTEND_STATIC_DIR = 'vue'
+VUE_FRONTEND_DEV_SERVER_URL = "http://localhost:5173"
+VUE_FRONTEND_DEV_SERVER_PATH = "src/"
+VUE_FRONTEND_STATIC_DIR = "vue"
 VUE_FRONTEND_USE_TYPESCRIPT = False
 # Your stuff...
 # ------------------------------------------------------------------------------

@@ -12,8 +12,8 @@ export const useAuthStore = defineStore('auth', {
     },
     actions: {
 
-        async login(username, password, router=null) {
-            const response = await api.post(`/dj-rest-auth/login/`, { username, password })
+        async login(email, password, router=null) {
+            const response = await api.post(`/dj-rest-auth/login/`, { email, password })
             const data = response.data
             if (data.key) {
                 this.isAuthenticated = true
