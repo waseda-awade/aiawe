@@ -46,6 +46,36 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
+        async register(email, password, router=null) {
+            try {
+                const response = await api.post(`/dj-rest-auth/registration/`, { email, password1: password, password2: password })
+                if (response.status === 201) {
+                    if (router){
+                        await router.push({name: "verify-email"})
+                    }
+                }
+            } catch (error) {
+                console.error('Registration failed', error)
+                throw error
+            }
+        },
+
+        async verifyEmail(key, router=null) {
+            try {
+                const response = await api.post(`/dj-rest-auth/registration/verify-email/`, { key })
+                console.log({response})
+                if (response?.status === 200) {
+                    if (router){
+                        await router.push({name: "login"})
+                    }
+                }
+                return response
+            } catch (error) {
+                console.error('Verify email failed', error)
+                throw error
+            }
+        },
+
         async fetchUser() {
             try {
                 const response = await api.get(`/dj-rest-auth/user/`)

@@ -82,6 +82,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "dj_rest_auth",
+    "dj_rest_auth.registration",
     "corsheaders",
     "drf_spectacular",
 ]
@@ -92,6 +93,9 @@ LOCAL_APPS = [
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# dj-rest-auth
+SITE_ID = 1
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------

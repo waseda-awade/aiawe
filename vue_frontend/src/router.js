@@ -18,6 +18,11 @@ const routes = [
         path: '/register',
         name: 'register',
         component: Register
+    },
+    {
+        path: '/verify-email',
+        name: 'verify-email',
+        component: () => import('./pages/VerifyEmail.vue')
     }
 ]
 
