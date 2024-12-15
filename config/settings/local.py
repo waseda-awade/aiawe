@@ -41,8 +41,8 @@ INSTALLED_APPS = ["whitenoise.runserver_nostatic", *INSTALLED_APPS]
 # CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:5174"
-    ]  # Add your frontend URL here.
+    "http://localhost:5174",
+]  # Add your frontend URL here.
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # django-debug-toolbar
@@ -72,7 +72,7 @@ if env("USE_DOCKER") == "yes":
     # ------------------------------------------------------------------------------
     # This is a custom setting for RunServerPlus to fix reloader issue in Windows docker environment
     # Werkzeug reloader type [auto, watchdog, or stat]
-    RUNSERVERPLUS_POLLER_RELOADER_TYPE = 'stat'
+    RUNSERVERPLUS_POLLER_RELOADER_TYPE = "stat"
     # If you have CPU and IO load issues, you can increase this poller interval e.g) 5
     RUNSERVERPLUS_POLLER_RELOADER_INTERVAL = 1
 

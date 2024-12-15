@@ -121,17 +121,17 @@ See detailed [cookiecutter-django Heroku documentation](https://cookiecutter-dja
 ### Vue
 
 For production deployment, the Vue frontend must be built into static resources, which will be served
-using the same Django staticfiles strategy as the rest of your site.  
+using the same Django staticfiles strategy as the rest of your site.
 
-If you are using the production Docker configuration, this will be performed automatically when the images are built.  
+If you are using the production Docker configuration, this will be performed automatically when the images are built.
 
-Otherwise, you must build the static assets yourself as part of your build and deploy process, sometime before the 
-`collectstatic` management command is run. The static assets may be built by running `npm run build` from within the 
-`vue_frontend` directory. The resulting files will be placed into the `awe_system_ui/static/vue` directory 
-and are handled subsequently as standard static assets. 
+Otherwise, you must build the static assets yourself as part of your build and deploy process, sometime before the
+`collectstatic` management command is run. The static assets may be built by running `npm run build` from within the
+`vue_frontend` directory. The resulting files will be placed into the `awe_system_ui/static/vue` directory
+and are handled subsequently as standard static assets.
 
-Note the setting `VUE_FRONTEND_USE_DEV_SERVER` dictates whether your Django app will be expecting to serve Vue assets 
-from the Vite Dev Server or from a static build.  This setting defaults to the same as `DEBUG`, but can be modified as 
+Note the setting `VUE_FRONTEND_USE_DEV_SERVER` dictates whether your Django app will be expecting to serve Vue assets
+from the Vite Dev Server or from a static build.  This setting defaults to the same as `DEBUG`, but can be modified as
 needed.
 If you wish to build static Vue assets on the local Docker configuration, you may run:
 `docker-compose -f local.yml run vite vite build`

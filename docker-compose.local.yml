@@ -44,10 +44,10 @@ services:
   redis:
     image: docker.io/redis:6
     container_name: awe_system_ui_local_redis
-    
+
     volumes:
       - awe_system_ui_local_redis_data:/data
-    
+
 
   celeryworker:
     <<: *django
