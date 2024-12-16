@@ -1,8 +1,10 @@
+import './assets/main.css'
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import './assets/index.css' // Using the default Vite CSS. Replace with your own global styles.
-import router from './router'
+
 import App from './App.vue'
+import router from './router'
 
 const app = createApp(App)
 
