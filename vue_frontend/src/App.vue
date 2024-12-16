@@ -1,10 +1,16 @@
-<script setup>
-</script>
-
 <template>
-  <router-view />
+  <div id="app">
+    <NavBar />
+    <router-view></router-view>
+  </div>
 </template>
 
-<style scoped>
-/* You can add any global styles here */
-</style>
+<script>
+import NavBar from './components/NavBar.vue';
+
+export default {
+  components: {
+    NavBar,
+  },
+};
+</script>

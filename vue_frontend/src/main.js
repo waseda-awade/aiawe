@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import './style.css' // Using the default Vite CSS. Replace with your own global styles.
+import './assets/index.css' // Using the default Vite CSS. Replace with your own global styles.
 import router from './router'
 import App from './App.vue'
 

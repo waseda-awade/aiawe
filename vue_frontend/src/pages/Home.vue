@@ -1,39 +1,7 @@
-<script>
-import { useAuthStore } from '../store/auth.js'
-import { useRouter } from 'vue-router'
-
-export default {
-  setup() {
-    const authStore = useAuthStore()
-    const router = useRouter()
-
-    return {
-      authStore, router
-    }
-  },
-  methods: {
-    async logout() {
-      try {
-        await this.authStore.logout(this.$router)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-  },
-  async mounted() {
-    await this.authStore.fetchUser()
-  }
-}
-</script>
-
 <template>
-  <h1>Welcome to the home page</h1>
-  <div v-if="authStore.isAuthenticated">
-    <p>Hi there {{ authStore.user?.username }}!</p>
-    <p>You are logged in.</p>
-    <button @click="logout">Logout</button>
+  <div class="container mx-auto text-center mt-20">
+    <h1 class="text-4xl font-bold mb-4">Welcome to VueApp</h1>
+    <p class="text-lg mb-6">This is a simple Vue project to get started with Vue 3 and Tailwind CSS.</p>
+    <router-link to="/login" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Get Started</router-link>
   </div>
-  <p v-else>
-    You are not logged in. <router-link to="/login">Login</router-link>
-  </p>
 </template>
