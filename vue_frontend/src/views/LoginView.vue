@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/store/auth';
+import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -71,13 +71,7 @@ const login = async () => {
       <div class="grid gap-4">
         <div class="grid gap-2">
           <Label for="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            v-model="email"
-            placeholder="name@example.com"
-            required
-          />
+          <Input id="email" type="email" v-model="email" placeholder="name@example.com" required />
           <p v-if="emailError" class="text-error-foreground">{{ emailError }}</p>
         </div>
         <div class="grid gap-2">

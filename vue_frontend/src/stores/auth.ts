@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
-import api from '../services/api'
+import type { AxiosResponse } from 'axios';
+import type { Router } from 'vue-router';
+import api from '@/services/api'; // Assuming api is exported from this path
 
+interface AuthState {
+    user: any;
+    isAuthenticated: boolean;
+    saveState: () => void;
+}
 
 export const useAuthStore = defineStore('auth', {
     state: () => {
@@ -12,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
     },
     actions: {
 
-        async login(email, password, router=null) {
+        async login(email: string, password: string, router: Router | null = null) {
             const response = await api.post(`/dj-rest-auth/login/`, { email, password })
             const data = response.data
             if (data.key) {
@@ -28,10 +35,9 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
-        async logout(router=null) {
+        async logout(router: Router | null = null): Promise<void> {
             try {
-                const response = await api.post(`/dj-rest-auth/logout/`)
-                console.log({response})
+                const response: AxiosResponse = await api.post(`/dj-rest-auth/logout/`);
                 if (response.status === 200) {
                     this.user = null
                     this.isAuthenticated = false
@@ -46,33 +52,33 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
-        async register(email, password, router=null) {
+        async register(email: string, password: string, router: Router | null = null): Promise<void> {
             try {
-                const response = await api.post(`/dj-rest-auth/registration/`, { email, password1: password, password2: password })
+                const response: AxiosResponse = await api.post(`/dj-rest-auth/registration/`, { email, password1: password, password2: password });
                 if (response.status === 201) {
-                    if (router){
-                        await router.push({name: "verify-email"})
+                    if (router) {
+                        await router.push({ name: "verify-email" });
                     }
                 }
             } catch (error) {
-                console.error('Registration failed', error)
-                throw error
+                console.error('Registration failed', error);
+                throw error;
             }
         },
 
-        async verifyEmail(key, router=null) {
+        async verifyEmail(key: string, router: Router | null = null): Promise<AxiosResponse> {
             try {
-                const response = await api.post(`/dj-rest-auth/registration/verify-email/`, { key })
-                console.log({response})
+                const response: AxiosResponse = await api.post(`/dj-rest-auth/registration/verify-email/`, { key });
+                console.log({ response });
                 if (response?.status === 200) {
-                    if (router){
-                        await router.push({name: "login"})
+                    if (router) {
+                        await router.push({ name: "login" });
                     }
                 }
-                return response
+                return response;
             } catch (error) {
-                console.error('Verify email failed', error)
-                throw error
+                console.error('Verify email failed', error);
+                throw error;
             }
         },
 
