@@ -1,4 +1,5 @@
 const animate = require("tailwindcss-animate")
+const colors = require('tailwindcss/colors')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -55,6 +56,10 @@ module.exports = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        error: {
+          DEFAULT: colors.red[500],
+          foreground: colors.red[500],
         },
       },
       borderRadius: {

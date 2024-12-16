@@ -1,11 +1,33 @@
+<script setup lang="ts">
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu'
+</script>
+
 <template>
-  <nav class="bg-gray-800 text-white p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <a href="#" class="text-xl font-bold">VueApp</a>
-      <div>
-        <router-link to="/" class="mx-2 hover:underline">Home</router-link>
-        <router-link to="/login" class="mx-2 hover:underline">Login</router-link>
-      </div>
-    </div>
-  </nav>
+  <NavigationMenu>
+    <NavigationMenuList>
+      <NavigationMenuItem>
+        <NavigationMenuLink href="/" :class="navigationMenuTriggerStyle()">
+          Home
+        </NavigationMenuLink>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <NavigationMenuLink href="/signup" :class="navigationMenuTriggerStyle()">
+          Sign up
+        </NavigationMenuLink>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <NavigationMenuLink href="/login" :class="navigationMenuTriggerStyle()">
+          Login
+        </NavigationMenuLink>
+      </NavigationMenuItem>
+    </NavigationMenuList>
+  </NavigationMenu>
 </template>

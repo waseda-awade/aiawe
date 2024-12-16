@@ -1,95 +1,105 @@
-<template>
-  <div class="container mx-auto mt-20">
-    <div class="login-form">
-      <h1 class="text-3xl font-bold mb-6">Login Page</h1>
-      <form @submit.prevent="login" class="space-y-4">
-        <div class="mb-3">
-          <label for="email" class="block text-lg font-medium">Email:</label>
-          <input v-model="email" id="email" class="w-full border border-gray-300 rounded px-3 py-2"  type="text" placeholder="Your Email" required @input="resetError">
-          <p v-if="emailError" class="error">{{ emailError }}</p>
-        </div>
-        <div class="mb-3">
-          <label for="password" class="block text-lg font-medium">Password:</label>
-          <input v-model="password" id="password" class="w-full border border-gray-300 rounded px-3 py-2"  type="password" placeholder="Your password"
-            required @input="resetError">
-          <small class="form-text text-muted">Password must be at least 8 characters long and contain a number.</small>
-          <p v-if="passwordError" class="error">{{ passwordError }}</p>
-        </div>
-        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Login</button>
-      </form>
-      <p v-if="error" class="error">{{ error }}</p>
-      <p><a href="/register">Register</a> | <a href="/forgot-password">Forgot Password?</a></p>
-    </div>
-  </div>
-</template>
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-<style scoped>
-/* .login-form {
-  max-width: 400px;
-  margin: 0 auto;
-} */
+const email = ref('');
+const password = ref('');
+const error = ref('');
+const emailError = ref('');
+const passwordError = ref('');
 
-.error {
-  color: red;
-}
-</style>
+const authStore = useAuthStore();
+const router = useRouter();
 
-<script>
-import { useAuthStore } from '@/store/auth'
+const validateEmail = (email: string): boolean => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+};
 
-export default {
-  setup() {
-    const authStore = useAuthStore()
-    return {
-      authStore
-    }
-  },
-  data() {
-    return {
-      email: "",
-      password: "",
-      error: "",
-      emailError: "",
-      passwordError: ""
-    }
-  },
-  watch: {
-    email(value) {
-      if (!this.validateEmail(value)) {
-        this.emailError = 'Invalid email address.'
-      } else {
-        this.emailError = ''
-      }
-    },
-    password(value) {
-      if (!this.validatePassword(value)) {
-        this.passwordError = 'Password must be at least 8 characters long and contain a number.'
-      } else {
-        this.passwordError = ''
-      }
-    }
-  },
-  methods: {
-    async login() {
-      if (this.emailError || this.passwordError) {
-        this.error = 'Please fix the errors before submitting.'
-        return
-      }
-      await this.authStore.login(this.email, this.password, this.$router)
-      if (!this.authStore.isAuthenticated) {
-        this.error = 'Login failed. Please check your credentials.'
-      }
-    },
-    resetError() {
-      this.error = ""
-    },
-    validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return re.test(email)
-    },
-    validatePassword(password) {
-      return password.length >= 8 && /\d/.test(password)
-    }
+const validatePassword = (password: string): boolean => {
+  return password.length >= 8 && /\d/.test(password);
+};
+
+watch(email, (newValue) => {
+  if (!validateEmail(newValue)) {
+    emailError.value = 'Invalid email address.';
+  } else {
+    emailError.value = '';
   }
-}
+});
+
+watch(password, (newValue) => {
+  if (!validatePassword(newValue)) {
+    passwordError.value = 'Password must be at least 8 characters long and contain a number.';
+  } else {
+    passwordError.value = '';
+  }
+});
+
+const resetError = () => {
+  error.value = '';
+};
+
+const login = async () => {
+  if (emailError.value || passwordError.value) {
+    error.value = 'Please fix the errors before submitting.';
+    return;
+  }
+  await authStore.login(email.value, password.value, router);
+  if (!authStore.isAuthenticated) {
+    error.value = 'Login failed. Please check your credentials.';
+  }
+};
 </script>
+
+<template>
+  <Card class="mx-auto max-w-sm">
+    <CardHeader>
+      <CardTitle class="text-2xl">
+        Login
+      </CardTitle>
+      <CardDescription>
+        Enter your email below to login to your account
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div class="grid gap-4">
+        <div class="grid gap-2">
+          <Label for="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            v-model="email"
+            placeholder="name@example.com"
+            required
+          />
+          <p v-if="emailError" class="text-error-foreground">{{ emailError }}</p>
+        </div>
+        <div class="grid gap-2">
+          <div class="flex items-center">
+            <Label for="password">Password</Label>
+            <a href="/forgot-password" class="ml-auto inline-block text-sm underline">
+              Forgot your password?
+            </a>
+          </div>
+          <Input id="password" type="password" v-model="password" required @input="resetError" />
+          <p v-if="passwordError" class="text-error-foreground">{{ passwordError }}</p>
+        </div>
+        <Button type="submit" class="w-full" @click="login">
+          Login
+        </Button>
+      </div>
+      <div class="mt-4 text-center text-sm">
+        Don't have an account?
+        <a href="/signup" class="underline">
+          Sign up
+        </a>
+      </div>
+    </CardContent>
+  </Card>
+</template>
