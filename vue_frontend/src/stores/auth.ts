@@ -22,8 +22,9 @@ export const useAuthStore = defineStore('auth', {
         async login(email: string, password: string, router: Router | null = null) {
             const response = await api.post(`/dj-rest-auth/login/`, { email, password })
             const data = response.data
-            if (data.key) {
+            if (data.user) {
                 this.isAuthenticated = true
+                this.user = data.user
                 this.saveState()
                 if (router){
                     await router.push({name: "home"})

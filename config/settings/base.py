@@ -331,6 +331,13 @@ SOCIALACCOUNT_ADAPTER = "awe_system_ui.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {"signup": "awe_system_ui.users.forms.UserSocialSignupForm"}
 
+# dj-rest-auth
+# https://stackoverflow.com/a/78795012/1938012
+REST_AUTH = {
+    # 'LOGIN_SERIALIZER': 'users.api.serializers.UserSerializer',
+    "TOKEN_SERIALIZER": "users.api.serializers.TokenSerializer",
+}
+
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
