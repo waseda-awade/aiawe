@@ -59,6 +59,7 @@ staticfiles/
 
 # Sphinx documentation
 docs/_build/
+docs/readthedocs.db
 
 # PyBuilder
 target/
@@ -283,3 +284,4 @@ awe_system_ui/media/
 .env
 .envs/*
 !.envs/.local/
+.envs/.local/.secrets

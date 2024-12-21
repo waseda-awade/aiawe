@@ -89,6 +89,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "awe_system_ui.users",
+    "awe_system_ui.llm_caller",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -366,3 +367,4 @@ VUE_FRONTEND_STATIC_DIR = "vue"
 VUE_FRONTEND_USE_TYPESCRIPT = False
 # Your stuff...
 # ------------------------------------------------------------------------------
+FAKE_LLM_REQUEST = False
