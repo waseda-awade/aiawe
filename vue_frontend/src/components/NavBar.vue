@@ -1,50 +1,93 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed } from 'vue'
+import { Button } from '@/components/ui/button'
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import { useAuthStore } from '@/stores/auth';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import {
+  CircleUser,
+  Menu,
+  Search,
+  Users,
+} from 'lucide-vue-next'
 
-const authStore = useAuthStore();
-const isAuthenticated = computed(() => authStore.isAuthenticated);
-const username = computed(() => authStore.user?.username || '');
-const logout = () => {
-  authStore.logout();
-};
+import { useAuthStore } from '@/stores/auth'
+import router from '@/router'
+
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const username = computed(() => authStore.user?.username || '')
+const isAdmin = computed(() => authStore.user?.isAdmin || false)
+const menuItems = [
+  {
+    label: 'Dashboard',
+    href: '#',
+  },
+  {
+    label: 'About',
+    href: '#',
+  },
+]
 </script>
 
 <template>
-  <NavigationMenu>
-    <NavigationMenuList>
-      <NavigationMenuItem>
-        <NavigationMenuLink href="/" :class="navigationMenuTriggerStyle()">
-          Home
-        </NavigationMenuLink>
-      </NavigationMenuItem>
-      <NavigationMenuItem v-if="!isAuthenticated">
-        <NavigationMenuLink href="/login" :class="navigationMenuTriggerStyle()">
-          Login
-        </NavigationMenuLink>
-      </NavigationMenuItem>
-      <NavigationMenuItem v-if="!isAuthenticated">
-        <NavigationMenuLink href="/signup" :class="navigationMenuTriggerStyle()">
-          Sign up
-        </NavigationMenuLink>
-      </NavigationMenuItem>
-      <NavigationMenuItem v-else>
-        <NavigationMenuLink href="/profile" :class="navigationMenuTriggerStyle()">
-          Welcome, {{ username }}
-        </NavigationMenuLink>
-        <NavigationMenuLink href="#" :class="navigationMenuTriggerStyle()" @click="logout">
-          Logout
-        </NavigationMenuLink>
-      </NavigationMenuItem>
-    </NavigationMenuList>
-  </NavigationMenu>
+  <header class="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <nav
+      class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"
+    >
+      <a href="/" class="items-center text-xl font-semibold"> AWE </a>
+      <template v-for="item in menuItems" :key="item.label">
+        <a :href="item.href" class="text-muted-foreground transition-colors hover:text-foreground">
+          <span>{{ item.label }}</span>
+        </a>
+      </template>
+    </nav>
+    <Sheet>
+      <SheetTrigger as-child>
+        <Button variant="outline" size="icon" class="shrink-0 md:hidden">
+          <Menu class="h-5 w-5" />
+          <span class="sr-only">Toggle navigation menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left">
+        <nav class="grid gap-6 text-lg font-medium">
+          <template v-for="item in menuItems" :key="item.label">
+            <a :href="item.href" class="text-muted-foreground hover:text-foreground">
+              <span>{{ item.label }}</span>
+            </a>
+          </template>
+        </nav>
+      </SheetContent>
+    </Sheet>
+    <div class="ml-auto flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+      <div class="ml-auto flex-1 sm:flex-initial"></div>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="secondary" size="icon" class="rounded-full">
+            <CircleUser class="h-5 w-5" />
+            <span class="sr-only">Toggle user menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <template v-if="isAuthenticated">
+            <DropdownMenuLabel>{{ username }}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem @click="authStore.logout">Logout</DropdownMenuItem>
+          </template>
+          <template v-else>
+            <DropdownMenuItem @click="router.push({ name: 'login' })">Login</DropdownMenuItem>
+            <DropdownMenuItem @click="router.push({ name: 'signup' })">Sign up</DropdownMenuItem>
+          </template>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  </header>
 </template>

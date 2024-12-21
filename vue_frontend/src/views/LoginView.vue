@@ -58,7 +58,7 @@ const login = async () => {
 </script>
 
 <template>
-  <Card class="mx-auto max-w-sm">
+  <Card class="mx-auto max-w-sm mt-20">
     <CardHeader>
       <CardTitle class="text-2xl">
         Login
