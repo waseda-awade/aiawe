@@ -26,6 +26,7 @@ class UserAdmin(auth_admin.UserAdmin):
             _("Permissions"),
             {
                 "fields": (
+                    "role",
                     "is_active",
                     "is_staff",
                     "is_superuser",
@@ -36,5 +37,5 @@ class UserAdmin(auth_admin.UserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    list_display = ["username", "name", "is_superuser"]
+    list_display = ["username", "name", "role", "is_superuser"]
     search_fields = ["name"]

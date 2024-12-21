@@ -11,6 +11,18 @@ class User(AbstractUser):
     check forms.SignupForm and forms.SocialSignupForms accordingly.
     """
 
+    ROLE_CHOICES = (
+        ("admin", "Admin"),
+        ("student", "Student"),
+    )
+    role = CharField(max_length=20, choices=ROLE_CHOICES, default="student")
+
+    def is_admin(self):
+        return self.role == "admin"
+
+    def is_student(self):
+        return self.role == "student"
+
     # First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=True, max_length=255)
     first_name = None  # type: ignore[assignment]
