@@ -20,6 +20,7 @@ This app integrates with a Vue frontend located in `vue_frontend`.
 ##### With Docker
 The Vite dev server will automatically run in docker when started with the docker-compose.local.yml configuration.
 ```sh
+cp ./envs/.local/.secrets.example ./envs/.local/.secrets
 docker-compose -f docker-compose.local.yml up
 ```
 
