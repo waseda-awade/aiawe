@@ -8,6 +8,11 @@ import tailwind from 'tailwindcss'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    watch: {
+      usePolling: true,
+    },
+  },
   css: {
     postcss: {
       plugins: [tailwind(), autoprefixer()],
