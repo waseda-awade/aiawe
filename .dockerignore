@@ -10,3 +10,5 @@
 venv
 .git
 .envs/
+
+vue_frontend/node_modules/
