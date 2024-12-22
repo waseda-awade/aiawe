@@ -4,6 +4,9 @@ build-local:
 run-local:
 	docker compose -f docker-compose.local.yml up --force-recreate -d
 
+restart-local:
+	docker compose -f docker-compose.local.yml down && docker compose -f docker-compose.local.yml up -d
+
 csu:
 	docker compose -f docker-compose.local.yml run --rm django python manage.py createsuperuser
 
