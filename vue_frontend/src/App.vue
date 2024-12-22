@@ -1,10 +1,18 @@
-<script setup>
-</script>
-
 <template>
-  <router-view />
+  <div id="app">
+    <div class="flex min-h-screen w-full flex-col">
+      <NavBar />
+      <router-view></router-view>
+    </div>
+  </div>
 </template>
 
-<style scoped>
-/* You can add any global styles here */
-</style>
+<script>
+import NavBar from './components/NavBar.vue'
+
+export default {
+  components: {
+    NavBar,
+  },
+}
+</script>
