@@ -17,16 +17,24 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const validateEmail = (email: string): boolean => {
+  if (!email.trim()) {
+    return false;
+  }
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 };
 
 const validatePassword = (password: string): boolean => {
+  if (!password.trim()) {
+    return false;
+  }
   return password.length >= 8 && /\d/.test(password);
 };
 
 watch(email, (newValue) => {
-  if (!validateEmail(newValue)) {
+  if (!newValue.trim()) {
+    emailError.value = 'Email is required.';
+  } else if (!validateEmail(newValue)) {
     emailError.value = 'Invalid email address.';
   } else {
     emailError.value = '';
@@ -34,7 +42,9 @@ watch(email, (newValue) => {
 });
 
 watch(password, (newValue) => {
-  if (!validatePassword(newValue)) {
+  if (!newValue.trim()) {
+    passwordError.value = 'Password is required.';
+  } else if (!validatePassword(newValue)) {
     passwordError.value = 'Password must be at least 8 characters long and contain a number.';
   } else {
     passwordError.value = '';
@@ -46,10 +56,17 @@ const resetError = () => {
 };
 
 const login = async () => {
+  // Check for empty fields first
+  if (!email.value.trim() || !password.value.trim()) {
+    error.value = 'All fields are required.';
+    return;
+  }
+
   if (emailError.value || passwordError.value) {
     error.value = 'Please fix the errors before submitting.';
     return;
   }
+
   await authStore.login(email.value, password.value, router);
   if (!authStore.isAuthenticated) {
     error.value = 'Login failed. Please check your credentials.';
@@ -58,7 +75,7 @@ const login = async () => {
 </script>
 
 <template>
-  <Card class="mx-auto max-w-sm mt-20">
+  <Card class="mx-auto w-96 mt-20">
     <CardHeader>
       <CardTitle class="text-2xl">
         Login
@@ -72,7 +89,7 @@ const login = async () => {
         <div class="grid gap-2">
           <Label for="email">Email</Label>
           <Input id="email" type="email" v-model="email" placeholder="name@example.com" required />
-          <p v-if="emailError" class="text-error-foreground">{{ emailError }}</p>
+          <p v-if="emailError" class="text-error-foreground text-sm break-words">{{ emailError }}</p>
         </div>
         <div class="grid gap-2">
           <div class="flex items-center">
@@ -81,9 +98,12 @@ const login = async () => {
               Forgot your password?
             </router-link>
           </div>
-          <Input id="password" type="password" v-model="password" required @input="resetError" />
-          <p v-if="passwordError" class="text-error-foreground">{{ passwordError }}</p>
+          <Input id="password" type="password" v-model="password" placeholder="Enter your password" required @input="resetError" />
+          <p v-if="passwordError" class="text-error-foreground text-sm break-words">{{ passwordError }}</p>
         </div>
+
+        <p v-if="error" class="text-error-foreground text-sm text-center break-words">{{ error }}</p>
+
         <Button type="submit" class="w-full" @click="login">
           Login
         </Button>

@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
-        async register(email: string, password: string, router: Router | null = null): Promise<void> {
+        async signup(email: string, password: string, router: Router | null = null): Promise<void> {
             try {
                 const response: AxiosResponse = await api.post(`/dj-rest-auth/registration/`, { email, password1: password, password2: password });
                 if (response.status === 201) {
