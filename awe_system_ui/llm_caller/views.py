@@ -8,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import APIRequest
+from .models import LLMConfig
+from .models import LLMModel
 from .models import QuotaConfig
 from .serializers import APIRequestSerializer
 from .tasks import process_openai_request
@@ -60,8 +62,13 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         api_request = serializer.save(user=request.user)
 
-        # Start async task
-        task = process_openai_request.delay(api_request.id)
+        # Start async task with current configs
+        task = process_openai_request.delay(
+            api_request.id,
+            LLMModel.get_active_model().name,
+            LLMConfig.get_active_config().temperature,
+            LLMConfig.get_active_config().prompt_template,
+        )
         api_request.task_id = task.id
         api_request.save()
 

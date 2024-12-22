@@ -1,4 +1,9 @@
+import re
+
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -27,7 +32,7 @@ class QuotaConfig(models.Model):
 
 class APIRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    prompt = models.TextField()
+    essay = models.TextField()
     result = models.TextField(blank=True, default="")
     error = models.TextField(blank=True, default="")
     status = models.CharField(
@@ -45,4 +50,100 @@ class APIRequest(models.Model):
 
     def __str__(self):
         return f"APIRequest(user={self.user}, status={self.status}, \
-            prompt={self.prompt[:20]})"
+            essay={self.essay[:20]})"
+
+
+class LLMModel(models.Model):
+    name = models.CharField(
+        max_length=200,
+        help_text="The internal model name for calling the LLM API.",
+    )
+    display_name = models.CharField(
+        max_length=200,
+    )  # display name (e.g., "GPT-3.5 Turbo")
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        get_latest_by = "created_at"
+
+    def __str__(self):
+        return f"{self.display_name} ({'Active' if self.is_active else 'Inactive'})"
+
+    def save(self, *args, **kwargs):
+        # If this model is being set as active, deactivate all others
+        if self.is_active:
+            LLMModel.objects.exclude(id=self.id).update(is_active=False)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_active_model(cls):
+        try:
+            return cls.objects.get(is_active=True)
+        except cls.DoesNotExist:
+            # Get or create a default model
+            return cls.objects.get_or_create(
+                name="gpt-3.5-turbo",
+                defaults={
+                    "display_name": "GPT-3.5 Turbo",
+                    "is_active": True,
+                },
+            )[0]
+
+
+def validate_prompt_template(value):
+    # Count occurrences of {essay}
+    essay_count = value.count("{essay}")
+    if essay_count < 1:
+        msg = "Did you forget to include a '{essay}' placeholder?"
+        raise ValidationError(
+            msg,
+        )
+
+    # Check for any other placeholders using regex
+    # This will find anything like {word} or {word_word} except {essay}
+    other_placeholders = re.findall(r"(?<!{){(?!essay})[^{}]+}(?!})", value)
+    if other_placeholders:
+        msg = (
+            f"Template contains invalid placeholders: {', '.join(other_placeholders)}. "
+            "Only '{essay}' is allowed."
+        )
+        raise ValidationError(
+            msg,
+        )
+
+
+class LLMConfig(models.Model):
+    prompt_template = models.TextField(
+        help_text="Use '{essay}' (without the quote) as placeholder for user input",
+        default="Please help evalute the following essay between 0 - 5:\n{essay}",
+        validators=[validate_prompt_template],
+    )
+    temperature = models.FloatField(
+        default=0.7,
+        validators=[
+            MinValueValidator(0.0),
+            MaxValueValidator(2.0),
+        ],
+        help_text="Value between 0 and 2",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        get_latest_by = "created_at"
+
+    def __str__(self):
+        return f"LLM Config (Updated: {self.updated_at})"
+
+    @classmethod
+    def get_active_config(cls):
+        try:
+            return cls.objects.latest()
+        except cls.DoesNotExist:
+            return cls.objects.create()
+
+    def clean(self):
+        # This ensures validation runs even when saving through admin
+        validate_prompt_template(self.prompt_template)

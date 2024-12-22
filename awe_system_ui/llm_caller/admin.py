@@ -1,6 +1,8 @@
 from django.contrib import admin
 
 from .models import APIRequest
+from .models import LLMConfig
+from .models import LLMModel
 from .models import QuotaConfig
 
 
@@ -11,6 +13,19 @@ class QuotaConfigAdmin(admin.ModelAdmin):
 
 @admin.register(APIRequest)
 class APIRequestAdmin(admin.ModelAdmin):
-    list_display = ["user", "status", "prompt", "result", "created_at"]
+    list_display = ["user", "status", "essay", "result", "created_at"]
     list_filter = ["status", "user"]
-    search_fields = ["prompt", "result"]
+    search_fields = ["essay", "result"]
+
+
+@admin.register(LLMModel)
+class LLMModelAdmin(admin.ModelAdmin):
+    list_display = ["display_name", "name", "is_active", "updated_at"]
+    list_filter = ["is_active"]
+    search_fields = ["name", "display_name"]
+
+
+@admin.register(LLMConfig)
+class LLMConfigAdmin(admin.ModelAdmin):
+    list_display = ["prompt_template", "temperature", "updated_at"]
+    list_filter = ["created_at"]
