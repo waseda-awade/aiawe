@@ -335,8 +335,8 @@ SOCIALACCOUNT_FORMS = {"signup": "awe_system_ui.users.forms.UserSocialSignupForm
 # dj-rest-auth
 # https://stackoverflow.com/a/78795012/1938012
 REST_AUTH = {
-    # 'LOGIN_SERIALIZER': 'users.api.serializers.UserSerializer',
-    "TOKEN_SERIALIZER": "users.api.serializers.TokenSerializer",
+    # 'LOGIN_SERIALIZER': 'awe_system_ui.users.api.serializers.UserSerializer',
+    "TOKEN_SERIALIZER": "awe_system_ui.users.api.serializers.TokenSerializer",
 }
 
 # django-rest-framework
