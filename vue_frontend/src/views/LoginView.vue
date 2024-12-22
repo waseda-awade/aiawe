@@ -77,9 +77,9 @@ const login = async () => {
         <div class="grid gap-2">
           <div class="flex items-center">
             <Label for="password">Password</Label>
-            <a href="/forgot-password" class="ml-auto inline-block text-sm underline">
+            <router-link :to="{ name: 'forgot-password'}" class="ml-auto inline-block text-sm underline">
               Forgot your password?
-            </a>
+            </router-link>
           </div>
           <Input id="password" type="password" v-model="password" required @input="resetError" />
           <p v-if="passwordError" class="text-error-foreground">{{ passwordError }}</p>
@@ -90,9 +90,9 @@ const login = async () => {
       </div>
       <div class="mt-4 text-center text-sm">
         Don't have an account?
-        <a href="/signup" class="underline">
+        <router-link :to="{ name: 'signup' }" class="underline">
           Sign up
-        </a>
+        </router-link>
       </div>
     </CardContent>
   </Card>

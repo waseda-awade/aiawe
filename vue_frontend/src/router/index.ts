@@ -23,7 +23,12 @@ const routes = [
         path: '/verify-email',
         name: 'verify-email',
         component: () => import('@/views/VerifyEmailView.vue')
-    }
+    },
+    {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        component: () => import('@/views/ForgotPasswordView.vue')
+    },
 ]
 
 const router = createRouter({

@@ -18,12 +18,12 @@ import {
 } from 'lucide-vue-next'
 
 import { useAuthStore } from '@/stores/auth'
-import router from '@/router'
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const username = computed(() => authStore.user?.username || '')
 const isAdmin = computed(() => authStore.user?.isAdmin || false)
+const logout = () => { authStore.logout(this.$router) }
 const menuItems = [
   {
     label: 'Dashboard',
@@ -39,8 +39,7 @@ const menuItems = [
 <template>
   <header class="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
     <nav
-      class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"
-    >
+      class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
       <a href="/" class="items-center text-xl font-semibold"> AWE </a>
       <template v-for="item in menuItems" :key="item.label">
         <a :href="item.href" class="text-muted-foreground transition-colors hover:text-foreground">
@@ -80,11 +79,11 @@ const menuItems = [
             <DropdownMenuSeparator />
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem @click="authStore.logout">Logout</DropdownMenuItem>
+            <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </template>
           <template v-else>
-            <DropdownMenuItem @click="router.push({ name: 'login' })">Login</DropdownMenuItem>
-            <DropdownMenuItem @click="router.push({ name: 'signup' })">Sign up</DropdownMenuItem>
+            <DropdownMenuItem @click="this.$router.push({ name: 'login' })">Login</DropdownMenuItem>
+            <DropdownMenuItem @click="this.$router.push({ name: 'signup' })">Sign up</DropdownMenuItem>
           </template>
         </DropdownMenuContent>
       </DropdownMenu>
