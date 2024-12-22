@@ -28,8 +28,8 @@ class QuotaConfig(models.Model):
 class APIRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     prompt = models.TextField()
-    result = models.TextField(blank=True)
-    error = models.TextField(blank=True)
+    result = models.TextField(blank=True, default="")
+    error = models.TextField(blank=True, default="")
     status = models.CharField(
         max_length=20,
         choices=[
@@ -41,7 +41,7 @@ class APIRequest(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    task_id = models.CharField(max_length=100, blank=True)
+    task_id = models.CharField(max_length=100, blank=True, default="")
 
     def __str__(self):
         return f"APIRequest(user={self.user}, status={self.status}, \

@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='apirequest',
             name='error',
-            field=models.TextField(blank=True, null=True),
+            field=models.TextField(blank=True, default=''),
         ),
     ]

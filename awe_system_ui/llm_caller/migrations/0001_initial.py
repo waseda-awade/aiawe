@@ -31,11 +31,11 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('prompt', models.TextField()),
-                ('result', models.TextField(blank=True, null=True)),
+                ('result', models.TextField(blank=True, default='')),
                 ('status', models.CharField(choices=[('PENDING', 'Pending'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed')], default='PENDING', max_length=20)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('task_id', models.CharField(blank=True, max_length=100, null=True)),
+                ('task_id', models.CharField(blank=True, max_length=100, default='')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
