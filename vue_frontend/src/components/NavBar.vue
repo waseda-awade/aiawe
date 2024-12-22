@@ -18,12 +18,14 @@ import {
 } from 'lucide-vue-next'
 
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router';
 
+const router = useRouter()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const username = computed(() => authStore.user?.username || '')
 const isAdmin = computed(() => authStore.user?.isAdmin || false)
-const logout = () => { authStore.logout(this.$router) }
+const logout = () => { authStore.logout(router) }
 const menuItems = [
   {
     label: 'Dashboard',
@@ -82,8 +84,8 @@ const menuItems = [
             <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </template>
           <template v-else>
-            <DropdownMenuItem @click="this.$router.push({ name: 'login' })">Login</DropdownMenuItem>
-            <DropdownMenuItem @click="this.$router.push({ name: 'signup' })">Sign up</DropdownMenuItem>
+            <DropdownMenuItem @click="router.push({ name: 'login' })">Login</DropdownMenuItem>
+            <DropdownMenuItem @click="router.push({ name: 'signup' })">Sign up</DropdownMenuItem>
           </template>
         </DropdownMenuContent>
       </DropdownMenu>
