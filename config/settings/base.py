@@ -76,6 +76,7 @@ THIRD_PARTY_APPS = [
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
+    "allauth.headless",
     "allauth.mfa",
     "allauth.socialaccount",
     "django_celery_beat",
@@ -331,12 +332,16 @@ ACCOUNT_FORMS = {"signup": "awe_system_ui.users.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "awe_system_ui.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {"signup": "awe_system_ui.users.forms.UserSocialSignupForm"}
+# https://docs.allauth.org/en/latest/headless/configuration.html
+
 
 # dj-rest-auth
 # https://stackoverflow.com/a/78795012/1938012
 REST_AUTH = {
     # 'LOGIN_SERIALIZER': 'awe_system_ui.users.api.serializers.UserSerializer',
     "TOKEN_SERIALIZER": "awe_system_ui.users.api.serializers.TokenSerializer",
+    # Fix dj-rest-auth weird issue https://github.com/iMerica/dj-rest-auth/issues/494#issuecomment-2058652960
+    "PASSWORD_RESET_USE_SITES_DOMAIN": True,
 }
 
 # django-rest-framework
