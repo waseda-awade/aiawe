@@ -48,7 +48,7 @@ urlpatterns += [
     path("api/dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")),
     # Fix dj-rest-auth weird issue https://github.com/iMerica/dj-rest-auth/issues/494#issuecomment-2058652960
     path(
-        "password/reset/confirm/<str:uidb64>/<str:token>",
+        "auth/reset-password/<str:uidb64>/<str:token>",
         PasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
     ),
