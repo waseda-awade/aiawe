@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-vue-next';
+import { storeToRefs } from 'pinia';
 
 const email = ref('');
 const password = ref('');
@@ -14,6 +16,7 @@ const emailError = ref('');
 const passwordError = ref('');
 
 const authStore = useAuthStore();
+const { loading } = storeToRefs(authStore);
 const router = useRouter();
 const route = useRoute();
 
@@ -56,7 +59,15 @@ const resetError = () => {
   error.value = '';
 };
 
+const isFormValid = computed(() => {
+  return email.value.trim() &&
+         password.value.trim() &&
+         !emailError.value &&
+         !passwordError.value;
+});
+
 const login = async () => {
+  resetError();
   // Check for empty fields first
   if (!email.value.trim() || !password.value.trim()) {
     error.value = 'All fields are required.';
@@ -68,10 +79,19 @@ const login = async () => {
     return;
   }
 
-  await authStore.login(email.value, password.value);
-  if (!authStore.isAuthenticated) {
-    error.value = 'Login failed. Please check your credentials.';
-  } else {
+  try {
+    await authStore.login(email.value, password.value);
+  } catch (err: any) {
+    console.error('Login failed:', err);
+    if (err.code === 'NETWORK_ERROR') {
+      error.value = 'Network error. Please try again.';
+    } else {
+      error.value = 'Login failed. Please check your credentials.';
+    }
+    return;
+  }
+
+  if (authStore.isAuthenticated) {
     // Get the redirect path from query or default to dashboard
     const redirectPath = typeof route.query.redirect === 'string'
       ? route.query.redirect
@@ -95,29 +115,61 @@ const login = async () => {
       <div class="grid gap-4">
         <div class="grid gap-2">
           <Label for="email">Email</Label>
-          <Input id="email" type="email" v-model="email" placeholder="name@example.com" required />
+          <Input
+            id="email"
+            type="email"
+            v-model="email"
+            placeholder="name@example.com"
+            required
+            :disabled="loading"
+          />
           <p v-if="emailError" class="text-error-foreground text-sm break-words">{{ emailError }}</p>
         </div>
         <div class="grid gap-2">
           <div class="flex items-center">
             <Label for="password">Password</Label>
-            <router-link :to="{ name: 'forgot-password'}" class="ml-auto inline-block text-sm underline">
+            <router-link
+              :to="{ name: 'forgot-password'}"
+              class="ml-auto inline-block text-sm underline"
+              :tabindex="loading ? -1 : 0"
+            >
               Forgot your password?
             </router-link>
           </div>
-          <Input id="password" type="password" v-model="password" placeholder="Enter your password" required @input="resetError" />
+          <Input
+            id="password"
+            type="password"
+            v-model="password"
+            placeholder="Enter your password"
+            required
+            @input="resetError"
+            :disabled="loading"
+          />
           <p v-if="passwordError" class="text-error-foreground text-sm break-words">{{ passwordError }}</p>
         </div>
 
         <p v-if="error" class="text-error-foreground text-sm text-center break-words">{{ error }}</p>
 
-        <Button type="submit" class="w-full" @click="login">
-          Login
+        <Button
+          type="submit"
+          class="w-full"
+          @click="login"
+          :disabled="loading || !isFormValid"
+        >
+          <Loader2
+            v-if="loading"
+            class="mr-2 h-4 w-4 animate-spin"
+          />
+          {{ loading ? 'Logging in...' : 'Login' }}
         </Button>
       </div>
       <div class="mt-4 text-center text-sm">
         Don't have an account?
-        <router-link :to="{ name: 'signup' }" class="underline">
+        <router-link
+          :to="{ name: 'signup' }"
+          class="underline"
+          :tabindex="loading ? -1 : 0"
+        >
           Sign up
         </router-link>
       </div>

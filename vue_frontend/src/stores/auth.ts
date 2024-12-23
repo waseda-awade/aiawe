@@ -1,120 +1,168 @@
-import { defineStore } from 'pinia'
-import type { AxiosResponse } from 'axios';
+import { defineStore } from 'pinia';
 import type { Router } from 'vue-router';
-import api from '@/services/api'; // Assuming api is exported from this path
+import { AuthService } from '@/services/authService';
 
 interface AuthState {
-    user: any;
-    isAuthenticated: boolean;
-    saveState: () => void;
+  user: any | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
 }
 
 export const useAuthStore = defineStore('auth', {
-    state: () => {
-        const storedState = localStorage.getItem('authState')
-        return storedState ? JSON.parse(storedState) : {
-            user: null,
-            isAuthenticated: false
-        }
+  state: (): AuthState => {
+    const storedState = localStorage.getItem('authState');
+    return storedState ? JSON.parse(storedState) : {
+      user: null,
+      isAuthenticated: false,
+      loading: false,
+      error: null
+    };
+  },
+
+  getters: {
+    isLoggedIn: (state) => state.isAuthenticated && state.user !== null,
+    currentUser: (state) => state.user,
+    isLoading: (state) => state.loading,
+    hasError: (state) => state.error !== null
+  },
+
+  actions: {
+    setLoading(loading: boolean) {
+      this.loading = loading;
     },
-    actions: {
 
-        async login(email: string, password: string, router: Router | null = null) {
-            const response = await api.post(`/dj-rest-auth/login/`, { email, password })
-            const data = response.data
-            if (data.user) {
-                this.isAuthenticated = true
-                this.user = data.user
-                this.saveState()
-                if (router){
-                    await router.push({name: "home"})
-                }
-            } else {
-                this.user = null
-                this.isAuthenticated = false
-                this.saveState()
-            }
-        },
+    setError(error: string | null) {
+      this.error = error;
+    },
 
-        async logout(router: Router | null = null): Promise<void> {
-            try {
-                const response: AxiosResponse = await api.post(`/dj-rest-auth/logout/`);
-                if (response.status === 200) {
-                    this.user = null
-                    this.isAuthenticated = false
-                    this.saveState()
-                    if (router){
-                        await router.push({name: "login"})
-                    }
-                }
-            } catch (error) {
-                console.error('Logout failed', error)
-                throw error
-            }
-        },
+    async login(email: string, password: string, router: Router | null = null) {
+      this.setLoading(true);
+      this.setError(null);
 
-        async signup(email: string, password: string, router: Router | null = null): Promise<void> {
-            try {
-                const response: AxiosResponse = await api.post(`/dj-rest-auth/registration/`, { email, password1: password, password2: password });
-                if (response.status === 201) {
-                    if (router) {
-                        await router.push({ name: "verify-email" });
-                    }
-                }
-            } catch (error) {
-                console.error('Registration failed', error);
-                throw error;
-            }
-        },
+      try {
+        const data = await AuthService.login(email, password);
+        if (data.user) {
+          this.user = data.user;
+          this.isAuthenticated = true;
+          this.saveState();
 
-        async verifyEmail(key: string, router: Router | null = null): Promise<AxiosResponse> {
-            try {
-                const response: AxiosResponse = await api.post(`/dj-rest-auth/registration/verify-email/`, { key });
-                console.log({ response });
-                if (response?.status === 200) {
-                    if (router) {
-                        await router.push({ name: "login" });
-                    }
-                }
-                return response;
-            } catch (error) {
-                console.error('Verify email failed', error);
-                throw error;
-            }
-        },
-
-        async fetchUser() {
-            try {
-                const response = await api.get(`/dj-rest-auth/user/`)
-                if (response.status === 200) {
-                    const data = response.data
-                    console.log({data})
-                    this.user = data
-                    this.isAuthenticated = true
-                }
-                else{
-                    this.user = null
-                    this.isAuthenticated = false
-                }
-            } catch (error) {
-                console.error('Fetch user failed', error)
-                this.user = null
-                this.isAuthenticated = false
-            }
-        },
-
-        saveState() {
-            /*
-            We save state to local storage to keep the
-            state when the user reloads the page.
-
-            This is a simple way to persist state. For a more robust solution,
-            use pinia-persistent-state.
-             */
-            localStorage.setItem('authState', JSON.stringify({
-                user: this.user,
-                isAuthenticated: this.isAuthenticated
-            }))
+          if (router) {
+            await router.push({ name: "home" });
+          }
         }
+      } catch (error: any) {
+        this.isAuthenticated = false;
+        this.user = null;
+        this.setError(error.message || 'Login failed');
+        throw error;
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async logout(router: Router | null = null) {
+      this.setLoading(true);
+      this.setError(null);
+
+      try {
+        await AuthService.logout();
+        this.clearState();
+
+        if (router) {
+          await router.push({ name: "login" });
+        }
+      } catch (error: any) {
+        // Even if logout fails on server, clear local state
+        this.clearState();
+        this.setError(error.message || 'Logout failed');
+        throw error;
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async signup(email: string, password: string, router: Router | null = null) {
+      this.setLoading(true);
+      this.setError(null);
+
+      try {
+        await AuthService.signup(email, password);
+        if (router) {
+          await router.push({ name: "verify-email" });
+        }
+      } catch (error: any) {
+        this.setError(error.message || 'Registration failed');
+        throw error;
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async verifyEmail(key: string, router: Router | null = null) {
+      this.setLoading(true);
+      this.setError(null);
+
+      try {
+        const response = await AuthService.verifyEmail(key);
+        if (response?.status === 200) {
+          if (router) {
+            await router.push({ name: "login" });
+          }
+        }
+        return response;
+      } catch (error: any) {
+        this.setError(error.message || 'Email verification failed');
+        throw error;
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async fetchUser() {
+      this.setLoading(true);
+      this.setError(null);
+
+      try {
+        const userData = await AuthService.fetchUser();
+        this.user = userData;
+        this.isAuthenticated = true;
+        this.saveState();
+      } catch (error: any) {
+        this.clearState();
+        this.setError(error.message || 'Failed to fetch user data');
+        throw error;
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    saveState() {
+      localStorage.setItem('authState', JSON.stringify({
+        user: this.user,
+        isAuthenticated: this.isAuthenticated,
+        loading: false,
+        error: null
+      }));
+    },
+
+    clearState() {
+      this.user = null;
+      this.isAuthenticated = false;
+      this.error = null;
+      localStorage.removeItem('authState');
+    },
+
+    // Initialize store - call this when app starts
+    async initialize() {
+      if (this.isAuthenticated) {
+        try {
+          await this.fetchUser();
+        } catch (error) {
+          // If fetching user fails, clear the state
+          this.clearState();
+        }
+      }
     }
-})
+  }
+});
