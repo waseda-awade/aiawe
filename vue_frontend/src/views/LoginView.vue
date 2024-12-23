@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ const passwordError = ref('');
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 
 const validateEmail = (email: string): boolean => {
   if (!email.trim()) {
@@ -67,9 +68,15 @@ const login = async () => {
     return;
   }
 
-  await authStore.login(email.value, password.value, router);
+  await authStore.login(email.value, password.value);
   if (!authStore.isAuthenticated) {
     error.value = 'Login failed. Please check your credentials.';
+  } else {
+    // Get the redirect path from query or default to dashboard
+    const redirectPath = typeof route.query.redirect === 'string'
+      ? route.query.redirect
+      : { name: 'dashboard' };
+    router.push(redirectPath);
   }
 };
 </script>

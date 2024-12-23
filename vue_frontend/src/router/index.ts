@@ -70,4 +70,32 @@ const router = createRouter({
   routes
 })
 
+// Navigation guards
+router.beforeEach(async (to, from) => {
+  const authStore = useAuthStore()
+
+  // Check if the route requires authentication
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  // Check if the route requires guest access
+  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
+
+  // If the route requires authentication and user is not authenticated
+  if (requiresAuth && !authStore.isAuthenticated) {
+    // Redirect to login page with the intended destination
+    return {
+      name: 'login',
+      query: { redirect: to.fullPath }
+    }
+  }
+
+  // If the route requires guest access and user is authenticated
+  if (requiresGuest && authStore.isAuthenticated) {
+    // Redirect to dashboard or home
+    return {
+      name: 'dashboard'
+    }
+  }
+})
+
 export default router
