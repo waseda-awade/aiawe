@@ -22,6 +22,10 @@ interface AuthError {
   details?: { [key: string]: string[] }
 }
 
+export function isAuthError(error: unknown): error is AuthError {
+  return typeof error === 'object' && error !== null && 'message' in error && 'code' in error;
+}
+
 export class AuthService {
   private static handleError(error: AxiosError<ApiErrorResponse>): AuthError {
     console.log('error', error)
@@ -99,6 +103,22 @@ export class AuthService {
   public static async verifyEmail(key: string): Promise<AxiosResponse> {
     try {
       return await api.post('/dj-rest-auth/registration/verify-email/', { key })
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ApiErrorResponse>)
+    }
+  }
+
+  public static async passwordReset(email: string): Promise<AxiosResponse> {
+    try {
+      return await api.post('/dj-rest-auth/password/reset/', { email })
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ApiErrorResponse>)
+    }
+  }
+
+  public static async passwordResetConfirm(uid: string, token: string, password: string): Promise<AxiosResponse> {
+    try {
+      return await api.post('/dj-rest-auth/password/reset/confirm/', { uid, token, new_password1: password, new_password2: password })
     } catch (error) {
       throw this.handleError(error as AxiosError<ApiErrorResponse>)
     }

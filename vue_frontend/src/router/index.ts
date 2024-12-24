@@ -57,9 +57,9 @@ const routes = [
         component: () => import('@/views/ResetPasswordView.vue'),
       },
       {
-        path: 'password-reset-success',
-        name: 'password-reset-success',
-        component: () => import('@/views/PasswordResetSuccessView.vue'),
+        path: 'password-reset-sent',
+        name: 'password-reset-sent',
+        component: () => import('@/views/PasswordResetSentView.vue'),
       }
     ]
   }
