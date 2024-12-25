@@ -17,7 +17,7 @@ def process_openai_request(request_id, model_name, temperature, prompt_template)
         api_request = APIRequest.objects.get(id=request_id)
 
         if settings.FAKE_LLM_REQUEST:
-            api_request.result = "OK."
+            api_request.result = "4"
             api_request.status = "COMPLETED"
             api_request.save()
         else:
