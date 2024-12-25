@@ -10,22 +10,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import {
-  CircleUser,
-  Menu,
-  Search,
-  Users,
-} from 'lucide-vue-next'
+import { CircleUser, Menu, Search, Users } from 'lucide-vue-next'
 
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const username = computed(() => authStore.user?.username || '')
 const isAdmin = computed(() => authStore.user?.isAdmin || false)
-const logout = () => { authStore.logout(router) }
+const logout = () => {
+  authStore.logout(router)
+}
 const menuItems = [
   {
     label: 'Dashboard',
@@ -39,9 +36,12 @@ const menuItems = [
 </script>
 
 <template>
-  <header class="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+  <header
+    class="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50"
+  >
     <nav
-      class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+      class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"
+    >
       <a href="/" class="items-center text-xl font-semibold"> AWE </a>
       <template v-for="item in menuItems" :key="item.label">
         <a :href="item.href" class="text-muted-foreground transition-colors hover:text-foreground">
