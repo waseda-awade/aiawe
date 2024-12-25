@@ -75,7 +75,7 @@ import { useDocumentProcessor } from '@/composables/useDocumentProcessor'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { EssayService } from '@/services/essayService'
 import type { EssayRequest } from '@/services/essayService'
-
+import { AxiosError } from 'axios'
 const MAX_CHARS = 5000
 const content = ref('')
 const isLoading = ref(false)
@@ -188,12 +188,18 @@ const handleSubmit = async () => {
       description: 'Essay submitted successfully. Processing...',
     })
   } catch (err) {
-    error.value = 'Failed to submit essay. Please try again.'
     console.error('Error submitting essay:', err)
-    toast({
-      description: 'Failed to submit essay',
-      variant: 'destructive',
-    })
+    if (err instanceof AxiosError && err.response?.status === 429) {
+      toast({
+        description: 'You have reached the maximum number of requests. Please try again later.',
+        variant: 'destructive',
+      })
+    } else {
+      toast({
+        description: 'Failed to submit essay',
+        variant: 'destructive',
+      })
+    }
   } finally {
     isLoading.value = false
   }
