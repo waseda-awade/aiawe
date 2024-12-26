@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 
-const ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 10
 const props = defineProps<{
   columns: ColumnDef<TData, any>[]
   data: TData[]

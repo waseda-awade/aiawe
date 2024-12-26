@@ -6,7 +6,7 @@ import DataTable from '@/components/history/DataTable.vue'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import type { EssayHistory } from '@/types/essay'
 
-const ITEMS_PER_PAGE = 10
+const ITEMS_TO_RETRIEVE = 1000
 const data = ref<EssayHistory[]>([])
 const totalItems = ref(0)
 const currentPage = ref(1)
@@ -15,7 +15,7 @@ const showDialog = ref(false)
 
 async function loadData(page: number) {
   try {
-    const response = await EssayService.getEssayHistory(page, ITEMS_PER_PAGE)
+    const response = await EssayService.getEssayHistory(page, ITEMS_TO_RETRIEVE)
     data.value = response.results
     totalItems.value = response.count
   } catch (error) {
