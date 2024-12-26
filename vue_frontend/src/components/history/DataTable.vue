@@ -17,7 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 
+const ITEMS_PER_PAGE = 20
 const props = defineProps<{
   columns: ColumnDef<TData, any>[]
   data: TData[]
@@ -28,6 +30,10 @@ const emit = defineEmits<{
 }>()
 
 const sorting = ref([{ id: 'created_at', desc: true }])
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: ITEMS_PER_PAGE,
+})
 
 const table = useVueTable({
   get data() {
@@ -39,15 +45,16 @@ const table = useVueTable({
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
   getSortedRowModel: getSortedRowModel(),
-  initialState: {
-    pagination: {
-      pageSize: 20,
-    },
-  },
   state: {
     get sorting() {
       return sorting.value
     },
+    get pagination() {
+      return pagination.value
+    },
+  },
+  onPaginationChange: (updater) => {
+    pagination.value = updater(pagination.value)
   },
 })
 </script>
@@ -80,6 +87,30 @@ const table = useVueTable({
           </TableRow>
         </TableBody>
       </Table>
+    </div>
+
+    <div class="flex items-center justify-end space-x-2 py-4">
+      <div class="flex items-center gap-2">
+        <p class="text-sm text-muted-foreground">
+          Page {{ table.getState().pagination.pageIndex + 1 }} of {{ table.getPageCount() }}
+        </p>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="!table.getCanPreviousPage()"
+        @click="table.previousPage()"
+      >
+        Previous
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="!table.getCanNextPage()"
+        @click="table.nextPage()"
+      >
+        Next
+      </Button>
     </div>
   </div>
 </template>
