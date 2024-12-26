@@ -2,6 +2,8 @@ import { type ColumnDef } from '@tanstack/vue-table'
 import { h } from 'vue'
 import type { EssayHistory } from '@/types/essay'
 
+const MAX_CHARS = 50
+
 export const columns: ColumnDef<EssayHistory>[] = [
   {
     accessorKey: 'id',
@@ -15,13 +17,13 @@ export const columns: ColumnDef<EssayHistory>[] = [
       return h(
         'div',
         { class: 'max-w-[300px] truncate' },
-        essay.substring(0, 100) + (essay.length > 100 ? '...' : ''),
+        essay.substring(0, MAX_CHARS) + (essay.length > MAX_CHARS ? '...' : ''),
       )
     },
   },
   {
     accessorKey: 'result',
-    header: 'Result',
+    header: 'Score',
   },
   {
     accessorKey: 'status',

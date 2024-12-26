@@ -34,8 +34,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container py-10 mx-auto">
-    <h1 class="text-2xl font-bold mb-6">Essay History</h1>
+  <div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-2">Essay History</h1>
+    <p class="text-sm text-muted-foreground mb-4">Click on a row to view the details.</p>
 
     <DataTable :data="data" :columns="columns" @row-click="handleRowClick" />
 
@@ -47,7 +48,7 @@ onMounted(() => {
             <p class="mt-1">{{ selectedRecord.essay }}</p>
           </div>
           <div>
-            <h3 class="font-medium">Result</h3>
+            <h3 class="font-medium">Score</h3>
             <p class="mt-1">{{ selectedRecord.result }}</p>
           </div>
           <div>

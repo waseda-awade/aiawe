@@ -60,6 +60,12 @@
           {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
         </Button>
       </div>
+
+      <router-link
+        :to="{ name: 'history' }"
+        class="text-sm text-muted-foreground hover:text-primary mt-2 block text-right underline"
+        >View History</router-link
+      >
     </CardContent>
   </Card>
 </template>
