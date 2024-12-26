@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
 import type { EssayHistory } from '@/types/essay'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 const router = useRouter()
 
@@ -58,25 +59,28 @@ onMounted(() => {
     <DataTable :data="data" :columns="columns" @row-click="handleRowClick" />
 
     <Dialog :open="showDialog" @update:open="showDialog = false">
-      <DialogContent class="max-w-2xl">
-        <div v-if="selectedRecord" class="space-y-4">
-          <div>
-            <h3 class="font-medium">Essay</h3>
-            <p class="mt-1">{{ selectedRecord.essay }}</p>
+      <DialogContent class="max-w-2xl max-h-[80vh]">
+        <ScrollArea class="h-full max-h-[70vh]">
+          <div v-if="selectedRecord" class="space-y-4">
+            <h2 class="text-2xl font-bold">Evaluation Details</h2>
+            <div>
+              <h3 class="font-medium">Essay</h3>
+              <p class="mt-1">{{ selectedRecord.essay }}</p>
+            </div>
+            <div>
+              <h3 class="font-medium">Score</h3>
+              <p class="mt-1">{{ selectedRecord.result }}</p>
+            </div>
+            <div>
+              <h3 class="font-medium">Status</h3>
+              <p class="mt-1">{{ selectedRecord.status }}</p>
+            </div>
+            <div>
+              <h3 class="font-medium">Created At</h3>
+              <p class="mt-1">{{ new Date(selectedRecord.created_at).toLocaleString() }}</p>
+            </div>
           </div>
-          <div>
-            <h3 class="font-medium">Score</h3>
-            <p class="mt-1">{{ selectedRecord.result }}</p>
-          </div>
-          <div>
-            <h3 class="font-medium">Status</h3>
-            <p class="mt-1">{{ selectedRecord.status }}</p>
-          </div>
-          <div>
-            <h3 class="font-medium">Created At</h3>
-            <p class="mt-1">{{ new Date(selectedRecord.created_at).toLocaleString() }}</p>
-          </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   </div>
