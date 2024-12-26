@@ -17,17 +17,25 @@ const routes = [
         name: 'dashboard',
         component: () => import('@/views/DashboardView.vue'),
         meta: {
-          requiresAuth: true
-        }
-      }
-    ]
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/history',
+        name: 'history',
+        component: () => import('@/views/HistoryView.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+    ],
   },
   {
     path: '/auth',
     name: 'auth',
     component: () => import('@/layouts/AuthLayout.vue'),
     meta: {
-      requiresGuest: true
+      requiresGuest: true,
     },
     children: [
       {
@@ -60,14 +68,14 @@ const routes = [
         path: 'password-reset-sent',
         name: 'password-reset-sent',
         component: () => import('@/views/PasswordResetSentView.vue'),
-      }
-    ]
-  }
+      },
+    ],
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 // Navigation guards
@@ -75,17 +83,17 @@ router.beforeEach(async (to, from) => {
   const authStore = useAuthStore()
 
   // Check if the route requires authentication
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   // Check if the route requires guest access
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
+  const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
 
   // If the route requires authentication and user is not authenticated
   if (requiresAuth && !authStore.isAuthenticated) {
     // Redirect to login page with the intended destination
     return {
       name: 'login',
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     }
   }
 
@@ -93,7 +101,7 @@ router.beforeEach(async (to, from) => {
   if (requiresGuest && authStore.isAuthenticated) {
     // Redirect to dashboard or home
     return {
-      name: 'dashboard'
+      name: 'dashboard',
     }
   }
 })

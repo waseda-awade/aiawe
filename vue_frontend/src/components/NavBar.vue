@@ -79,7 +79,7 @@ const menuItems = [
           <template v-if="isAuthenticated">
             <DropdownMenuLabel>{{ username }}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem @click="router.push({ name: 'history' })">History</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </template>
