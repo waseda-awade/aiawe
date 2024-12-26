@@ -4,7 +4,12 @@ import { EssayService } from '@/services/essayService'
 import { columns } from '@/components/history/columns'
 import DataTable from '@/components/history/DataTable.vue'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'vue-router'
+import { Plus } from 'lucide-vue-next'
 import type { EssayHistory } from '@/types/essay'
+
+const router = useRouter()
 
 const ITEMS_TO_RETRIEVE = 1000
 const data = ref<EssayHistory[]>([])
@@ -28,6 +33,10 @@ function handleRowClick(record: EssayHistory) {
   showDialog.value = true
 }
 
+function navigateToDashboard() {
+  router.push({ name: 'dashboard' })
+}
+
 onMounted(() => {
   loadData(1)
 })
@@ -35,8 +44,16 @@ onMounted(() => {
 
 <template>
   <div class="container mx-auto">
-    <h1 class="text-2xl font-bold mb-2">Essay History</h1>
-    <p class="text-sm text-muted-foreground mb-4">Click on a row to view the details.</p>
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <h1 class="text-2xl font-bold">Evaluation History</h1>
+        <p class="text-sm text-muted-foreground">Click on a row to view the details.</p>
+      </div>
+      <Button @click="navigateToDashboard">
+        <Plus class="mr-2 h-4 w-4" />
+        New Evaluation
+      </Button>
+    </div>
 
     <DataTable :data="data" :columns="columns" @row-click="handleRowClick" />
 
