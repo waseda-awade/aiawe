@@ -26,11 +26,11 @@ const logout = () => {
 const menuItems = [
   {
     label: 'Dashboard',
-    href: '#',
+    name: 'dashboard',
   },
   {
     label: 'About',
-    href: '#',
+    route: 'about',
   },
 ]
 </script>
@@ -44,9 +44,13 @@ const menuItems = [
     >
       <a href="/" class="items-center text-xl font-semibold"> AWE </a>
       <template v-for="item in menuItems" :key="item.label">
-        <a :href="item.href" class="text-muted-foreground transition-colors hover:text-foreground">
+        <router-link
+          :to="{ name: item.name }"
+          class="text-muted-foreground transition-colors hover:text-foreground"
+          :class="{ 'text-primary': $route.name === item.name }"
+        >
           <span>{{ item.label }}</span>
-        </a>
+        </router-link>
       </template>
     </nav>
     <Sheet>
@@ -59,9 +63,13 @@ const menuItems = [
       <SheetContent side="left">
         <nav class="grid gap-6 text-lg font-medium">
           <template v-for="item in menuItems" :key="item.label">
-            <a :href="item.href" class="text-muted-foreground hover:text-foreground">
+            <router-link
+              :to="{ name: item.name }"
+              class="text-muted-foreground hover:text-foreground"
+              :class="{ 'text-primary': $route.name === item.name }"
+            >
               <span>{{ item.label }}</span>
-            </a>
+            </router-link>
           </template>
         </nav>
       </SheetContent>
