@@ -28,6 +28,16 @@ const routes = [
           requiresAuth: true,
         },
       },
+      {
+        path: 'terms',
+        name: 'terms',
+        component: () => import('@/views/TermsView.vue'),
+      },
+      {
+        path: 'privacy',
+        name: 'privacy',
+        component: () => import('@/views/PrivacyView.vue'),
+      },
     ],
   },
   {

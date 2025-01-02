@@ -28,10 +28,10 @@ const menuItems = [
     label: 'Dashboard',
     name: 'dashboard',
   },
-  {
-    label: 'About',
-    route: 'about',
-  },
+  // {
+  //   label: 'About',
+  //   route: 'about',
+  // },
 ]
 </script>
 

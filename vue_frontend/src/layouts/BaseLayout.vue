@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import NavBar from '@/components/NavBar.vue';
+import Footer from '@/components/Footer.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { onMounted } from 'vue';
@@ -34,24 +35,7 @@ onMounted(() => {
     </main>
 
     <!-- Footer -->
-    <footer class="py-6 border-t">
-      <div class="container mx-auto px-4">
-        <div class="text-center text-sm text-muted-foreground">
-          <p>&copy; {{ new Date().getFullYear() }} Your Company. All rights reserved.</p>
-          <div class="mt-2 space-x-4">
-            <router-link :to="{ name: 'home' }" class="hover:text-primary transition-colors">
-              Terms of Service
-            </router-link>
-            <router-link :to="{ name: 'home' }" class="hover:text-primary transition-colors">
-              Privacy Policy
-            </router-link>
-            <a href="mailto:support@yourcompany.com" class="hover:text-primary transition-colors">
-              Support
-            </a>
-          </div>
-        </div>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
