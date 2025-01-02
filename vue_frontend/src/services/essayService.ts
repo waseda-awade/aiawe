@@ -3,7 +3,7 @@ import api from '@/services/api'
 export interface EssayRequest {
   id: number
   essay: string
-  result: string | number | null
+  score: number | null
   error: string | null
   status: 'PENDING' | 'COMPLETED' | 'FAILED'
   created_at: string

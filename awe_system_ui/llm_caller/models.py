@@ -33,7 +33,8 @@ class QuotaConfig(models.Model):
 class APIRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     essay = models.TextField()
-    result = models.TextField(blank=True, default="")
+    result = models.TextField(blank=True, default="")  # Keep for raw response
+    score = models.FloatField(null=True, blank=True)  # New field for parsed score
     error = models.TextField(blank=True, default="")
     status = models.CharField(
         max_length=20,
@@ -117,7 +118,7 @@ def validate_prompt_template(value):
 class LLMConfig(models.Model):
     prompt_template = models.TextField(
         help_text="Use '{essay}' (without the quote) as placeholder for user input",
-        default="Please help evalute the following essay between 0 - 5:\n{essay}",
+        default="Evaluate the following essay and score it between 0 and 5:\n{essay}",
         validators=[validate_prompt_template],
     )
     temperature = models.FloatField(

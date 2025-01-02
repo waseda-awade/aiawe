@@ -22,7 +22,7 @@ export const columns: ColumnDef<EssayHistory>[] = [
     },
   },
   {
-    accessorKey: 'result',
+    accessorKey: 'score',
     header: 'Score',
   },
   {

@@ -13,7 +13,7 @@ class QuotaConfigAdmin(admin.ModelAdmin):
 
 @admin.register(APIRequest)
 class APIRequestAdmin(admin.ModelAdmin):
-    list_display = ["user", "status", "essay", "result", "created_at"]
+    list_display = ["user", "status", "essay", "score", "created_at"]
     list_filter = ["status", "user"]
     search_fields = ["essay", "result"]
 

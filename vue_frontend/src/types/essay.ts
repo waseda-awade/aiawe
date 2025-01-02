@@ -1,7 +1,7 @@
 export interface EssayHistory {
   id: number
   essay: string
-  result: string
+  score: number | null
   error: string
   status: 'COMPLETED' | 'FAILED' | 'PENDING'
   created_at: string

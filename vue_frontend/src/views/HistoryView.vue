@@ -69,7 +69,7 @@ onMounted(() => {
             </div>
             <div>
               <h3 class="font-medium">Score</h3>
-              <p class="mt-1">{{ selectedRecord.result }}</p>
+              <p class="mt-1">{{ selectedRecord.score }}</p>
             </div>
             <div>
               <h3 class="font-medium">Status</h3>
