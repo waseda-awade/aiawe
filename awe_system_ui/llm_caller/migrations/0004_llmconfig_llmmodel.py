@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('prompt_template', models.TextField(default='Please help evalute the following essay between 0 - 5:\n {essay}', help_text='Use {essay} (curly braces) as placeholder for user input')),
-                ('temperature', models.FloatField(default=0.7, help_text='Value between 0 and 2', validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(2.0)])),
+                ('temperature', models.FloatField(default=0.1, help_text='Value between 0 and 2', validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(2.0)])),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],

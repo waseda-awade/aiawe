@@ -122,7 +122,7 @@ class LLMConfig(models.Model):
         validators=[validate_prompt_template],
     )
     temperature = models.FloatField(
-        default=0.7,
+        default=0.1,
         validators=[
             MinValueValidator(0.0),
             MaxValueValidator(2.0),
