@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 import { retry } from '@/lib/retry';
 
@@ -18,7 +18,7 @@ const api: AxiosInstance = axios.create({
 
 // Add a request interceptor to dynamically set the CSRF token
 api.interceptors.request.use(
-  (config: AxiosRequestConfig): AxiosRequestConfig => {
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     const csrfToken = Cookies.get('csrftoken');
     if (csrfToken) {
       if (config.headers) {
@@ -27,9 +27,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error: any): Promise<any> => {
-    return Promise.reject(error);
-  }
+  (error: any) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
