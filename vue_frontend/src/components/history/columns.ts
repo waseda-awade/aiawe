@@ -1,10 +1,10 @@
 import { type ColumnDef } from '@tanstack/vue-table'
 import { h } from 'vue'
-import type { EssayHistory } from '@/types/essay'
+import type { EssayRequest } from '@/types/essay'
 
 const MAX_CHARS = 50
 
-export const columns: ColumnDef<EssayHistory>[] = [
+export const columns: ColumnDef<EssayRequest>[] = [
   {
     accessorKey: 'id',
     header: 'ID',

@@ -7,16 +7,16 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
-import type { EssayHistory } from '@/types/essay'
+import type { EssayRequest } from '@/types/essay'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 const router = useRouter()
 
 const ITEMS_TO_RETRIEVE = 1000
-const data = ref<EssayHistory[]>([])
+const data = ref<EssayRequest[]>([])
 const totalItems = ref(0)
 const currentPage = ref(1)
-const selectedRecord = ref<EssayHistory | null>(null)
+const selectedRecord = ref<EssayRequest | null>(null)
 const showDialog = ref(false)
 
 async function loadData(page: number) {
@@ -29,7 +29,7 @@ async function loadData(page: number) {
   }
 }
 
-function handleRowClick(record: EssayHistory) {
+function handleRowClick(record: EssayRequest) {
   selectedRecord.value = record
   showDialog.value = true
 }

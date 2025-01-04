@@ -80,7 +80,7 @@ import FileUpload from '@/components/FileUpload.vue'
 import { useDocumentProcessor } from '@/composables/useDocumentProcessor'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { EssayService } from '@/services/essayService'
-import type { EssayRequest } from '@/services/essayService'
+import type { EssayRequest } from '@/types/essay'
 import { AxiosError } from 'axios'
 const MAX_CHARS = 5000
 const content = ref('')
