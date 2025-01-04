@@ -71,20 +71,14 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-
-// Define the form schema using Zod
-const formSchema = toTypedSchema(z.object({
-  email: z.string()
-    .min(1, 'Email is required')
-    .email('Invalid email address'),
-}));
+import { forgotPasswordFormSchema } from '@/lib/validations'
 
 const router = useRouter()
 const isSubmitting = ref(false)
 const generalError = ref<string | null>(null)
 
 const form = useForm({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(forgotPasswordFormSchema),
   initialValues: {
     email: '',
   },

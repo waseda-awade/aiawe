@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { verifyEmailFormSchema } from '@/lib/validations'
 
 // Define the form schema using Zod
 const formSchema = toTypedSchema(z.object({
@@ -31,7 +32,7 @@ const generalError = ref<string | null>(null);
 const success = ref(false);
 
 const form = useForm({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(verifyEmailFormSchema),
   initialValues: {
     verificationCode: '',
   },

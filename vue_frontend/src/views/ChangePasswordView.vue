@@ -98,22 +98,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useToast } from '@/components/ui/toast/use-toast'
-
-// Define the form schema using Zod
-const formSchema = toTypedSchema(z.object({
-  currentPassword: z.string()
-    .min(1, 'Current password is required'),
-  newPassword: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/\d/, 'Password must contain at least one number'),
-  confirmPassword: z.string()
-    .min(1, 'Please confirm your password'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-}));
+import { changePasswordFormSchema } from '@/lib/validations'
 
 const isSubmitting = ref(false)
 const generalError = ref<string | null>(null)
@@ -121,7 +106,7 @@ const success = ref(false)
 const { toast } = useToast()
 
 const form = useForm({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(changePasswordFormSchema),
   initialValues: {
     currentPassword: '',
     newPassword: '',

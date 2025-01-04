@@ -19,16 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-
-// Define the form schema using Zod
-const formSchema = toTypedSchema(z.object({
-  email: z.string()
-    .min(1, 'Email is required')
-    .email('Invalid email address'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/\d/, 'Password must contain at least one number'),
-}));
+import { loginFormSchema } from '@/lib/validations'
 
 const authStore = useAuthStore();
 const { loading } = storeToRefs(authStore);
@@ -36,7 +27,7 @@ const router = useRouter();
 const route = useRoute();
 
 const form = useForm({
-  validationSchema: formSchema,
+  validationSchema: toTypedSchema(loginFormSchema),
   initialValues: {
     email: '',
     password: '',
