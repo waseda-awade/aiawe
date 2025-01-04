@@ -54,7 +54,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 </script>
 
 <template>
-  <Card class="mx-auto w-96 mt-20">
+  <Card class="w-full mx-auto sm:w-96">
     <CardHeader>
       <CardTitle class="text-2xl">Create an Account</CardTitle>
       <CardDescription>Enter your details below to create your account</CardDescription>

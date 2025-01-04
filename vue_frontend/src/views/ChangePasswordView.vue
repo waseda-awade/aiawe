@@ -1,5 +1,5 @@
 <template>
-  <Card class="mx-auto w-96 mt-20">
+  <Card class="w-full mx-auto sm:w-96">
     <CardHeader>
       <CardTitle class="text-2xl">Change Password</CardTitle>
       <CardDescription>Enter your current password and a new password</CardDescription>

@@ -29,7 +29,7 @@ onMounted(() => {
 
     <!-- Main Content -->
     <main class="flex-grow flex items-start justify-center px-4 py-8">
-      <div class="w-full">
+      <div class="w-full mt-0 sm:mt-20">
         <router-view v-slot="{ Component }">
           <transition
             name="fade"
