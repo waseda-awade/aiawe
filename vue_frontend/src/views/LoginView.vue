@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/button';
@@ -8,97 +8,64 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-const email = ref('');
-const password = ref('');
-const error = ref('');
-const emailError = ref('');
-const passwordError = ref('');
+// Define the form schema using Zod
+const formSchema = toTypedSchema(z.object({
+  email: z.string()
+    .min(1, 'Email is required')
+    .email('Invalid email address'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/\d/, 'Password must contain at least one number'),
+}));
 
 const authStore = useAuthStore();
 const { loading } = storeToRefs(authStore);
 const router = useRouter();
 const route = useRoute();
 
-const validateEmail = (email: string): boolean => {
-  if (!email.trim()) {
-    return false;
-  }
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
-
-const validatePassword = (password: string): boolean => {
-  if (!password.trim()) {
-    return false;
-  }
-  return password.length >= 8 && /\d/.test(password);
-};
-
-watch(email, (newValue) => {
-  if (!newValue.trim()) {
-    emailError.value = 'Email is required.';
-  } else if (!validateEmail(newValue)) {
-    emailError.value = 'Invalid email address.';
-  } else {
-    emailError.value = '';
-  }
+const form = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    email: '',
+    password: '',
+  },
 });
 
-watch(password, (newValue) => {
-  if (!newValue.trim()) {
-    passwordError.value = 'Password is required.';
-  } else if (!validatePassword(newValue)) {
-    passwordError.value = 'Password must be at least 8 characters long and contain a number.';
-  } else {
-    passwordError.value = '';
-  }
-});
+const generalError = ref<string | null>(null);
 
-const resetError = () => {
-  error.value = '';
-};
-
-const isFormValid = computed(() => {
-  return email.value.trim() &&
-         password.value.trim() &&
-         !emailError.value &&
-         !passwordError.value;
-});
-
-const login = async () => {
-  resetError();
-  // Check for empty fields first
-  if (!email.value.trim() || !password.value.trim()) {
-    error.value = 'All fields are required.';
-    return;
-  }
-
-  if (emailError.value || passwordError.value) {
-    error.value = 'Please fix the errors before submitting.';
-    return;
-  }
-
+const onSubmit = form.handleSubmit(async (values) => {
   try {
-    await authStore.login(email.value, password.value);
+    generalError.value = null; // Clear any previous errors
+    await authStore.login(values.email, values.password);
+
+    if (authStore.isAuthenticated) {
+      // Get the redirect path from query or default to dashboard
+      const redirectPath = typeof route.query.redirect === 'string'
+        ? route.query.redirect
+        : { name: 'dashboard' };
+      router.push(redirectPath);
+    }
   } catch (err: any) {
     console.error('Login failed:', err);
     if (err.code === 'NETWORK_ERROR') {
-      error.value = 'Network error. Please try again.';
+      generalError.value = 'Network error. Please try again.';
     } else {
-      error.value = 'Login failed. Please check your credentials.';
+      generalError.value = 'Login failed. Please check your credentials.';
     }
-    return;
   }
-
-  if (authStore.isAuthenticated) {
-    // Get the redirect path from query or default to dashboard
-    const redirectPath = typeof route.query.redirect === 'string'
-      ? route.query.redirect
-      : { name: 'dashboard' };
-    router.push(redirectPath);
-  }
-};
+});
 </script>
 
 <template>
@@ -112,49 +79,56 @@ const login = async () => {
       </CardDescription>
     </CardHeader>
     <CardContent>
-      <div class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            v-model="email"
-            placeholder="name@example.com"
-            required
-            :disabled="loading"
-          />
-          <p v-if="emailError" class="text-error-foreground text-sm break-words">{{ emailError }}</p>
-        </div>
-        <div class="grid gap-2">
-          <div class="flex items-center">
-            <Label for="password">Password</Label>
-            <router-link
-              :to="{ name: 'forgot-password'}"
-              class="ml-auto inline-block text-sm underline"
-              :tabindex="loading ? -1 : 0"
-            >
-              Forgot your password?
-            </router-link>
-          </div>
-          <Input
-            id="password"
-            type="password"
-            v-model="password"
-            placeholder="Enter your password"
-            required
-            @input="resetError"
-            :disabled="loading"
-          />
-          <p v-if="passwordError" class="text-error-foreground text-sm break-words">{{ passwordError }}</p>
-        </div>
+      <form @submit="onSubmit" class="grid gap-4">
+        <FormField
+          v-slot="{ componentField }"
+          name="email"
+        >
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="email"
+                placeholder="name@example.com"
+                :disabled="loading"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-        <p v-if="error" class="text-error-foreground text-sm text-center break-words">{{ error }}</p>
+        <FormField
+          v-slot="{ componentField }"
+          name="password"
+        >
+          <FormItem>
+            <div class="flex items-center">
+              <FormLabel>Password</FormLabel>
+              <router-link
+                :to="{ name: 'forgot-password'}"
+                class="ml-auto inline-block text-sm underline"
+                :tabindex="loading ? -1 : 0"
+              >
+                Forgot your password?
+              </router-link>
+            </div>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="password"
+                placeholder="Enter your password"
+                :disabled="loading"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
         <Button
           type="submit"
           class="w-full"
-          @click="login"
-          :disabled="loading || !isFormValid"
+          :disabled="loading || !form.meta.value.valid"
         >
           <Loader2
             v-if="loading"
@@ -162,17 +136,22 @@ const login = async () => {
           />
           {{ loading ? 'Logging in...' : 'Login' }}
         </Button>
-      </div>
-      <div class="mt-4 text-center text-sm">
-        Don't have an account?
-        <router-link
-          :to="{ name: 'signup' }"
-          class="underline"
-          :tabindex="loading ? -1 : 0"
-        >
-          Sign up
-        </router-link>
-      </div>
+
+        <div v-if="generalError" class="text-destructive text-sm">
+          {{ generalError }}
+        </div>
+
+        <div class="mt-4 text-center text-sm">
+          Don't have an account?
+          <router-link
+            :to="{ name: 'signup' }"
+            class="underline"
+            :tabindex="loading ? -1 : 0"
+          >
+            Sign up
+          </router-link>
+        </div>
+      </form>
     </CardContent>
   </Card>
 </template>
