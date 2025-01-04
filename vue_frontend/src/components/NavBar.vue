@@ -33,6 +33,7 @@ const menuItems = [
   //   route: 'about',
   // },
 ]
+const isSheetOpen = ref(false)
 </script>
 
 <template>
@@ -42,18 +43,18 @@ const menuItems = [
     <nav
       class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"
     >
-      <a href="/" class="items-center text-xl font-semibold"> AWE </a>
-      <template v-for="item in menuItems" :key="item.label">
-        <router-link
-          :to="{ name: item.name }"
-          class="text-muted-foreground transition-colors hover:text-foreground"
-          :class="{ 'text-primary': $route.name === item.name }"
-        >
-          <span>{{ item.label }}</span>
-        </router-link>
-      </template>
+      <router-link :to="{ name: 'home' }" class="items-center text-xl font-semibold"> AWE </router-link>
+      <router-link
+        v-for="item in menuItems"
+        :key="item.label"
+        :to="{ name: item.name }"
+        class="text-muted-foreground transition-colors hover:text-foreground"
+        :class="{ 'text-primary': $route.name === item.name }"
+      >
+        <span>{{ item.label }}</span>
+      </router-link>
     </nav>
-    <Sheet>
+    <Sheet v-model:open="isSheetOpen">
       <SheetTrigger as-child>
         <Button variant="outline" size="icon" class="shrink-0 md:hidden">
           <Menu class="h-5 w-5" />
@@ -62,15 +63,21 @@ const menuItems = [
       </SheetTrigger>
       <SheetContent side="left">
         <nav class="grid gap-6 text-lg font-medium">
-          <template v-for="item in menuItems" :key="item.label">
-            <router-link
-              :to="{ name: item.name }"
-              class="text-muted-foreground hover:text-foreground"
-              :class="{ 'text-primary': $route.name === item.name }"
-            >
-              <span>{{ item.label }}</span>
-            </router-link>
-          </template>
+          <router-link
+            :to="{ name: 'home' }"
+            class="items-center text-xl font-semibold"
+            @click="isSheetOpen = false"
+          >
+            AWE
+          </router-link>
+          <router-link v-for="item in menuItems" :key="item.label"
+            :to="{ name: item.name }"
+            class="text-muted-foreground hover:text-foreground"
+            :class="{ 'text-primary': $route.name === item.name }"
+            @click="isSheetOpen = false"
+          >
+            <span>{{ item.label }}</span>
+          </router-link>
         </nav>
       </SheetContent>
     </Sheet>
