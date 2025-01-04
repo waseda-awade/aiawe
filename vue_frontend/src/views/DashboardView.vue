@@ -97,7 +97,7 @@ const isCompleted = computed(() => currentRequest.value?.status === 'COMPLETED')
 const isFailed = computed(() => currentRequest.value?.status === 'FAILED')
 
 const currentRequest = ref<EssayRequest | null>(null)
-const pollingInterval = ref<number | null>(null)
+const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
 const handleFileSelected = async (file: File) => {
   error.value = ''
