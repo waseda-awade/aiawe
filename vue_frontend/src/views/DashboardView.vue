@@ -145,7 +145,7 @@ const startPolling = (requestId: number) => {
         if (data.status === 'COMPLETED') {
           toast({
             title: 'Evaluation Complete',
-            description: `Your essay score: ${data.result}`,
+            description: `Your essay score: ${data.score}`,
           })
         } else if (data.error) {
           toast({
