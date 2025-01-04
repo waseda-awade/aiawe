@@ -53,8 +53,12 @@ const table = useVueTable({
       return pagination.value
     },
   },
-  onPaginationChange: (updater) => {
-    pagination.value = updater(pagination.value)
+  // https://tanstack.com/table/latest/docs/framework/vue/guide/table-state#individual-controlled-state
+  onPaginationChange: updater => {
+    pagination.value =
+      updater instanceof Function
+        ? updater(pagination.value)
+        : updater
   },
 })
 </script>
