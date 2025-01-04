@@ -88,6 +88,9 @@ const menuItems = [
             <DropdownMenuLabel>{{ username }}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="router.push({ name: 'history' })">History</DropdownMenuItem>
+            <DropdownMenuItem @click="router.push({ name: 'change-password' })">
+              Change Password
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </template>

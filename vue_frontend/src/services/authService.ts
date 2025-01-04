@@ -132,4 +132,16 @@ export class AuthService {
       throw this.handleError(error as AxiosError<ApiErrorResponse>)
     }
   }
+
+  public static async changePassword(oldPassword: string, newPassword: string): Promise<AxiosResponse> {
+    try {
+      return await api.post('/dj-rest-auth/password/change/', {
+        old_password: oldPassword,
+        new_password1: newPassword,
+        new_password2: newPassword,
+      })
+    } catch (error) {
+      throw this.handleError(error as AxiosError<ApiErrorResponse>)
+    }
+  }
 }

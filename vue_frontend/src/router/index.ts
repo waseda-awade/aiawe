@@ -21,6 +21,14 @@ const routes = [
         },
       },
       {
+        path: 'change-password',
+        name: 'change-password',
+        component: () => import('@/views/ChangePasswordView.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
         path: '/history',
         name: 'history',
         component: () => import('@/views/HistoryView.vue'),
