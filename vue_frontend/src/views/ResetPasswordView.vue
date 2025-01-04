@@ -2,151 +2,124 @@
   <Card class="mx-auto w-96 mt-20">
     <CardHeader>
       <CardTitle class="text-2xl">Reset Password</CardTitle>
-      <CardDescription> Enter your new password below </CardDescription>
+      <CardDescription>Enter your new password below</CardDescription>
     </CardHeader>
     <CardContent>
-      <div class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="password">New Password</Label>
-          <Input
-            id="password"
-            type="password"
-            v-model="password"
-            placeholder="Enter your new password"
-            required
-          />
-          <p v-if="passwordError" class="text-error-foreground text-sm break-words">
-            {{ passwordError }}
-          </p>
-        </div>
+      <form @submit="handleSubmit" class="grid gap-4">
+        <FormField
+          v-slot="{ componentField }"
+          name="password"
+        >
+          <FormItem>
+            <FormLabel>New Password</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="password"
+                placeholder="Enter your new password"
+                :disabled="isSubmitting || success"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-        <div class="grid gap-2">
-          <Label for="confirm-password">Confirm Password</Label>
-          <Input
-            id="confirm-password"
-            type="password"
-            v-model="confirmPassword"
-            placeholder="Confirm your new password"
-            required
-          />
-          <p v-if="confirmPasswordError" class="text-error-foreground text-sm break-words">
-            {{ confirmPasswordError }}
-          </p>
-        </div>
+        <FormField
+          v-slot="{ componentField }"
+          name="confirmPassword"
+        >
+          <FormItem>
+            <FormLabel>Confirm Password</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="password"
+                placeholder="Confirm your new password"
+                :disabled="isSubmitting || success"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-        <p v-if="error" class="text-error-foreground text-sm text-center break-words">
-          {{ error }}
-        </p>
+        <div v-if="generalError" class="text-destructive text-sm text-center">
+          {{ generalError }}
+        </div>
 
         <Button
           type="submit"
           class="w-full"
-          @click="handleSubmit"
-          :disabled="isSubmitting || !isFormValid || success"
+          :disabled="isSubmitting || !form.meta.value.valid || success"
         >
           {{ isSubmitting ? 'Resetting...' : 'Reset Password' }}
         </Button>
-        <p v-if="success" class="text-success-foreground text-sm text-center break-words">
+
+        <p v-if="success" class="text-success-foreground text-sm text-center">
           Password reset successful. Redirecting to
           <router-link :to="{ name: 'login' }" class="underline">login</router-link>
           ...
         </p>
-      </div>
+      </form>
     </CardContent>
   </Card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { AuthService, isAuthError } from '@/services/authService'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 
-const password = ref('')
-const confirmPassword = ref('')
-const error = ref('')
-const passwordError = ref('')
-const confirmPasswordError = ref('')
-const isSubmitting = ref(false)
-const success = ref(false)
+// Define the form schema using Zod
+const formSchema = toTypedSchema(z.object({
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/\d/, 'Password must contain at least one number'),
+  confirmPassword: z.string()
+    .min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+}));
 
 const router = useRouter()
 const route = useRoute()
+const isSubmitting = ref(false)
+const generalError = ref<string | null>(null)
+const success = ref(false)
 
-const validatePassword = (password: string): boolean => {
-  return password.length >= 8 && /\d/.test(password)
-}
-
-const validateConfirmPassword = (password: string, confirmPassword: string): boolean => {
-  if (!confirmPassword.trim()) {
-    return false
-  }
-  return password === confirmPassword
-}
-
-watch(password, (newValue) => {
-  if (!newValue.trim()) {
-    passwordError.value = 'Password is required.'
-  } else if (!validatePassword(newValue)) {
-    passwordError.value =
-      'Password must be at least 8 characters and contain uppercase, lowercase, and numbers.'
-  } else {
-    passwordError.value = ''
-  }
-
-  if (confirmPassword.value && !validateConfirmPassword(newValue, confirmPassword.value)) {
-    confirmPasswordError.value = 'Passwords do not match.'
-  } else {
-    confirmPasswordError.value = ''
-  }
+const form = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    password: '',
+    confirmPassword: '',
+  },
 })
 
-watch(confirmPassword, (newValue) => {
-  if (!newValue.trim()) {
-    confirmPasswordError.value = 'Confirm password is required.'
-  } else if (!validateConfirmPassword(password.value, newValue)) {
-    confirmPasswordError.value = 'Passwords do not match.'
-  } else {
-    confirmPasswordError.value = ''
-  }
-})
-
-const isFormValid = computed(() => {
-  return (
-    password.value.trim() &&
-    confirmPassword.value.trim() &&
-    !passwordError.value &&
-    !confirmPasswordError.value
-  )
-})
-
-const handleSubmit = async () => {
-  // Reset errors
-  passwordError.value = ''
-  confirmPasswordError.value = ''
-  error.value = ''
-
-  // Validate password
-  if (!validatePassword(password.value)) {
-    passwordError.value = 'Password must be at least 8 characters long and contain a number.'
-    return
-  }
-
-  // Validate password confirmation
-  if (password.value !== confirmPassword.value) {
-    confirmPasswordError.value = 'Passwords do not match.'
-    return
-  }
-
+const handleSubmit = form.handleSubmit(async (values) => {
   isSubmitting.value = true
+  generalError.value = null
+
   try {
     await AuthService.passwordResetConfirm(
       route.params.uid as string,
       route.params.token as string,
-      password.value
+      values.password
     )
     success.value = true
     // Navigate to the login page after 3 seconds
@@ -155,17 +128,18 @@ const handleSubmit = async () => {
     }, 3000)
   } catch (err) {
     if (isAuthError(err)) {
-      console.error(err.field === 'token')
       if (err.field === 'token') {
-        error.value = 'Invalid token. Please request a new password reset.'
+        generalError.value = 'Invalid token. Please request a new password reset.'
+      } else if (err.field === 'password') {
+        form.setFieldError('password', err.message)
       } else {
-        error.value = 'Failed to reset password. Please try again.'
+        generalError.value = 'Failed to reset password. Please try again.'
       }
     } else {
-      error.value = 'Unknown error. Please try again.'
+      generalError.value = 'Unknown error. Please try again.'
     }
   } finally {
     isSubmitting.value = false
   }
-}
+})
 </script>

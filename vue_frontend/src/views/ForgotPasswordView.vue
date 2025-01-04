@@ -7,91 +7,104 @@
       </CardDescription>
     </CardHeader>
     <CardContent>
-      <div class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="email">Email</Label>
-          <Input id="email" type="email" v-model="email" placeholder="name@example.com" required />
-          <p v-if="emailError" class="text-error-foreground text-sm break-words">
-            {{ emailError }}
-          </p>
-        </div>
+      <form @submit="handleSubmit" class="grid gap-4">
+        <FormField
+          v-slot="{ componentField }"
+          name="email"
+        >
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="email"
+                placeholder="name@example.com"
+                :disabled="isSubmitting"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-        <p v-if="error" class="text-error-foreground text-sm text-center break-words">
-          {{ error }}
-        </p>
+        <div v-if="generalError" class="text-destructive text-sm text-center">
+          {{ generalError }}
+        </div>
 
         <Button
           type="submit"
           class="w-full"
-          @click="handleSubmit"
-          :disabled="isSubmitting || !isFormValid"
+          :disabled="isSubmitting || !form.meta.value.valid"
         >
           {{ isSubmitting ? 'Sending...' : 'Send Reset Link' }}
         </Button>
 
         <div class="mt-4 text-center text-sm">
           Remember your password?
-          <router-link :to="{ name: 'login' }" class="underline"> Back to login </router-link>
+          <router-link
+            :to="{ name: 'login' }"
+            class="underline"
+            :tabindex="isSubmitting ? -1 : 0"
+          >
+            Back to login
+          </router-link>
         </div>
-      </div>
+      </form>
     </CardContent>
   </Card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { AuthService } from '@/services/authService'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 
-const email = ref('')
-const error = ref('')
-const emailError = ref('')
-const isSubmitting = ref(false)
+// Define the form schema using Zod
+const formSchema = toTypedSchema(z.object({
+  email: z.string()
+    .min(1, 'Email is required')
+    .email('Invalid email address'),
+}));
+
 const router = useRouter()
+const isSubmitting = ref(false)
+const generalError = ref<string | null>(null)
 
-const validateEmail = (email: string): boolean => {
-  if (!email.trim()) return false
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(email)
-}
-
-watch(email, (newValue) => {
-  if (!newValue.trim()) {
-    emailError.value = 'Email is required.'
-  } else if (!validateEmail(newValue)) {
-    emailError.value = 'Invalid email address.'
-  } else {
-    emailError.value = ''
-  }
+const form = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    email: '',
+  },
 })
 
-const isFormValid = computed(() => {
-  return email.value.trim() && !emailError.value
-})
-
-const handleSubmit = async () => {
-  if (!email.value.trim()) {
-    emailError.value = 'Email is required.'
-    return
-  }
-
-  if (!validateEmail(email.value)) {
-    emailError.value = 'Invalid email address.'
-    return
-  }
-
+const handleSubmit = form.handleSubmit(async (values) => {
   isSubmitting.value = true
+  generalError.value = null
+
   try {
-    await AuthService.passwordReset(email.value)
+    await AuthService.passwordReset(values.email)
     router.push({ name: 'password-reset-sent' })
-  } catch (err) {
-    error.value = 'Failed to send reset email. Please try again.'
+  } catch (err: any) {
+    if (err.field === 'email') {
+      form.setFieldError('email', err.message)
+    } else {
+      generalError.value = 'Failed to send reset email. Please try again.'
+    }
   } finally {
     isSubmitting.value = false
   }
-}
+})
 </script>

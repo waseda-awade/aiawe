@@ -5,42 +5,53 @@ import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-const verificationCode = ref('');
-const message = ref('');
-const countdown = ref(3);
-const codeError = ref('');
+// Define the form schema using Zod
+const formSchema = toTypedSchema(z.object({
+  verificationCode: z.string()
+    .min(1, 'Verification code is required'),
+}));
 
 const authStore = useAuthStore();
 const router = useRouter();
+const countdown = ref(3);
+const isSubmitting = ref(false);
+const generalError = ref<string | null>(null);
+const success = ref(false);
 
-const validateCode = (code: string): boolean => {
-  return code.trim().length > 0;
-};
+const form = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    verificationCode: '',
+  },
+});
 
-const resetError = () => {
-  message.value = '';
-  codeError.value = '';
-};
-
-const verifyEmail = async () => {
-  resetError();
-
-  if (!validateCode(verificationCode.value)) {
-    codeError.value = 'Please enter a verification code.';
-    return;
-  }
+const handleSubmit = form.handleSubmit(async (values) => {
+  isSubmitting.value = true;
+  generalError.value = null;
 
   try {
-    const response = await authStore.verifyEmail(verificationCode.value);
+    const response = await authStore.verifyEmail(values.verificationCode);
 
     if (response?.status === 200) {
-      message.value = `Email verification successful! Redirecting to login in ${countdown.value} seconds...`;
+      success.value = true;
+      const message = `Email verification successful! Redirecting to login in ${countdown.value} seconds...`;
+      generalError.value = message;
 
       const countdownInterval = setInterval(() => {
         countdown.value -= 1;
-        message.value = `Email verification successful! Redirecting to login in ${countdown.value} seconds...`;
+        generalError.value = `Email verification successful! Redirecting to login in ${countdown.value} seconds...`;
 
         if (countdown.value === 0) {
           clearInterval(countdownInterval);
@@ -51,12 +62,14 @@ const verifyEmail = async () => {
         router.push({ name: 'login' });
       }, 3000);
     } else {
-      message.value = 'Email verification failed.';
+      generalError.value = 'Email verification failed.';
     }
-  } catch (err) {
-    message.value = 'An error occurred during email verification: ' + err;
+  } catch (err: any) {
+    generalError.value = 'An error occurred during email verification, please try again.';
+  } finally {
+    isSubmitting.value = false;
   }
-};
+});
 </script>
 
 <template>
@@ -70,39 +83,54 @@ const verifyEmail = async () => {
       </CardDescription>
     </CardHeader>
     <CardContent>
-      <div class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="verification-code">Verification Code</Label>
-          <Input
-            id="verification-code"
-            type="text"
-            v-model="verificationCode"
-            placeholder="Enter verification code"
-            required
-            @input="resetError"
-          />
-          <p v-if="codeError" class="text-error-foreground text-sm break-words">{{ codeError }}</p>
+      <form @submit="handleSubmit" class="grid gap-4">
+        <FormField
+          v-slot="{ componentField }"
+          name="verificationCode"
+        >
+          <FormItem>
+            <FormLabel>Verification Code</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="text"
+                placeholder="Enter verification code"
+                :disabled="isSubmitting || success"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <div
+          v-if="generalError"
+          :class="{
+            'text-success-foreground': success,
+            'text-destructive': !success,
+            'text-sm text-center': true
+          }"
+        >
+          {{ generalError }}
         </div>
 
-        <p v-if="message"
-           :class="{
-             'text-success-foreground': message.includes('successful'),
-             'text-error-foreground': !message.includes('successful'),
-             'text-sm text-center break-words': true
-           }"
+        <Button
+          type="submit"
+          class="w-full"
+          :disabled="isSubmitting || !form.meta.value.valid || success"
         >
-          {{ message }}
-        </p>
-
-        <Button type="submit" class="w-full" @click="verifyEmail">
-          Verify Email
+          {{ isSubmitting ? 'Verifying...' : 'Verify Email' }}
         </Button>
-      </div>
-      <div class="mt-4 text-center text-sm">
-        <router-link :to="{ name: 'login' }" class="underline">
-          Back to Login
-        </router-link>
-      </div>
+
+        <div class="mt-4 text-center text-sm">
+          <router-link
+            :to="{ name: 'login' }"
+            class="underline"
+            :tabindex="isSubmitting || success ? -1 : 0"
+          >
+            Back to Login
+          </router-link>
+        </div>
+      </form>
     </CardContent>
   </Card>
 </template>
