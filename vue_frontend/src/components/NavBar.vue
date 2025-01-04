@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { CircleUser, Menu, Search, Users } from 'lucide-vue-next'
 
 import { useAuthStore } from '@/stores/auth'
@@ -28,10 +28,10 @@ const menuItems = [
     label: 'Dashboard',
     name: 'dashboard',
   },
-  // {
-  //   label: 'About',
-  //   route: 'about',
-  // },
+  {
+    label: 'About',
+    route: 'about',
+  },
 ]
 const isSheetOpen = ref(false)
 </script>
@@ -62,14 +62,15 @@ const isSheetOpen = ref(false)
         </Button>
       </SheetTrigger>
       <SheetContent side="left">
-        <nav class="grid gap-6 text-lg font-medium">
-          <router-link
+        <SheetDescription className="hidden">Menu</SheetDescription>
+        <SheetTitle><router-link
             :to="{ name: 'home' }"
-            class="items-center text-xl font-semibold"
+            class="items-center text-2xl font-semibold"
             @click="isSheetOpen = false"
           >
             AWE
-          </router-link>
+          </router-link></SheetTitle>
+        <nav class="mt-6 grid gap-6 text-lg font-medium">
           <router-link v-for="item in menuItems" :key="item.label"
             :to="{ name: item.name }"
             class="text-muted-foreground hover:text-foreground"
