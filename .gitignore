@@ -285,3 +285,7 @@ awe_system_ui/media/
 .envs/*
 !.envs/.local/
 .envs/.local/.secrets
+
+# vue
+vue_frontend/dist/
+awe_system_ui/static/vue/

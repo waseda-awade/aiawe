@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
-
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
@@ -16,6 +16,17 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [tailwind(), autoprefixer()],
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve('./src/main.ts'),
+      },
+      output: {
+        dir: '../awe_system_ui/static/vue/',
+        entryFileNames: '[name].ts',
+      },
     },
   },
   plugins: [
