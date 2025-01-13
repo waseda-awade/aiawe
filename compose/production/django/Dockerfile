@@ -1,23 +1,27 @@
 
 
 FROM node:18-bullseye-slim as vite-builder
-# Get the IS_STAGING environment variable in the docker compose file
 ARG IS_STAGING="false"
-
 ARG APP_HOME=/app
-COPY . ${APP_HOME}
+
+# Copy only package files first to leverage Docker cache
+COPY ./vue_frontend/package*.json ${APP_HOME}/vue_frontend/
 WORKDIR ${APP_HOME}/vue_frontend
 
-COPY ./vue_frontend/package.json ${APP_HOME}/vue_frontend
-RUN npm install
+# Use cache mount to speed up npm install
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# Copy the rest of the application
+COPY . ${APP_HOME}
 
 # Conditional build based on IS_STAGING
 RUN if [ "$IS_STAGING" = "true" ]; then \
   cp ./envs/.staging/.env.staging ${APP_HOME}/vue_frontend/.env.staging; \
-  npm run build:staging && npm cache clean --force; \
+  npm run build:staging; \
     else \
   cp ./envs/.production/.env.production ${APP_HOME}/vue_frontend/.env.production; \
-  npm run build && npm cache clean --force; \
+  npm run build; \
     fi
 
 # define an alias for the specific python version used in this file.
