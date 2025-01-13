@@ -2,7 +2,13 @@ build-local:
 	docker compose -f docker-compose.local.yml build
 
 run-local:
-	docker compose -f docker-compose.local.yml up --force-recreate -d
+	docker compose -f docker-compose.local.yml up -d
+
+run-local-debug:
+	docker compose -f docker-compose.local.yml -f docker-compose.debug.yml up -d
+
+stop-local:
+	docker compose -f docker-compose.local.yml down
 
 restart-local:
 	docker compose -f docker-compose.local.yml down && docker compose -f docker-compose.local.yml up -d
