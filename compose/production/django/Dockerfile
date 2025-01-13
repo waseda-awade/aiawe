@@ -13,8 +13,10 @@ RUN npm install
 
 # Conditional build based on IS_STAGING
 RUN if [ "$IS_STAGING" = "true" ]; then \
+  cp ./envs/.staging/.env.staging ${APP_HOME}/vue_frontend/.env.staging; \
   npm run build:staging && npm cache clean --force; \
     else \
+  cp ./envs/.production/.env.production ${APP_HOME}/vue_frontend/.env.production; \
   npm run build && npm cache clean --force; \
     fi
 

@@ -18,7 +18,6 @@ services:
       - .:/app:z
     env_file:
       - ./.envs/.local/.django
-      - ./.envs/.local/.postgres
       - ./.envs/.local/.secrets
     ports:
       - '8000:8000'
@@ -34,7 +33,8 @@ services:
       - awe_system_ui_local_postgres_data:/var/lib/postgresql/data
       - awe_system_ui_local_postgres_data_backups:/backups
     env_file:
-      - ./.envs/.local/.postgres
+      - ./.envs/.local/.django
+      - ./.envs/.local/.secrets
 
   mailpit:
     image: docker.io/axllent/mailpit:latest

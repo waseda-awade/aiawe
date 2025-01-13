@@ -12,3 +12,4 @@ venv
 .envs/
 
 vue_frontend/node_modules/
+vue_frontend/.env.*
