@@ -19,15 +19,7 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
-      input: {
-        main: resolve('./src/main.ts'),
-      },
-      output: {
-        dir: '../awe_system_ui/static/vue/',
-        entryFileNames: '[name].ts',
-      },
-    },
+    outDir: '../awe_system_ui/static/vue/',
   },
   plugins: [
     vue(),
