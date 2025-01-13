@@ -55,6 +55,8 @@ urlpatterns += [
 ]
 
 if settings.DEBUG:
+    from .views import test_email
+
     # This allows the error pages to be debugged during development, just visit
     # these url in browser to see how these error pages look like.
     urlpatterns += [
@@ -74,6 +76,7 @@ if settings.DEBUG:
             kwargs={"exception": Exception("Page not Found")},
         ),
         path("500/", default_views.server_error),
+        path("send-email/<int:method>/<str:to>/", test_email),
     ]
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
