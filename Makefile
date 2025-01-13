@@ -1,20 +1,24 @@
-build-local:
-	docker compose -f docker-compose.local.yml build
+# Replace the % with the desired environment, e.g. `make run-local` for local environment
+# or `make run-production` for production environment
 
-run-local:
-	docker compose -f docker-compose.local.yml up -d
+build-%:
+	docker compose -f docker-compose.$*.yml build
+
+run-%:
+	docker compose -f docker-compose.$*.yml up -d
 
 run-local-debug:
 	docker compose -f docker-compose.local.yml -f docker-compose.debug.yml up -d
 
-stop-local:
-	docker compose -f docker-compose.local.yml down
+stop-%:
+	docker compose -f docker-compose.$*.yml down
 
-restart-local:
-	docker compose -f docker-compose.local.yml down && docker compose -f docker-compose.local.yml up -d
+restart-%:
+	docker compose -f docker-compose.$*.yml restart
 
-csu:
-	docker compose -f docker-compose.local.yml run --rm django python manage.py createsuperuser
+# Create a superuser
+csu-%:
+	docker compose -f docker-compose.$*.yml run --rm django python manage.py createsuperuser
 
 mm:
 	docker compose -f docker-compose.local.yml run --rm django python manage.py makemigrations
@@ -24,3 +28,6 @@ mi:
 
 pc:
 	pipenv run pre-commit run --all-files
+
+rm-static-vol:
+	docker volume rm awe_system_ui_production_django_static
