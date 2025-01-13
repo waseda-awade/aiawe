@@ -15,11 +15,14 @@ from .base import SPECTACULAR_SETTINGS
 from .base import env
 
 # GENERAL
+DEBUG = env("DJANGO_DEBUG", default=False)
+DOMAIN_NAME = env("DJANGO_DOMAIN_NAME", default="")
+
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[".awade.gec.waseda.ac.jp"])
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[DOMAIN_NAME])
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -87,7 +90,7 @@ STORAGES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    default="AWE <noreply@awade.gec.waseda.ac.jp>",
+    default=f"AWE <noreply@{DOMAIN_NAME}>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
@@ -180,7 +183,7 @@ sentry_sdk.init(
 # -------------------------------------------------------------------------------
 # Tools that generate code samples can use SERVERS to point to the correct domain
 SPECTACULAR_SETTINGS["SERVERS"] = [
-    {"url": "https://awade.gec.waseda.ac.jp", "description": "Production server"},
+    {"url": f"https://{DOMAIN_NAME}", "description": "Production server"},
 ]
 # Your stuff...
 # ------------------------------------------------------------------------------

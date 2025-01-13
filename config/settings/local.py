@@ -31,9 +31,10 @@ CACHES = {
 USE_THIRD_PARTY_EMAIL_SERVICE = env("USE_THIRD_PARTY_EMAIL_SERVICE", default=False)
 
 if USE_THIRD_PARTY_EMAIL_SERVICE:
+    DOMAIN_NAME = env("DJANGO_DOMAIN_NAME", default="")
     DEFAULT_FROM_EMAIL = env(
         "DJANGO_DEFAULT_FROM_EMAIL",
-        default="AWE <noreply@awade.gec.waseda.ac.jp>",
+        default=f"AWE <noreply@{DOMAIN_NAME}>",
     )
     # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
     SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
