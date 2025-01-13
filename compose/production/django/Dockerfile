@@ -1,14 +1,22 @@
 
 
 FROM node:18-bullseye-slim as vite-builder
+# Get the IS_STAGING environment variable in the docker compose file
+ARG IS_STAGING="false"
 
 ARG APP_HOME=/app
 COPY . ${APP_HOME}
 WORKDIR ${APP_HOME}/vue_frontend
 
-COPY ./vue_frontend/package.json ${APP_HOME}
+COPY ./vue_frontend/package.json ${APP_HOME}/vue_frontend
 RUN npm install
-RUN npm run build && npm cache clean --force
+
+# Conditional build based on IS_STAGING
+RUN if [ "$IS_STAGING" = "true" ]; then \
+  npm run build:staging && npm cache clean --force; \
+    else \
+  npm run build && npm cache clean --force; \
+    fi
 
 # define an alias for the specific python version used in this file.
 FROM docker.io/python:3.12.8-slim-bookworm AS python

@@ -1,0 +1,24 @@
+services:
+  django:
+    build:
+      args:
+      - IS_STAGING=true
+    env_file:
+      - ./.envs/.staging/.django
+
+  traefik:
+    build:
+      args:
+      - IS_STAGING=true
+
+  celeryworker:
+    env_file:
+      - ./.envs/.staging/.django
+
+  celerybeat:
+    env_file:
+      - ./.envs/.staging/.django
+
+  flower:
+    env_file:
+      - ./.envs/.staging/.django
