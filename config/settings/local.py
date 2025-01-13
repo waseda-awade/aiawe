@@ -28,10 +28,39 @@ CACHES = {
 
 # EMAIL
 # ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-host
-EMAIL_HOST = env("EMAIL_HOST", default="mailpit")
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-port
-EMAIL_PORT = 1025
+USE_THIRD_PARTY_EMAIL_SERVICE = env("USE_THIRD_PARTY_EMAIL_SERVICE", default=False)
+
+if USE_THIRD_PARTY_EMAIL_SERVICE:
+    DEFAULT_FROM_EMAIL = env(
+        "DJANGO_DEFAULT_FROM_EMAIL",
+        default="AWE <noreply@waseda.jp>",
+    )
+    # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
+    SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
+    # https://docs.djangoproject.com/en/dev/ref/settings/#email-subject-prefix
+    EMAIL_SUBJECT_PREFIX = env(
+        "DJANGO_EMAIL_SUBJECT_PREFIX",
+        default="[AWE] ",
+    )
+    ACCOUNT_EMAIL_SUBJECT_PREFIX = EMAIL_SUBJECT_PREFIX
+
+    # Anymail
+    # ------------------------------------------------------------------------------
+    # https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
+    INSTALLED_APPS += ["anymail"]
+    # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
+    # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
+    # https://anymail.readthedocs.io/en/stable/esps/mailjet/
+    EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
+    ANYMAIL = {
+        "MAILJET_API_KEY": env("MAILJET_API_KEY"),
+        "MAILJET_SECRET_KEY": env("MAILJET_SECRET_KEY"),
+    }
+else:
+    # https://docs.djangoproject.com/en/dev/ref/settings/#email-host
+    EMAIL_HOST = env("EMAIL_HOST", default="mailpit")
+    # https://docs.djangoproject.com/en/dev/ref/settings/#email-port
+    EMAIL_PORT = 1025
 
 # WhiteNoise
 # ------------------------------------------------------------------------------
