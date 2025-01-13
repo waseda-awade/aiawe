@@ -1,9 +1,9 @@
-.. AWE System UI documentation master file, created by
+.. AWE documentation master file, created by
    sphinx-quickstart.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to AWE System UI's documentation!
+Welcome to AWE's documentation!
 ======================================================================
 
 .. toctree::

@@ -363,8 +363,8 @@ CORS_ALLOW_CREDENTIALS = True
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "AWE System UI API",
-    "DESCRIPTION": "Documentation of API endpoints of AWE System UI",
+    "TITLE": "AWE API",
+    "DESCRIPTION": "Documentation of API endpoints of AWE",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SCHEMA_PATH_PREFIX": "/api/",

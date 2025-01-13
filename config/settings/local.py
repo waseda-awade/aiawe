@@ -33,7 +33,7 @@ USE_THIRD_PARTY_EMAIL_SERVICE = env("USE_THIRD_PARTY_EMAIL_SERVICE", default=Fal
 if USE_THIRD_PARTY_EMAIL_SERVICE:
     DEFAULT_FROM_EMAIL = env(
         "DJANGO_DEFAULT_FROM_EMAIL",
-        default="AWE <noreply@waseda.jp>",
+        default="AWE <noreply@awade.gec.waseda.ac.jp>",
     )
     # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
     SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)

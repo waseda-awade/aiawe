@@ -1,6 +1,6 @@
 # ruff: noqa
 """
-WSGI config for AWE System UI project.
+WSGI config for AWE project.
 
 This module contains the WSGI application used by Django's development server
 and any production WSGI deployments. It should expose a module-level variable
