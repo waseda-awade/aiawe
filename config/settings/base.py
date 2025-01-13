@@ -338,7 +338,7 @@ SOCIALACCOUNT_FORMS = {"signup": "awe_system_ui.users.forms.UserSocialSignupForm
 # dj-rest-auth
 # https://stackoverflow.com/a/78795012/1938012
 REST_AUTH = {
-    # 'LOGIN_SERIALIZER': 'awe_system_ui.users.api.serializers.UserSerializer',
+    "LOGIN_SERIALIZER": "awe_system_ui.users.api.serializers.CustomLoginSerializer",
     "TOKEN_SERIALIZER": "awe_system_ui.users.api.serializers.TokenSerializer",
     # Fix dj-rest-auth weird issue https://github.com/iMerica/dj-rest-auth/issues/494#issuecomment-2058652960
     "PASSWORD_RESET_USE_SITES_DOMAIN": True,
