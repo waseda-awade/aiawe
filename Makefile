@@ -27,7 +27,8 @@ stop-%:
 
 # Restart containers
 restart-%:
-	docker compose -f docker-compose.$*.yml restart
+	$(MAKE) stop-$*
+	$(MAKE) start-$*
 
 # Stop containers and remove all volumes
 rm-vol-%:
