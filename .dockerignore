@@ -7,9 +7,11 @@
 .pre-commit-config.yaml
 .readthedocs.yml
 .travis.yml
-venv
+.venv
 .git
-.envs/
+# .envs/
 
 vue_frontend/node_modules/
 vue_frontend/.env.*
+
+awe_system_ui/static/vue

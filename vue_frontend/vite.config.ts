@@ -18,9 +18,6 @@ export default defineConfig({
       plugins: [tailwind(), autoprefixer()],
     },
   },
-  build: {
-    outDir: '../awe_system_ui/static/vue/',
-  },
   plugins: [
     vue(),
     vueDevTools(),

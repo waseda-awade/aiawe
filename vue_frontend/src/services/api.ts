@@ -4,8 +4,7 @@ import Cookies from 'js-cookie';
 import { retry } from '@/lib/retry';
 
 const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL;
-
-console.log({ API_BASE_URL });
+console.log('api.ts initialization - API_BASE_URL:', { API_BASE_URL });
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,

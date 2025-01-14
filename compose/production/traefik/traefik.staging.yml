@@ -13,29 +13,19 @@ entryPoints:
   flower:
     address: ':5555'
 
-certificatesResolvers:
-  letsencrypt:
-    # https://doc.traefik.io/traefik/https/acme/#lets-encrypt
-    acme:
-      email: 'gayed@waseda.jp'
-      storage: /etc/traefik/acme/acme.json
-      # https://doc.traefik.io/traefik/https/acme/#httpchallenge
-      httpChallenge:
-        entryPoint: web
-
 http:
   routers:
     # Django API and Admin routes
     django-router:
-      rule: 'Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/static`) || PathPrefix(`/media`) || PathPrefix(`/send-email`))'
+      rule: 'Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/send-email`))'
       entryPoints:
         - web
       middlewares:
         - csrf
       service: django
 
-    # Vue frontend - catch all other routes
-    vue-router:
+    # Vue frontend, static and media - catch all other routes
+    nginx-router:
       rule: 'Host(`localhost`)'
       entryPoints:
         - web

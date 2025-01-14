@@ -1,29 +1,3 @@
-
-
-FROM node:18-bullseye-slim as vite-builder
-ARG IS_STAGING="false"
-ARG APP_HOME=/app
-
-# Copy only package files first to leverage Docker cache
-COPY ./vue_frontend/package*.json ${APP_HOME}/vue_frontend/
-WORKDIR ${APP_HOME}/vue_frontend
-
-# Use cache mount to speed up npm install
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
-
-# Copy the rest of the application
-COPY . ${APP_HOME}
-
-# Conditional build based on IS_STAGING
-RUN if [ "$IS_STAGING" = "true" ]; then \
-  cp ./envs/.staging/.env.staging ${APP_HOME}/vue_frontend/.env.staging; \
-  npm run build:staging; \
-    else \
-  cp ./envs/.production/.env.production ${APP_HOME}/vue_frontend/.env.production; \
-  npm run build; \
-    fi
-
 # define an alias for the specific python version used in this file.
 FROM docker.io/python:3.12.8-slim-bookworm AS python
 
@@ -110,10 +84,14 @@ RUN chmod +x /start-flower
 
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
-COPY --from=vite-builder --chown=django:django ${APP_HOME}/awe_system_ui/static/vue ${APP_HOME}/awe_system_ui/static/vue
 
 # make django owner of the WORKDIR directory as well.
 RUN chown -R django:django ${APP_HOME}
+
+# Create staticfiles directory with appropriate permissions
+RUN mkdir -p /app/staticfiles && \
+    chown -R django:django /app/staticfiles && \
+    chmod 755 /app/staticfiles
 
 USER django
 

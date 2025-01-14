@@ -4,9 +4,8 @@ volumes:
   production_traefik: {}
   production_django_media: {}
   production_django_static: {}
-
   production_redis_data: {}
-
+  production_vue_static: {}
 
 
 services:
@@ -18,7 +17,7 @@ services:
     image: awe_system_ui_production_django
     volumes:
       - production_django_media:/app/awe_system_ui/media
-      - production_django_static:/app/awe_system_ui/static
+      - production_django_static:/app/staticfiles
     depends_on:
       - postgres
       - redis
@@ -85,3 +84,12 @@ services:
     volumes:
       - production_django_media:/usr/share/nginx/media:ro
       - production_django_static:/usr/share/nginx/static:ro
+      - production_vue_static:/usr/share/nginx/html:ro
+
+  vite:
+    build:
+      context: .
+      dockerfile: ./compose/production/vite/Dockerfile
+    volumes:
+      - production_vue_static:/static
+    command: ["sh", "-c", "echo 'Build complete, files copied to shared volume'"]
