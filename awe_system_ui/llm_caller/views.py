@@ -67,7 +67,8 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             api_request.id,
             LLMModel.get_active_model().name,
             LLMConfig.get_active_config().temperature,
-            LLMConfig.get_active_config().prompt_template,
+            LLMConfig.get_active_config().system_prompt,
+            LLMConfig.get_active_config().user_prompt_template,
         )
         api_request.task_id = task.id
         api_request.save()

@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='llmconfig',
             name='prompt_template',
-            field=models.TextField(default='Evaluate the following essay and score it between 0 and 5:\n{essay}', help_text="Use '{essay}' (without the quote) as placeholder for user input", validators=[awe_system_ui.llm_caller.models.validate_prompt_template]),
+            field=models.TextField(default='Evaluate the following essay and score it between 0 and 5:\n{essay}', help_text="Use '{essay}' (without the quote) as placeholder for user input", validators=[awe_system_ui.llm_caller.models.validate_user_prompt_template]),
         ),
     ]

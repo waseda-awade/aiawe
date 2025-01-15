@@ -1,5 +1,6 @@
 import re
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
@@ -57,12 +58,20 @@ class APIRequest(models.Model):
 class LLMModel(models.Model):
     name = models.CharField(
         max_length=200,
-        help_text="The internal model name for calling the LLM API.",
+        help_text=(
+            "The model name for calling the LLM API (e.g., gpt-4o-2024-11-20)."
+            " Check <a href='https://platform.openai.com/docs/models#current-model-aliases'"
+            " target='_blank'>OpenAI model list</a>."
+        ),
     )
     display_name = models.CharField(
         max_length=200,
+        help_text="Display name for the model (e.g., GPT-4o)",
     )  # display name (e.g., "GPT-3.5 Turbo")
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(
+        default=False,
+        help_text="The most recently created active model will be used",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -93,7 +102,7 @@ class LLMModel(models.Model):
             )[0]
 
 
-def validate_prompt_template(value):
+def validate_user_prompt_template(value):
     # Count occurrences of {essay}
     essay_count = value.count("{essay}")
     if essay_count < 1:
@@ -116,13 +125,17 @@ def validate_prompt_template(value):
 
 
 class LLMConfig(models.Model):
-    prompt_template = models.TextField(
+    system_prompt = models.TextField(
+        help_text="The system prompt instructs the model to generate JSON format.",
+        default=settings.DEFAULT_SYSTEM_PROMPT,
+    )
+    user_prompt_template = models.TextField(
         help_text="Use '{essay}' (without the quote) as placeholder for user input",
-        default="Evaluate the following essay and score it between 0 and 5:\n{essay}",
-        validators=[validate_prompt_template],
+        default=settings.DEFAULT_USER_PROMPT_TEMPLATE,
+        validators=[validate_user_prompt_template],
     )
     temperature = models.FloatField(
-        default=0.1,
+        default=0,
         validators=[
             MinValueValidator(0.0),
             MaxValueValidator(2.0),
@@ -147,4 +160,4 @@ class LLMConfig(models.Model):
 
     def clean(self):
         # This ensures validation runs even when saving through admin
-        validate_prompt_template(self.prompt_template)
+        validate_user_prompt_template(self.user_prompt_template)

@@ -13,7 +13,13 @@ class EssayScore(BaseModel):
 
 
 @shared_task
-def process_openai_request(request_id, model_name, temperature, prompt_template):
+def process_openai_request(
+    request_id,
+    model_name,
+    temperature,
+    system_prompt,
+    user_prompt_template,
+):
     try:
         api_request = APIRequest.objects.get(id=request_id)
 
@@ -22,30 +28,34 @@ def process_openai_request(request_id, model_name, temperature, prompt_template)
             api_request.score = 4.0
             api_request.status = "COMPLETED"
             api_request.save()
-        else:
-            # Format prompt using template
-            formatted_prompt = prompt_template.format(essay=api_request.essay)
+            return
 
-            # Make request to OpenAI with configured settings
-            response = client.beta.chat.completions.parse(
-                model=model_name,
-                messages=[
-                    {"role": "user", "content": formatted_prompt},
-                ],
-                temperature=temperature,
-                response_format=EssayScore,
-            )
+        # Format prompt using the provided template
+        user_prompt = user_prompt_template.format(essay=api_request.essay)
 
-            # Store raw response
-            result = response.choices[0].message.content
-            api_request.result = result
+        response = openai.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+            response_format={"type": "json_object"},
+        )
 
-            # Store parsed result
-            parsed_result = response.choices[0].message.parsed
+        # Extract and parse response manually
+        result = response.choices[0].message.content
+        api_request.result = result
+        # Assuming the older models return JSON-like content that can be parsed
+        try:
+            parsed_result = EssayScore.model_validate_json(result)
             api_request.score = parsed_result.score
-            api_request.status = "COMPLETED"
+        except ValueError as e:
+            msg = "Failed to parse response from model"
+            raise ValueError(msg) from e
 
-            api_request.save()
+        api_request.status = "COMPLETED"
+        api_request.save()
 
     except (openai.OpenAIError, KeyError, ValueError) as e:
         api_request.status = "FAILED"

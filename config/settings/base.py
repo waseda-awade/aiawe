@@ -380,3 +380,31 @@ VUE_FRONTEND_USE_TYPESCRIPT = False
 # Your stuff...
 # ------------------------------------------------------------------------------
 FAKE_LLM_REQUEST = False
+
+# https://platform.openai.com/docs/guides/structured-outputs#supported-models
+OPENAI_JSON_SCHEMA_MODELS = [
+    "o1",
+    "o1-2024-12-17",
+    "gpt-4o-mini",
+    "gpt-4o-mini-2024-07-18",
+    "gpt-4o",
+    "gpt-4o-2024-08-06",
+    "gpt-4o-2024-11-20",
+]
+
+
+DEFAULT_SYSTEM_PROMPT = """You are an essay scoring assistant that always outputs JSON that matches this schema:
+class Response
+    score: float
+
+Requirements:
+- Score must be a float between 0 and 10
+- Output must be a valid JSON object with only a 'score' field
+- Example valid response: {"score": 8.5}
+
+Invalid responses:
+- {"score": "8.5"}  # score as string is invalid
+- {"score": 11}     # score > 10 is invalid
+- {"grade": 8.5}    # wrong field name"""
+
+DEFAULT_USER_PROMPT_TEMPLATE = "Please evalute the following essay:\n\n{essay}"

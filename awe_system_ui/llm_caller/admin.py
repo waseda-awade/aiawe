@@ -20,12 +20,17 @@ class APIRequestAdmin(admin.ModelAdmin):
 
 @admin.register(LLMModel)
 class LLMModelAdmin(admin.ModelAdmin):
-    list_display = ["display_name", "name", "is_active", "updated_at"]
+    list_display = ["display_name", "name", "is_active", "created_at", "updated_at"]
     list_filter = ["is_active"]
     search_fields = ["name", "display_name"]
 
 
 @admin.register(LLMConfig)
 class LLMConfigAdmin(admin.ModelAdmin):
-    list_display = ["prompt_template", "temperature", "updated_at"]
+    list_display = [
+        "system_prompt",
+        "user_prompt_template",
+        "temperature",
+        "updated_at",
+    ]
     list_filter = ["created_at"]
