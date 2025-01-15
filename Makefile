@@ -14,7 +14,7 @@ start-%:
 	docker compose -f docker-compose.$*.yml up -d
 
 # Run local environment with debug mode (will wait for debugger)
-run-local-debug:
+start-local-debug:
 	docker compose -f docker-compose.local.yml -f docker-compose.debug.yml up -d
 
 # Enter shell
