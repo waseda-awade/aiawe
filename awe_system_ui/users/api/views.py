@@ -8,11 +8,11 @@ from rest_framework.viewsets import GenericViewSet
 
 from awe_system_ui.users.models import User
 
-from .serializers import UserSerializer
+from .serializers import CustomUserDetailsSerializer
 
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
-    serializer_class = UserSerializer
+    serializer_class = CustomUserDetailsSerializer
     queryset = User.objects.all()
     lookup_field = "username"
 
@@ -22,5 +22,8 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
 
     @action(detail=False)
     def me(self, request):
-        serializer = UserSerializer(request.user, context={"request": request})
+        serializer = CustomUserDetailsSerializer(
+            request.user,
+            context={"request": request},
+        )
         return Response(status=status.HTTP_200_OK, data=serializer.data)

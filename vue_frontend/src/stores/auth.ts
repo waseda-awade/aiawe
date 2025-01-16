@@ -1,13 +1,7 @@
 import { defineStore } from 'pinia';
 import type { Router } from 'vue-router';
 import { AuthService } from '@/services/authService';
-
-interface AuthState {
-  user: any | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-}
+import type { AuthState } from '@/types/auth';
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => {
@@ -124,8 +118,8 @@ export const useAuthStore = defineStore('auth', {
       this.setError(null);
 
       try {
-        const userData = await AuthService.fetchUser();
-        this.user = userData;
+        const user = await AuthService.fetchUser();
+        this.user = user;
         this.isAuthenticated = true;
         this.saveState();
       } catch (error: any) {
