@@ -6,12 +6,14 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import APIRequest
 from .models import LLMConfig
 from .models import LLMModel
 from .models import QuotaConfig
 from .serializers import APIRequestSerializer
+from .serializers import LLMModelSerializer
 from .tasks import process_openai_request
 
 
@@ -65,7 +67,7 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         # Start async task with current configs
         task = process_openai_request.delay(
             api_request.id,
-            LLMModel.get_active_model().name,
+            api_request.model.name,  # Use the model name from the relationship
             LLMConfig.get_active_config().temperature,
             LLMConfig.get_active_config().system_prompt,
             LLMConfig.get_active_config().user_prompt_template,
@@ -74,3 +76,17 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         api_request.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ActiveModelsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        active_models = LLMModel.objects.filter(is_active=True)
+        if not active_models.exists():
+            # Return default model if no active models
+            default_model = LLMModel.get_active_model()
+            active_models = [default_model]
+
+        serializer = LLMModelSerializer(active_models, many=True)
+        return Response(serializer.data)

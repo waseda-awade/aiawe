@@ -13,16 +13,39 @@ class QuotaConfigAdmin(admin.ModelAdmin):
 
 @admin.register(APIRequest)
 class APIRequestAdmin(admin.ModelAdmin):
-    list_display = ["user", "status", "essay", "score", "created_at"]
-    list_filter = ["status", "user"]
+    list_display = [
+        "user",
+        "status",
+        "get_model_name",
+        "essay",
+        "score",
+        "created_at",
+    ]
+    list_filter = ["status", "user", "model"]
     search_fields = ["essay", "result"]
+
+    @admin.display(
+        description="Model",
+        ordering="model__display_name",
+    )
+    def get_model_name(self, obj):
+        return obj.model.display_name
 
 
 @admin.register(LLMModel)
 class LLMModelAdmin(admin.ModelAdmin):
-    list_display = ["display_name", "name", "is_active", "created_at", "updated_at"]
-    list_filter = ["is_active"]
+    list_display = [
+        "order",
+        "display_name",
+        "name",
+        "is_default",
+        "is_active",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = ["is_active", "is_default"]
     search_fields = ["name", "display_name"]
+    ordering = ["order"]
 
 
 @admin.register(LLMConfig)

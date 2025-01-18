@@ -6,31 +6,38 @@
     </CardHeader>
     <CardContent>
       <div class="space-y-4">
-        <FileUpload
-          accept=".docx,.doc"
-          :loading="isProcessing"
-          :disabled="isLoading"
-          @file-selected="handleFileSelected"
-        />
+
+        <Select v-model="selectedModel" :disabled="isProcessing || isPending">
+          <SelectTrigger>
+            <SelectValue placeholder="Select a model" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem
+                v-for="model in modelOptions"
+                :key="model.name"
+                :value="model.name"
+              >
+                {{ model.display_name }}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
+          @file-selected="handleFileSelected" />
 
         <div class="space-y-2">
-          <Textarea
-            v-model="content"
-            :rows="20"
-            placeholder="Enter your text here or upload a document..."
-            :disabled="isProcessing || isPending"
-            :class="{ 'border-destructive': isOverLimit }"
-          />
+          <Textarea v-model="content" :rows="20" placeholder="Enter your text here or upload a document..."
+            :disabled="isProcessing || isPending" :class="{ 'border-destructive': isOverLimit }" />
           <div class="flex justify-between items-center text-sm">
             <p class="text-muted-foreground" :class="{ invisible: !currentRequest }">
               Status:
-              <span
-                :class="{
-                  'text-yellow-500': isPending,
-                  'text-green-500': isCompleted,
-                  'text-red-500': isFailed,
-                }"
-              >
+              <span :class="{
+                'text-yellow-500': isPending,
+                'text-green-500': isCompleted,
+                'text-red-500': isFailed,
+              }">
                 {{ currentRequest?.status }}
               </span>
             </p>
@@ -51,27 +58,22 @@
 
         <p v-if="error" class="text-destructive text-sm">{{ error }}</p>
 
-        <Button
-          class="w-full"
-          @click="handleSubmit"
-          :disabled="isLoading || isProcessing || !content.trim() || isOverLimit || isPending"
-        >
+        <Button class="w-full" @click="handleSubmit"
+          :disabled="isLoading || isProcessing || !content.trim() || isOverLimit || isPending">
           <Loader2 v-if="isLoading || isPending" class="mr-2 h-4 w-4 animate-spin" />
           {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
         </Button>
       </div>
 
-      <router-link
-        :to="{ name: 'history' }"
-        class="text-sm text-muted-foreground hover:text-primary mt-2 block text-right underline"
-        >View History</router-link
-      >
+      <router-link :to="{ name: 'history' }"
+        class="text-sm text-muted-foreground hover:text-primary mt-2 block text-right underline">View
+        History</router-link>
     </CardContent>
   </Card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -82,6 +84,18 @@ import { useToast } from '@/components/ui/toast/use-toast'
 import { EssayService } from '@/services/essayService'
 import type { EssayRequest } from '@/types/essay'
 import { AxiosError } from 'axios'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { LLMModelService } from '@/services/llmModelService'
+import type { LLMModel } from '@/types/llm'
+
 const MAX_CHARS = 5000
 const content = ref('')
 const isLoading = ref(false)
@@ -98,6 +112,24 @@ const isFailed = computed(() => currentRequest.value?.status === 'FAILED')
 
 const currentRequest = ref<EssayRequest | null>(null)
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
+
+const selectedModel = ref('')
+const modelOptions = ref<LLMModel[]>([])
+
+onMounted(async () => {
+  try {
+    const models = await LLMModelService.getActiveModels()
+    modelOptions.value = models
+    const defaultModel = models.find(model => model.is_default)
+    selectedModel.value = defaultModel?.name || models[0]?.name || ''
+  } catch (err) {
+    console.error('Error fetching models:', err)
+    toast({
+      description: 'Failed to load available models',
+      variant: 'destructive',
+    })
+  }
+})
 
 const handleFileSelected = async (file: File) => {
   error.value = ''
@@ -184,7 +216,10 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    const response = await EssayService.submitEssay(content.value)
+    const response = await EssayService.submitEssay({
+      essay: content.value,
+      model_name: selectedModel.value
+    })
     currentRequest.value = response
 
     // Start polling for status
