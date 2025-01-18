@@ -19,6 +19,16 @@
                 :value="model.name"
               >
                 {{ model.display_name }}
+                <span
+                  v-if="model.daily_limit"
+                  :class="{
+                    'text-red-500': model.used_quota >= model.daily_limit,
+                    'text-muted-foreground': model.used_quota < model.daily_limit
+                  }"
+                  class="ml-2"
+                >
+                  ({{ model.used_quota }}/{{ model.daily_limit }})
+                </span>
               </SelectItem>
             </SelectGroup>
           </SelectContent>
@@ -116,19 +126,24 @@ const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 const selectedModel = ref('')
 const modelOptions = ref<LLMModel[]>([])
 
-onMounted(async () => {
+const updateModelQuotas = async () => {
   try {
     const models = await LLMModelService.getActiveModels()
     modelOptions.value = models
-    const defaultModel = models.find(model => model.is_default)
-    selectedModel.value = defaultModel?.name || models[0]?.name || ''
+    // Keep the same selected model but with updated quota
+    const updatedSelectedModel = models.find(model => model.name === selectedModel.value)
+    if (!updatedSelectedModel) {
+      // If current selected model is no longer available, select default or first
+      const defaultModel = models.find(model => model.is_default)
+      selectedModel.value = defaultModel?.name || models[0]?.name || ''
+    }
   } catch (err) {
-    console.error('Error fetching models:', err)
-    toast({
-      description: 'Failed to load available models',
-      variant: 'destructive',
-    })
+    console.error('Error updating models:', err)
   }
+}
+
+onMounted(async () => {
+  await updateModelQuotas()
 })
 
 const handleFileSelected = async (file: File) => {
@@ -221,6 +236,9 @@ const handleSubmit = async () => {
       model_name: selectedModel.value
     })
     currentRequest.value = response
+
+    // Update quotas after successful submission
+    await updateModelQuotas()
 
     // Start polling for status
     startPolling(response.id)

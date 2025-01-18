@@ -8,7 +8,8 @@ from .models import QuotaConfig
 
 @admin.register(QuotaConfig)
 class QuotaConfigAdmin(admin.ModelAdmin):
-    list_display = ["daily_limit", "created_at", "updated_at"]
+    list_display = ["model", "daily_limit", "created_at", "updated_at"]
+    list_filter = ["model"]
 
 
 @admin.register(APIRequest)

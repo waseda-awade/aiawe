@@ -1,6 +1,3 @@
-from datetime import timedelta
-
-from django.utils import timezone
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -15,6 +12,7 @@ from .models import QuotaConfig
 from .serializers import APIRequestSerializer
 from .serializers import LLMModelSerializer
 from .tasks import process_openai_request
+from .utils import get_today_date_range
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -34,40 +32,44 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         return queryset.order_by("-created_at")
 
     def create(self, request, *args, **kwargs):
-        # Check quota
-        today = timezone.now().date()
-        tomorrow = today + timedelta(days=1)
-        today_start = timezone.make_aware(
-            timezone.datetime.combine(today, timezone.datetime.min.time()),
-        )
-        today_end = timezone.make_aware(
-            timezone.datetime.combine(tomorrow, timezone.datetime.min.time()),
-        )
-
-        # Get current quota config, creating default if none exists
-        quota_config = QuotaConfig.get_default_quota()
-
-        # Count today's requests
-        today_requests = APIRequest.objects.filter(
-            user=request.user,
-            created_at__range=(today_start, today_end),
-        ).count()
-
-        if today_requests >= quota_config.daily_limit:
-            return Response(
-                {"error": "Daily quota exceeded"},
-                status=status.HTTP_429_TOO_MANY_REQUESTS,
-            )
-
-        # Create request
+        # Create request first to validate the model
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Get the model instance
+        model_name = serializer.validated_data["model_name"]
+        model = LLMModel.objects.get(name=model_name, is_active=True)
+
+        # Check quota for this specific model
+        today_start, today_end = get_today_date_range()
+
+        # Get quota config for this model - if it doesn't exist, treat as unlimited
+        try:
+            quota_config = QuotaConfig.objects.get(model=model)
+
+            # Count today's requests for this model
+            today_requests = APIRequest.objects.filter(
+                user=request.user,
+                model=model,
+                created_at__range=(today_start, today_end),
+            ).count()
+
+            if today_requests >= quota_config.daily_limit:
+                return Response(
+                    {"error": f"Daily quota exceeded for model {model.display_name}"},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+        except QuotaConfig.DoesNotExist:
+            # No quota config means unlimited requests
+            pass
+
+        # Create the request
         api_request = serializer.save(user=request.user)
 
-        # Start async task with current configs
+        # Start async task
         task = process_openai_request.delay(
             api_request.id,
-            api_request.model.name,  # Use the model name from the relationship
+            api_request.model.name,
             LLMConfig.get_active_config().temperature,
             LLMConfig.get_active_config().system_prompt,
             LLMConfig.get_active_config().user_prompt_template,
@@ -88,5 +90,9 @@ class ActiveModelsView(APIView):
             default_model = LLMModel.get_active_model()
             active_models = [default_model]
 
-        serializer = LLMModelSerializer(active_models, many=True)
+        serializer = LLMModelSerializer(
+            active_models,
+            many=True,
+            context={"request": request},
+        )
         return Response(serializer.data)

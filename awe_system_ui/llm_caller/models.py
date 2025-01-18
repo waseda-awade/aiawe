@@ -10,27 +10,6 @@ from django.db import models
 User = get_user_model()
 
 
-class QuotaConfig(models.Model):
-    daily_limit = models.IntegerField(default=10)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        get_latest_by = "created_at"
-
-    def __str__(self):
-        return f"QuotaConfig(daily_limit={self.daily_limit})"
-
-    @classmethod
-    def get_default_quota(cls):
-        try:
-            # First try to get the latest quota config
-            return cls.objects.latest()
-        except cls.DoesNotExist:
-            # If no quota exists, create a default one
-            return cls.objects.create(daily_limit=10)
-
-
 class LLMModel(models.Model):
     order = models.IntegerField(
         default=10,
@@ -86,6 +65,27 @@ class LLMModel(models.Model):
                     "is_default": True,
                 },
             )[0]
+
+
+class QuotaConfig(models.Model):
+    model = models.OneToOneField(
+        LLMModel,
+        on_delete=models.CASCADE,
+        related_name="quota_config",
+        help_text="The LLM model this quota applies to",
+    )
+    daily_limit = models.IntegerField(
+        default=10,
+        help_text="Maximum number of requests per day for this model",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        get_latest_by = "created_at"
+
+    def __str__(self):
+        return f"QuotaConfig({self.model.display_name}, limit={self.daily_limit})"
 
 
 class APIRequest(models.Model):

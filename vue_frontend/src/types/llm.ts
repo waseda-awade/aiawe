@@ -3,4 +3,6 @@ export interface LLMModel {
   is_default: boolean
   name: string
   display_name: string
+  used_quota: number
+  daily_limit: number
 }

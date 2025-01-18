@@ -2,12 +2,37 @@ from rest_framework import serializers
 
 from .models import APIRequest
 from .models import LLMModel
+from .utils import get_today_date_range
 
 
 class LLMModelSerializer(serializers.ModelSerializer):
+    used_quota = serializers.SerializerMethodField()
+    daily_limit = serializers.IntegerField(source="quota_config.daily_limit")
+
     class Meta:
         model = LLMModel
-        fields = ["order", "is_default", "name", "display_name"]
+        fields = [
+            "order",
+            "is_default",
+            "name",
+            "display_name",
+            "used_quota",
+            "daily_limit",
+        ]
+
+    def get_used_quota(self, obj):
+        try:
+            user = self.context["request"].user
+        except (KeyError, AttributeError):
+            return 0
+
+        today_start, today_end = get_today_date_range()
+
+        return APIRequest.objects.filter(
+            user=user,
+            model=obj,
+            created_at__range=(today_start, today_end),
+        ).count()
 
 
 class APIRequestSerializer(serializers.ModelSerializer):
