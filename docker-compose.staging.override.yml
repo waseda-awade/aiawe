@@ -41,7 +41,7 @@ services:
       args:
       - IS_STAGING=true
 
-  vite:
+  nginx:
     build:
       args:
       - IS_STAGING=true
