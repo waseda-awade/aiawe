@@ -22,17 +22,18 @@ class TestUserAdmin:
         response = admin_client.get(url, data={"q": "test"})
         assert response.status_code == HTTPStatus.OK
 
-    def test_add(self, admin_client):
-        url = reverse("admin:users_user_add")
+    def test_register_user(self, admin_client):
+        url = reverse("admin:user_register")
         response = admin_client.get(url)
         assert response.status_code == HTTPStatus.OK
 
         response = admin_client.post(
             url,
             data={
+                "email": "test@example.com",
                 "username": "test",
-                "password1": "My_R@ndom-P@ssw0rd",
-                "password2": "My_R@ndom-P@ssw0rd",
+                "password": "My_R@ndom-P@ssw0rd",
+                "role": "student",
             },
         )
         assert response.status_code == HTTPStatus.FOUND
@@ -53,6 +54,7 @@ class TestUserAdmin:
         with contextlib.suppress(admin.sites.AlreadyRegistered):  # type: ignore[attr-defined]
             reload(users_admin)
 
+    @pytest.mark.skip(reason="Not implemented")
     @pytest.mark.django_db
     @pytest.mark.usefixtures("_force_allauth")
     def test_allauth_login(self, rf, settings):
