@@ -19,7 +19,6 @@ const router = useRouter()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const username = computed(() => authStore.user?.username || '')
-const isAdmin = computed(() => authStore.user?.isAdmin || false)
 const logout = () => {
   authStore.logout(router)
 }
