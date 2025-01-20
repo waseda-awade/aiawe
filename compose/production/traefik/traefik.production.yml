@@ -31,7 +31,7 @@ certificatesResolvers:
 http:
   routers:
     web-secure-router:
-      rule: 'Host(`awade.gec.waseda.ac.jp`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/static`) || PathPrefix(`/media`))'
+      rule: 'Host(`app.gec.awade.waseda.ac.jp`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/static`) || PathPrefix(`/media`))'
       entryPoints:
         - web-secure
       middlewares:
@@ -43,14 +43,14 @@ http:
 
     # Vue frontend - catch all other routes
     vue-router:
-      rule: 'Host(`awade.gec.waseda.ac.jp`)'
+      rule: 'Host(`app.gec.awade.waseda.ac.jp`)'
       entryPoints:
         - web
       service: nginx
       priority: 1  # Lower priority means this route is checked last
 
     flower-secure-router:
-      rule: 'Host(`awade.gec.waseda.ac.jp`)'
+      rule: 'Host(`app.gec.awade.waseda.ac.jp`)'
       entryPoints:
         - flower
       service: flower
