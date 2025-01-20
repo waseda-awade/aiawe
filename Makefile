@@ -46,6 +46,9 @@ mm:
 migrate-%:
 	docker compose -f docker-compose.$*.yml run --rm django python manage.py migrate
 
+pytest:
+	docker compose -f docker-compose.local.yml run django pytest
+
 # Pre-commit
 pc:
 	pipenv run pre-commit run --all-files
