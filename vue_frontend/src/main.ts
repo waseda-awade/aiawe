@@ -7,6 +7,10 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/stores/auth'
 
+// Add version from package.json
+const version = __APP_VERSION__
+console.log(`AWE Version: ${version}`)
+
 const app = createApp(App)
 
 app.use(createPinia())

@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import autoprefixer from 'autoprefixer'
 import tailwind from 'tailwindcss'
+import pkg from './package.json'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -27,4 +28,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version)
+  }
 })
