@@ -31,7 +31,7 @@ certificatesResolvers:
 http:
   routers:
     web-secure-router:
-      rule: 'Host(`app.gec.awade.waseda.ac.jp`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/static`) || PathPrefix(`/media`))'
+      rule: 'Host(`app.gec.awade.waseda.ac.jp`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))'
       entryPoints:
         - web-secure
       middlewares:
@@ -41,8 +41,8 @@ http:
         # https://doc.traefik.io/traefik/routing/routers/#certresolver
         certResolver: letsencrypt
 
-    # Vue frontend - catch all other routes
-    vue-router:
+    # Vue frontend, static and media - catch all other routes
+    nginx-router:
       rule: 'Host(`app.gec.awade.waseda.ac.jp`)'
       entryPoints:
         - web
