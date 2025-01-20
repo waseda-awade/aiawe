@@ -84,12 +84,7 @@ class ActiveModelsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        active_models = LLMModel.objects.filter(is_active=True)
-        if not active_models.exists():
-            # Return default model if no active models
-            default_model = LLMModel.get_active_model()
-            active_models = [default_model]
-
+        active_models = LLMModel.get_active_models()
         serializer = LLMModelSerializer(
             active_models,
             many=True,

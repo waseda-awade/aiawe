@@ -52,19 +52,8 @@ class LLMModel(models.Model):
         super().save(*args, **kwargs)
 
     @classmethod
-    def get_active_model(cls):
-        try:
-            return cls.objects.get(is_active=True)
-        except cls.DoesNotExist:
-            # Get or create a default model
-            return cls.objects.get_or_create(
-                name="gpt-3.5-turbo",
-                defaults={
-                    "display_name": "GPT-3.5 Turbo",
-                    "is_active": True,
-                    "is_default": True,
-                },
-            )[0]
+    def get_active_models(cls):
+        return cls.objects.filter(is_active=True)
 
 
 class QuotaConfig(models.Model):
