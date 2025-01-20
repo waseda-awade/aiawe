@@ -37,8 +37,8 @@ class APIRequestAdmin(admin.ModelAdmin):
 class LLMModelAdmin(admin.ModelAdmin):
     list_display = [
         "order",
-        "display_name",
         "name",
+        "display_name",
         "is_default",
         "is_active",
         "created_at",

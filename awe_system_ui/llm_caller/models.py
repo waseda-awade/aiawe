@@ -15,10 +15,6 @@ class LLMModel(models.Model):
         default=10,
         help_text="Order of the model in the UI (smaller number comes first)",
     )
-    is_default = models.BooleanField(
-        default=False,
-        help_text="This model will be pre-selected in the UI",
-    )
     name = models.CharField(
         max_length=200,
         help_text=(
@@ -30,7 +26,11 @@ class LLMModel(models.Model):
     display_name = models.CharField(
         max_length=200,
         help_text="Display name for the model (e.g., GPT-4o)",
-    )  # display name (e.g., "GPT-3.5 Turbo")
+    )
+    is_default = models.BooleanField(
+        default=False,
+        help_text="This model will be pre-selected in the UI",
+    )
     is_active = models.BooleanField(
         default=True,
         help_text="Only active models will be listed in the UI",
