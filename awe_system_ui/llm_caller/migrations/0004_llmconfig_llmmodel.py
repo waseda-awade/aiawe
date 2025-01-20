@@ -3,23 +3,6 @@
 import django.core.validators
 from django.db import migrations, models
 
-def create_default_llm_configs(apps, schema_editor):
-    LLMModel = apps.get_model('llm_caller', 'LLMModel')
-    LLMConfig = apps.get_model('llm_caller', 'LLMConfig')
-
-    # Create default model
-    LLMModel.objects.create(
-        name="gpt-3.5-turbo",
-        display_name="GPT-3.5 Turbo",
-        is_active=True
-    )
-
-    # Create default config
-    LLMConfig.objects.create(
-        prompt_template="Please help evalute the following essay between 0 - 5:\n{essay}",
-        temperature=0.7
-    )
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -54,5 +37,4 @@ class Migration(migrations.Migration):
                 'get_latest_by': 'created_at',
             },
         ),
-        migrations.RunPython(create_default_llm_configs),
     ]
