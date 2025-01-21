@@ -1,9 +1,13 @@
+import logging
+
 import openai
 from celery import shared_task
 from django.conf import settings
 from pydantic import BaseModel
 
 from .models import APIRequest
+
+logger = logging.getLogger(__name__)
 
 client = openai.OpenAI()
 
@@ -21,7 +25,12 @@ def process_openai_request(
     user_prompt_template,
 ):
     try:
-        api_request = APIRequest.objects.get(id=request_id)
+        try:
+            api_request = APIRequest.objects.get(id=request_id)
+        except APIRequest.DoesNotExist:
+            msg = f"APIRequest with id {request_id} not found"
+            logger.exception(msg)
+            return
 
         if settings.FAKE_LLM_REQUEST:
             api_request.result = '{"score": 4.0}'

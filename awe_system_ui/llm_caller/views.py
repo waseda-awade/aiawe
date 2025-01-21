@@ -63,8 +63,9 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             # No quota config means unlimited requests
             pass
 
-        # Create the request
+        # Create and save the request first
         api_request = serializer.save(user=request.user)
+        api_request.save()  # Ensure it's saved to the database
 
         # Start async task
         task = process_openai_request.delay(
@@ -74,6 +75,8 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             LLMConfig.get_active_config().system_prompt,
             LLMConfig.get_active_config().user_prompt_template,
         )
+
+        # Update task_id in a separate transaction
         api_request.task_id = task.id
         api_request.save()
 
