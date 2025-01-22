@@ -265,6 +265,8 @@ const startPolling = (requestId: number) => {
 const handleSubmit = form.handleSubmit(async (values) => {
   generalError.value = ''
   isLoading.value = true
+
+  currentRequest.value = null
   try {
     const response = await EssayService.submitEssay({
       essay: values.essay,
