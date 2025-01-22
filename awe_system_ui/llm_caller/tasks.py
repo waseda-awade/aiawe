@@ -1,4 +1,6 @@
 import logging
+import time
+from dataclasses import dataclass
 
 import openai
 from celery import shared_task
@@ -16,19 +18,32 @@ class EssayScore(BaseModel):
     score: float
 
 
+@dataclass
+class LLMRequestParams:
+    request_id: int
+    model_name: str
+    temperature: float
+    system_prompt: str
+    user_prompt_template: str
+
+
 @shared_task
 def process_openai_request(
-    request_id,
-    model_name,
-    temperature,
-    system_prompt,
-    user_prompt_template,
+    request_params_dict: dict,
+    delay_seconds=0,
 ):
+    # Convert dict back to dataclass
+    request_params = LLMRequestParams(**request_params_dict)
+
+    if delay_seconds > 0:
+        msg = f"Delaying LLM request by {delay_seconds} seconds"
+        logger.info(msg)
+        time.sleep(delay_seconds)
     try:
         try:
-            api_request = APIRequest.objects.get(id=request_id)
+            api_request = APIRequest.objects.get(id=request_params.request_id)
         except APIRequest.DoesNotExist:
-            msg = f"APIRequest with id {request_id} not found"
+            msg = f"APIRequest with id {request_params.request_id} not found"
             logger.exception(msg)
             return
 
@@ -40,15 +55,17 @@ def process_openai_request(
             return
 
         # Format prompt using the provided template
-        user_prompt = user_prompt_template.format(essay=api_request.essay)
+        user_prompt = request_params.user_prompt_template.format(
+            essay=api_request.essay,
+        )
 
         response = openai.chat.completions.create(
-            model=model_name,
+            model=request_params.model_name,
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": request_params.system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=temperature,
+            temperature=request_params.temperature,
             response_format={"type": "json_object"},
         )
 

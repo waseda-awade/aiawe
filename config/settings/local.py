@@ -123,3 +123,6 @@ VUE_FRONTEND_USE_DEV_SERVER = True
 DEBUG_API_DELAY = 0
 DEBUG_API_ENDPOINTS_TO_DELAY = ["/api/requests"]
 MIDDLEWARE += ["config.delay_middleware.DelayMiddleware"]
+
+# Add artificial delay to shared tasks (in seconds)
+TASK_DELAY = 0

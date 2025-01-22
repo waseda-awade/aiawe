@@ -1,3 +1,6 @@
+from dataclasses import asdict
+
+from django.conf import settings
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -11,6 +14,7 @@ from .models import LLMModel
 from .models import QuotaConfig
 from .serializers import APIRequestSerializer
 from .serializers import LLMModelSerializer
+from .tasks import LLMRequestParams
 from .tasks import process_openai_request
 from .utils import get_today_date_range
 
@@ -75,13 +79,18 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         api_request = serializer.save(user=request.user)
         api_request.save()  # Ensure it's saved to the database
 
-        # Start async task
+        llm_params = LLMRequestParams(
+            request_id=api_request.id,
+            model_name=api_request.model.name,
+            temperature=LLMConfig.get_active_config().temperature,
+            system_prompt=LLMConfig.get_active_config().system_prompt,
+            user_prompt_template=LLMConfig.get_active_config().user_prompt_template,
+        )
+
+        # Start async task with configurable delay
         task = process_openai_request.delay(
-            api_request.id,
-            api_request.model.name,
-            LLMConfig.get_active_config().temperature,
-            LLMConfig.get_active_config().system_prompt,
-            LLMConfig.get_active_config().user_prompt_template,
+            asdict(llm_params),
+            delay_seconds=getattr(settings, "TASK_DELAY", 0),
         )
 
         # Update task_id in a separate transaction
