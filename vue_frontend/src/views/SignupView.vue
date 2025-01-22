@@ -40,15 +40,11 @@ const onSubmit = form.handleSubmit(async (values) => {
     generalError.value = null
     await authStore.signup(values.email, values.password, values.courseId, router)
   } catch (err: any) {
-    console.error('Signup failed:', err)
-    if (err.code === 'NETWORK_ERROR') {
-      generalError.value = 'Network error. Please try again.'
-    } else if (err.field === 'email') {
-      form.setFieldError('email', err.message)
-    } else if (err.field === 'password') {
-      form.setFieldError('password', err.message)
-    } else {
-      generalError.value = err.message || 'Signup failed. Please try again.'
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError
     }
   }
 })

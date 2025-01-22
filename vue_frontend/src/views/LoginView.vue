@@ -38,22 +38,21 @@ const generalError = ref<string | null>(null);
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
-    generalError.value = null; // Clear any previous errors
+    generalError.value = null;
     await authStore.login(values.email, values.password);
 
     if (authStore.isAuthenticated) {
-      // Get the redirect path from query or default to dashboard
       const redirectPath = typeof route.query.redirect === 'string'
         ? route.query.redirect
         : { name: 'dashboard' };
       router.push(redirectPath);
     }
   } catch (err: any) {
-    console.error('Login failed:', err);
-    if (err.code === 'NETWORK_ERROR') {
-      generalError.value = 'Network error. Please try again.';
-    } else {
-      generalError.value = 'Login failed. Please check your credentials.';
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError;
     }
   }
 });

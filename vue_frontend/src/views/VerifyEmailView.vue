@@ -66,7 +66,12 @@ const handleSubmit = form.handleSubmit(async (values) => {
       generalError.value = 'Email verification failed.';
     }
   } catch (err: any) {
-    generalError.value = 'An error occurred during email verification, please try again.';
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError
+    }
   } finally {
     isSubmitting.value = false;
   }

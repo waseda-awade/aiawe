@@ -85,7 +85,7 @@ import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { AuthService, isAuthError } from '@/services/authService'
+import { AuthService } from '@/services/authService'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -125,17 +125,12 @@ const handleSubmit = form.handleSubmit(async (values) => {
       title: 'Success',
       description: 'Your password has been changed successfully.',
     })
-  } catch (err) {
-    if (isAuthError(err)) {
-      if (err.field === 'old_password') {
-        form.setFieldError('currentPassword', 'Current password is incorrect.')
-      } else if (err.field === 'new_password') {
-        form.setFieldError('newPassword', err.message)
-      } else {
-        generalError.value = err.message || 'Failed to change password. Please try again.'
-      }
-    } else {
-      generalError.value = 'Unknown error. Please try again.'
+  } catch (err: any) {
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError
     }
   } finally {
     isSubmitting.value = false

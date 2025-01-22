@@ -61,7 +61,11 @@ class APIRequestViewSet(viewsets.ModelViewSet):
 
             if today_requests >= quota_config.daily_limit:
                 return Response(
-                    {"error": f"Daily quota exceeded for model {model.display_name}"},
+                    {
+                        "non_field_errors": [
+                            f"Daily quota exceeded for model {model.display_name}",
+                        ],
+                    },
                     status=status.HTTP_429_TOO_MANY_REQUESTS,
                 )
         except QuotaConfig.DoesNotExist:

@@ -92,10 +92,11 @@ const handleSubmit = form.handleSubmit(async (values) => {
     await AuthService.passwordReset(values.email)
     router.push({ name: 'password-reset-sent' })
   } catch (err: any) {
-    if (err.field === 'email') {
-      form.setFieldError('email', err.message)
-    } else {
-      generalError.value = 'Failed to send reset email. Please try again.'
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError
     }
   } finally {
     isSubmitting.value = false

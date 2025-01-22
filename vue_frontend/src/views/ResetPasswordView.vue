@@ -113,17 +113,12 @@ const handleSubmit = form.handleSubmit(async (values) => {
     setTimeout(() => {
       router.push({ name: 'login' })
     }, 3000)
-  } catch (err) {
-    if (isAuthError(err)) {
-      if (err.field === 'token') {
-        generalError.value = 'Invalid token. Please request a new password reset.'
-      } else if (err.field === 'password') {
-        form.setFieldError('password', err.message)
-      } else {
-        generalError.value = 'Failed to reset password. Please try again.'
-      }
-    } else {
-      generalError.value = 'Unknown error. Please try again.'
+  } catch (err: any) {
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError
     }
   } finally {
     isSubmitting.value = false
