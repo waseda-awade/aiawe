@@ -38,7 +38,12 @@ class APIRequestViewSet(viewsets.ModelViewSet):
 
         # Get the model instance
         model_name = serializer.validated_data["model_name"]
-        model = LLMModel.objects.get(name=model_name, is_active=True)
+        model = LLMModel.objects.filter(name=model_name, is_active=True).first()
+        if not model:
+            return Response(
+                {"model_name": f"Model not found: {model_name}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Check quota for this specific model
         today_start, today_end = get_today_date_range()
