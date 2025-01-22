@@ -22,7 +22,7 @@ export const signupFormSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   confirmPassword: z.string().min(1, 'Please confirm your password'),
-  courseId: z.union([
+  course_id: z.union([
     z.string().transform((val) => {
       // Convert empty string to undefined
       if (val === '') return undefined;

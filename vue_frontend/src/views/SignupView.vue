@@ -31,14 +31,14 @@ const form = useForm({
     email: '',
     password: '',
     confirmPassword: '',
-    courseId: undefined as number | undefined,
+    course_id: undefined as number | undefined,
   },
 })
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
     generalError.value = null
-    await authStore.signup(values.email, values.password, values.courseId, router)
+    await authStore.signup(values.email, values.password, values.course_id, router)
   } catch (err: any) {
     if (err.fieldErrors) {
       form.setErrors(err.fieldErrors)
@@ -114,7 +114,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <FormField
           v-slot="{ componentField }"
-          name="courseId"
+          name="course_id"
         >
           <FormItem>
             <FormLabel>Course ID (Optional)</FormLabel>
