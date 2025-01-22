@@ -31,13 +31,14 @@ const form = useForm({
     email: '',
     password: '',
     confirmPassword: '',
+    courseId: undefined as number | undefined,
   },
 })
 
 const onSubmit = form.handleSubmit(async (values) => {
   try {
     generalError.value = null
-    await authStore.signup(values.email, values.password, router)
+    await authStore.signup(values.email, values.password, values.courseId, router)
   } catch (err: any) {
     console.error('Signup failed:', err)
     if (err.code === 'NETWORK_ERROR') {
@@ -108,6 +109,26 @@ const onSubmit = form.handleSubmit(async (values) => {
                 v-bind="componentField"
                 type="password"
                 placeholder="Confirm your password"
+                :disabled="loading"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <FormField
+          v-slot="{ componentField }"
+          name="courseId"
+        >
+          <FormItem>
+            <FormLabel>Course ID (Optional)</FormLabel>
+            <!-- https://stackoverflow.com/a/75872055/1938012 -->
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                type="number"
+                class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder="Enter your Course ID if instructed by your teacher"
                 :disabled="loading"
               />
             </FormControl>

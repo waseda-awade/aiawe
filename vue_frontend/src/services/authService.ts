@@ -88,12 +88,13 @@ export class AuthService {
     }
   }
 
-  public static async signup(email: string, password: string): Promise<void> {
+  public static async signup(email: string, password: string, courseId?: number): Promise<void> {
     try {
       await api.post('/dj-rest-auth/registration/', {
         email,
         password1: password,
         password2: password,
+        course_id: courseId,
       })
     } catch (error) {
       throw this.handleError(error as AxiosError<ApiErrorResponse>)

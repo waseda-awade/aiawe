@@ -1,7 +1,19 @@
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+
+class Course(models.Model):
+    course_id = models.IntegerField(primary_key=True)
+    course_name = models.CharField(max_length=200)
+
+    class Meta:
+        ordering = ["course_id"]
+
+    def __str__(self):
+        return f"{self.course_id}: {self.course_name}"
 
 
 class User(AbstractUser):
@@ -16,6 +28,14 @@ class User(AbstractUser):
         ("student", "Student"),
     )
     role = CharField(max_length=20, choices=ROLE_CHOICES, default="student")
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="The course this student belongs to",
+    )
 
     def is_admin(self):
         return self.role == "admin"
