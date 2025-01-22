@@ -5,57 +5,79 @@
       <CardDescription> Enter your text directly or upload a Word document </CardDescription>
     </CardHeader>
     <CardContent>
-      <div class="space-y-4">
-
-        <Select v-model="selectedModel" :disabled="isProcessing || isPending">
-          <SelectTrigger>
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem
-                v-for="model in modelOptions"
-                :key="model.name"
-                :value="model.name"
-              >
-                {{ model.display_name }}
-                <span
-                  v-if="model.daily_limit"
-                  :class="{
-                    'text-red-500': model.used_quota >= model.daily_limit,
-                    'text-muted-foreground': model.used_quota < model.daily_limit
-                  }"
-                  class="ml-2"
-                >
-                  ({{ model.used_quota }}/{{ model.daily_limit }})
-                </span>
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      <form @submit="handleSubmit" class="space-y-4">
+        <FormField
+          v-slot="{ componentField }"
+          name="model_name"
+        >
+          <FormItem>
+            <Select
+              v-bind="componentField"
+              :disabled="isProcessing || isPending"
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem
+                    v-for="model in modelOptions"
+                    :key="model.name"
+                    :value="model.name"
+                  >
+                    {{ model.display_name }}
+                    <span
+                      v-if="model.daily_limit"
+                      :class="{
+                        'text-red-500': model.used_quota >= model.daily_limit,
+                        'text-muted-foreground': model.used_quota < model.daily_limit
+                      }"
+                      class="ml-2"
+                    >
+                      ({{ model.used_quota }}/{{ model.daily_limit }})
+                    </span>
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
         <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
           @file-selected="handleFileSelected" />
 
-        <div class="space-y-2">
-          <Textarea v-model="content" :rows="20" placeholder="Enter your text here or upload a document..."
-            :disabled="isProcessing || isPending" :class="{ 'border-destructive': isOverLimit }" />
-          <div class="flex justify-between items-center text-sm">
-            <p class="text-muted-foreground" :class="{ invisible: !currentRequest }">
-              Status:
-              <span :class="{
-                'text-yellow-500': isPending,
-                'text-green-500': isCompleted,
-                'text-red-500': isFailed,
-              }">
-                {{ currentRequest?.status }}
-              </span>
-            </p>
-            <p class="text-muted-foreground" :class="{ 'text-destructive': isOverLimit }">
-              {{ charCount }}/{{ MAX_CHARS }}
-            </p>
-          </div>
-        </div>
+        <FormField
+          v-slot="{ componentField }"
+          name="essay"
+        >
+          <FormItem>
+            <FormControl>
+              <Textarea
+                v-bind="componentField"
+                :rows="20"
+                placeholder="Enter your text here or upload a document..."
+                :disabled="isProcessing || isPending"
+              />
+            </FormControl>
+            <FormMessage />
+            <div class="flex justify-between items-center text-sm">
+              <p class="text-muted-foreground" :class="{ invisible: !currentRequest }">
+                Status:
+                <span :class="{
+                  'text-yellow-500': isPending,
+                  'text-green-500': isCompleted,
+                  'text-red-500': isFailed,
+                }">
+                  {{ currentRequest?.status }}
+                </span>
+              </p>
+              <p class="text-muted-foreground" :class="{ 'text-destructive': isOverLimit }">
+                {{ charCount }}/{{ MAX_CHARS }}
+              </p>
+            </div>
+          </FormItem>
+        </FormField>
 
         <div v-if="currentRequest">
           <p v-if="isCompleted" class="text-4xl font-semibold text-green-600 mt-2">
@@ -66,18 +88,21 @@
           </p>
         </div>
 
-        <p v-if="error" class="text-destructive text-sm">{{ error }}</p>
+        <p v-if="generalError" class="text-destructive text-sm">{{ generalError }}</p>
 
-        <Button class="w-full" @click="handleSubmit"
-          :disabled="isLoading || isProcessing || !content.trim() || isOverLimit || isPending">
+        <Button
+          type="submit"
+          class="w-full"
+          :disabled="isLoading || isProcessing || isPending || !form.meta.value.valid"
+        >
           <Loader2 v-if="isLoading || isPending" class="mr-2 h-4 w-4 animate-spin" />
           {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
         </Button>
-      </div>
 
-      <router-link :to="{ name: 'history' }"
-        class="text-sm text-muted-foreground hover:text-primary mt-2 block text-right underline">View
-        History</router-link>
+        <router-link :to="{ name: 'history' }"
+          class="text-sm text-muted-foreground hover:text-primary mt-2 block text-right underline">View
+          History</router-link>
+      </form>
     </CardContent>
   </Card>
 </template>
@@ -105,16 +130,33 @@ import {
 } from '@/components/ui/select'
 import { LLMModelService } from '@/services/llmModelService'
 import type { LLMModel } from '@/types/llm'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { essayFormSchema, MAX_CHARS } from '@/lib/validations'
 
-const MAX_CHARS = 5000
-const content = ref('')
-const isLoading = ref(false)
-const error = ref('')
+const form = useForm({
+  validationSchema: toTypedSchema(essayFormSchema),
+  initialValues: {
+    essay: '',
+    model_name: '',
+  },
+})
 
 const { toast } = useToast()
 const { processDocument, isProcessing } = useDocumentProcessor()
 
-const charCount = computed(() => content.value.length)
+const generalError = ref('')
+const isLoading = ref(false)
+const charCount = computed(() => form.values.essay.length)
 const isOverLimit = computed(() => charCount.value > MAX_CHARS)
 const isPending = computed(() => currentRequest.value?.status === 'PENDING')
 const isCompleted = computed(() => currentRequest.value?.status === 'COMPLETED')
@@ -136,6 +178,7 @@ const updateModelQuotas = async () => {
       // If current selected model is no longer available, select default or first
       const defaultModel = models.find(model => model.is_default)
       selectedModel.value = defaultModel?.name || models[0]?.name || ''
+      form.setFieldValue('model_name', selectedModel.value)
     }
   } catch (err) {
     console.error('Error updating models:', err)
@@ -147,7 +190,8 @@ onMounted(async () => {
 })
 
 const handleFileSelected = async (file: File) => {
-  error.value = ''
+  generalError.value = ''
+  isLoading.value = true
 
   try {
     const text = await processDocument(file)
@@ -156,9 +200,9 @@ const handleFileSelected = async (file: File) => {
         description: `The uploaded document exceeds ${MAX_CHARS} characters. Only the first ${MAX_CHARS} characters will be used.`,
         variant: 'destructive',
       })
-      content.value = text.slice(0, MAX_CHARS)
+      form.setFieldValue('essay', text.slice(0, MAX_CHARS))
     } else {
-      content.value = text
+      form.setFieldValue('essay', text)
     }
   } catch (err) {
     toast({
@@ -166,6 +210,8 @@ const handleFileSelected = async (file: File) => {
       variant: 'destructive',
     })
     console.error('Error processing document:', err)
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -216,24 +262,13 @@ const startPolling = (requestId: number) => {
   }, 3000) // Poll every 3 seconds
 }
 
-const handleSubmit = async () => {
-  if (!content.value.trim()) {
-    error.value = 'Please enter some text before submitting.'
-    return
-  }
-
-  if (isOverLimit.value) {
-    error.value = `Text exceeds maximum length of ${MAX_CHARS} characters.`
-    return
-  }
-
+const handleSubmit = form.handleSubmit(async (values) => {
+  generalError.value = ''
   isLoading.value = true
-  error.value = ''
-
   try {
     const response = await EssayService.submitEssay({
-      essay: content.value,
-      model_name: selectedModel.value
+      essay: values.essay,
+      model_name: values.model_name
     })
     currentRequest.value = response
 
@@ -246,23 +281,17 @@ const handleSubmit = async () => {
     toast({
       description: 'Essay submitted successfully. Processing...',
     })
-  } catch (err) {
-    console.error('Error submitting essay:', err)
-    if (err instanceof AxiosError && err.response?.status === 429) {
-      toast({
-        description: 'You have reached the maximum number of requests. Please try again later.',
-        variant: 'destructive',
-      })
-    } else {
-      toast({
-        description: 'Failed to submit essay',
-        variant: 'destructive',
-      })
+  } catch (err: any) {
+    if (err.fieldErrors) {
+      form.setErrors(err.fieldErrors)
+    }
+    if (err.nonFieldError) {
+      generalError.value = err.nonFieldError
     }
   } finally {
     isLoading.value = false
   }
-}
+})
 
 // Clean up polling when component is unmounted
 onUnmounted(() => {

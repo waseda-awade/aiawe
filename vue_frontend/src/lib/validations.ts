@@ -62,3 +62,13 @@ export const forgotPasswordFormSchema = z.object({
 export const verifyEmailFormSchema = z.object({
   verificationCode: z.string().min(1, 'Verification code is required'),
 })
+
+export const MAX_CHARS = 5000
+
+// Add validation schema
+export const essayFormSchema = z.object({
+  essay: z.string()
+    .min(1, 'Please enter your essay')
+    .max(MAX_CHARS, `Text cannot exceed ${MAX_CHARS} characters`),
+  model_name: z.string().min(1, 'Please select a model'),
+})
