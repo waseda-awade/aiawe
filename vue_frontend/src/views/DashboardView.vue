@@ -156,7 +156,7 @@ const { processDocument, isProcessing } = useDocumentProcessor()
 
 const generalError = ref('')
 const isLoading = ref(false)
-const charCount = computed(() => form.values.essay.length)
+const charCount = computed(() => form.values.essay?.length || 0)
 const isOverLimit = computed(() => charCount.value > MAX_CHARS)
 const isPending = computed(() => currentRequest.value?.status === 'PENDING')
 const isCompleted = computed(() => currentRequest.value?.status === 'COMPLETED')
