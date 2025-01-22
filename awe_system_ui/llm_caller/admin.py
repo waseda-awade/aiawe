@@ -1,8 +1,9 @@
-import csv
-from datetime import datetime
+from io import BytesIO
 
 from django.contrib import admin
 from django.http import HttpResponse
+from django.utils import timezone
+from openpyxl import Workbook
 
 from .models import APIRequest
 from .models import LLMConfig
@@ -40,7 +41,7 @@ class APIRequestAdmin(admin.ModelAdmin):
         return obj.model.display_name
 
     @admin.action(
-        description="Export selected requests as CSV",
+        description="Export selected requests as Excel",
     )
     def export_as_csv(self, request, queryset):
         field_names = [
@@ -54,24 +55,22 @@ class APIRequestAdmin(admin.ModelAdmin):
             "result",
         ]
 
-        response = HttpResponse(content_type="text/csv")
-        now = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
-        response["Content-Disposition"] = f"attachment; filename=Requests_{now}.csv"
-        writer = csv.writer(response)
+        # Create workbook and select active sheet
+        workbook = Workbook()
+        worksheet = workbook.active
 
         # Write header
-        writer.writerow(
-            [
-                "Timestamp",
-                "User Email",
-                "Course ID",
-                "Course Name",
-                "LLM Model",
-                "Essay",
-                "Score",
-                "Raw Response",
-            ],
-        )
+        headers = [
+            "Timestamp",
+            "User Email",
+            "Course ID",
+            "Course Name",
+            "LLM Model",
+            "Essay",
+            "Score",
+            "Raw Response",
+        ]
+        worksheet.append(headers)
 
         # Write data rows
         for obj in queryset:
@@ -82,8 +81,28 @@ class APIRequestAdmin(admin.ModelAdmin):
                     value = getattr(value, attr, None)
                     if value is None:
                         break
+
+                # Format timestamp if it's the created_at field
+                if field == "created_at" and value is not None:
+                    value = timezone.localtime(value).strftime("%Y-%m-%d %H:%M:%S %Z")
+
                 row.append(value if value is not None else "")
-            writer.writerow(row)
+            worksheet.append(row)
+
+        # Save to buffer
+        excel_file = BytesIO()
+        workbook.save(excel_file)
+        excel_file.seek(0)
+
+        # Create the HttpResponse
+        now = timezone.localtime().strftime("%Y%m%d_%H%M%S")
+        filename = f"Requests_{now}.xlsx"
+
+        response = HttpResponse(
+            excel_file.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
 
