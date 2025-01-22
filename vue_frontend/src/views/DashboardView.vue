@@ -221,8 +221,11 @@ const startPolling = (requestId: number) => {
     clearInterval(pollingInterval.value)
   }
 
-  // Start new polling
-  pollingInterval.value = setInterval(async () => {
+  let attempts = 0
+  const baseDelay = 500 // Start with 0.5 second
+  const maxDelay = 10000 // Max delay of 10 seconds
+
+  const poll = async () => {
     try {
       const data = await EssayService.getEssay(requestId)
       currentRequest.value = data
@@ -247,11 +250,20 @@ const startPolling = (requestId: number) => {
             variant: 'destructive',
           })
         }
+        return
       }
+
+      // Calculate next delay with exponential backoff
+      const delay = Math.min(baseDelay * Math.pow(2, attempts), maxDelay)
+      attempts++
+      console.debug('Polling again in', delay, 'ms')
+
+      // Schedule next poll
+      pollingInterval.value = setTimeout(poll, delay)
     } catch (err) {
       console.error('Error polling status:', err)
       if (pollingInterval.value) {
-        clearInterval(pollingInterval.value)
+        clearTimeout(pollingInterval.value)
         pollingInterval.value = null
       }
       toast({
@@ -259,7 +271,10 @@ const startPolling = (requestId: number) => {
         variant: 'destructive',
       })
     }
-  }, 3000) // Poll every 3 seconds
+  }
+
+  // Start first poll immediately
+  poll()
 }
 
 const handleSubmit = form.handleSubmit(async (values) => {
