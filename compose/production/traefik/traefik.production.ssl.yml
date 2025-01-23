@@ -5,20 +5,41 @@ entryPoints:
   web:
     # http
     address: ':80'
+    http:
+      # https://doc.traefik.io/traefik/routing/entrypoints/#entrypoint
+      redirections:
+        entryPoint:
+          to: web-secure
+
+  web-secure:
+    # https
+    address: ':443'
 
   flower:
     address: ':5555'
 
+certificatesResolvers:
+  letsencrypt:
+    # https://doc.traefik.io/traefik/https/acme/#lets-encrypt
+    acme:
+      email: 'gayed@waseda.jp'
+      storage: /etc/traefik/acme/acme.json
+      # https://doc.traefik.io/traefik/https/acme/#httpchallenge
+      httpChallenge:
+        entryPoint: web
+
 http:
   routers:
-    # Django API and Admin routes
-    django-router:
+    web-secure-router:
       rule: 'Host(`app.gec.awade.waseda.ac.jp`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))'
       entryPoints:
-        - web
+        - web-secure
       middlewares:
         - csrf
       service: django
+      tls:
+        # https://doc.traefik.io/traefik/routing/routers/#certresolver
+        certResolver: letsencrypt
 
     # Vue frontend, static and media - catch all other routes
     nginx-router:
@@ -33,6 +54,9 @@ http:
       entryPoints:
         - flower
       service: flower
+      tls:
+        # https://doc.traefik.io/traefik/master/routing/routers/#certresolver
+        certResolver: letsencrypt
 
   middlewares:
     csrf:
