@@ -34,7 +34,7 @@ urlpatterns = [
 # API URLS
 urlpatterns += [
     # API base url
-    path("api/", include("config.api_router")),
+    # path("api/", include("config.api_router")),
     path("api/", include("awe_system_ui.llm_caller.urls")),
     # DRF auth token
     path("api/auth-token/", obtain_auth_token),
