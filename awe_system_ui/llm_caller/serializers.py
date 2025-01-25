@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from .models import APIRequest
 from .models import LLMModel
-from .utils import get_today_date_range
 
 
 class LLMModelSerializer(serializers.ModelSerializer):
@@ -26,13 +25,7 @@ class LLMModelSerializer(serializers.ModelSerializer):
         except (KeyError, AttributeError):
             return 0
 
-        today_start, today_end = get_today_date_range()
-
-        return APIRequest.objects.filter(
-            user=user,
-            model=obj,
-            created_at__range=(today_start, today_end),
-        ).count()
+        return obj.get_used_quota(user)
 
 
 class APIRequestSerializer(serializers.ModelSerializer):

@@ -7,6 +7,8 @@ from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from .utils import get_today_date_range
+
 User = get_user_model()
 
 
@@ -54,6 +56,31 @@ class LLMModel(models.Model):
     @classmethod
     def get_active_models(cls):
         return cls.objects.filter(is_active=True)
+
+    def get_used_quota(self, user) -> int:
+        """Get the number of completed requests for today for this model and user."""
+        today_start, today_end = get_today_date_range()
+
+        return APIRequest.objects.filter(
+            user=user,
+            model=self,
+            status="COMPLETED",
+            created_at__range=(today_start, today_end),
+        ).count()
+
+    def check_quota(self, user) -> bool:
+        """
+        Check if the user has exceeded their quota for this model.
+        Returns True if the user has exceeded their quota, False otherwise.
+        """
+        try:
+            quota_config = self.quota_config
+        except QuotaConfig.DoesNotExist:
+            # No quota config means unlimited requests
+            return True
+
+        used_quota = self.get_used_quota(user)
+        return used_quota < quota_config.daily_limit
 
 
 class QuotaConfig(models.Model):

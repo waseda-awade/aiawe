@@ -12,12 +12,10 @@ from rest_framework.views import APIView
 from .models import APIRequest
 from .models import LLMConfig
 from .models import LLMModel
-from .models import QuotaConfig
 from .serializers import APIRequestSerializer
 from .serializers import LLMModelSerializer
 from .tasks import LLMRequestParams
 from .tasks import process_openai_request
-from .utils import get_today_date_range
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -51,33 +49,16 @@ class APIRequestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check quota for this specific model
-        today_start, today_end = get_today_date_range()
+        # Check quota
+        has_quota = model.check_quota(request.user)
+        if not has_quota:
+            msg = f"Daily quota exceeded for model {model.display_name}"
+            return Response(
+                {"model_name": msg},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
 
-        # Get quota config for this model - if it doesn't exist, treat as unlimited
-        try:
-            quota_config = QuotaConfig.objects.get(model=model)
-
-            # Count today's requests for this model
-            today_requests = APIRequest.objects.filter(
-                user=request.user,
-                model=model,
-                created_at__range=(today_start, today_end),
-            ).count()
-
-            if today_requests >= quota_config.daily_limit:
-                msg = f"Daily quota exceeded for model {model.display_name}"
-                return Response(
-                    {
-                        "model_name": msg,
-                    },
-                    status=status.HTTP_429_TOO_MANY_REQUESTS,
-                )
-        except QuotaConfig.DoesNotExist:
-            # No quota config means unlimited requests
-            pass
-
-        # Create and save the request first
+        # Create and save the request
         api_request = serializer.save(user=request.user)
 
         llm_params = LLMRequestParams(
