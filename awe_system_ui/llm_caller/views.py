@@ -1,6 +1,7 @@
 from dataclasses import asdict
 
 from django.conf import settings
+from django.db import transaction
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -35,6 +36,7 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         # Add ordering to ensure consistent pagination
         return queryset.order_by("-created_at")
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         # Create request first to validate the model
         serializer = self.get_serializer(data=request.data)
@@ -77,7 +79,6 @@ class APIRequestViewSet(viewsets.ModelViewSet):
 
         # Create and save the request first
         api_request = serializer.save(user=request.user)
-        api_request.save()  # Ensure it's saved to the database
 
         llm_params = LLMRequestParams(
             request_id=api_request.id,
@@ -87,16 +88,13 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             user_prompt_template=LLMConfig.get_active_config().user_prompt_template,
         )
 
-        # Start async task with configurable delay
-        task = process_openai_request.delay(
-            asdict(llm_params),
-            delay_seconds=getattr(settings, "TASK_DELAY", 0),
+        # Ensure the actual task execution happens after transaction commit
+        transaction.on_commit(
+            lambda: process_openai_request.delay(
+                asdict(llm_params),
+                delay_seconds=getattr(settings, "TASK_DELAY", 0),
+            ),
         )
-
-        # Update task_id in a separate transaction
-        api_request.task_id = task.id
-        api_request.save()
-
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

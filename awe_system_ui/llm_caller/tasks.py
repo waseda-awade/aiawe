@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import openai
 from celery import shared_task
+from celery.exceptions import MaxRetriesExceededError
 from django.conf import settings
 from pydantic import BaseModel
 
@@ -37,8 +38,9 @@ class LLMRequestParams:
     user_prompt_template: str
 
 
-@shared_task
+@shared_task(bind=True)
 def process_openai_request(
+    self,
     request_params_dict: dict,
     delay_seconds=0,
 ):
@@ -49,20 +51,26 @@ def process_openai_request(
         msg = f"Delaying LLM request by {delay_seconds} seconds"
         logger.info(msg)
         time.sleep(delay_seconds)
+
     try:
         try:
             api_request = APIRequest.objects.get(id=request_params.request_id)
-        except APIRequest.DoesNotExist:
-            msg = f"APIRequest with id {request_params.request_id} not found"
-            logger.exception(msg)
-            return
+        except APIRequest.DoesNotExist as e:
+            try:
+                self.retry(countdown=2**self.request.retries)
+            except MaxRetriesExceededError:
+                msg = f"APIRequest with id {request_params.request_id} not found"
+                logger.exception(msg)
+                raise ValueError(msg) from e
+
+        api_request.task_id = self.request.id
 
         if settings.FAKE_LLM_REQUEST:
             api_request.result = '{"score": 4.0}'
             api_request.score = 4.0
             api_request.status = "COMPLETED"
             api_request.save()
-            return
+            return True
 
         # Format prompt using the provided template
         user_prompt = request_params.user_prompt_template.format(
@@ -93,8 +101,10 @@ def process_openai_request(
 
         api_request.status = "COMPLETED"
         api_request.save()
-
     except (openai.OpenAIError, KeyError, ValueError) as e:
         api_request.status = "FAILED"
         api_request.error = str(e)
         api_request.save()
+        return False
+    else:
+        return True
