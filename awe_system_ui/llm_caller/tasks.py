@@ -8,10 +8,20 @@ from django.conf import settings
 from pydantic import BaseModel
 
 from .models import APIRequest
+from .models import OpenAIKey
 
 logger = logging.getLogger(__name__)
 
-client = openai.OpenAI()
+
+def get_openai_client():
+    key = OpenAIKey.get_available_key()
+    if not key:
+        msg = (
+            "No active OpenAI API key found."
+            " Please add an API key in the admin interface."
+        )
+        raise ValueError(msg)
+    return openai.OpenAI(api_key=key.key)
 
 
 class EssayScore(BaseModel):
@@ -59,7 +69,8 @@ def process_openai_request(
             essay=api_request.essay,
         )
 
-        response = openai.chat.completions.create(
+        client = get_openai_client()
+        response = client.chat.completions.create(
             model=request_params.model_name,
             messages=[
                 {"role": "system", "content": request_params.system_prompt},

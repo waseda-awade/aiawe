@@ -166,3 +166,38 @@ class LLMConfig(models.Model):
     def clean(self):
         # This ensures validation runs even when saving through admin
         validate_user_prompt_template(self.user_prompt_template)
+
+
+class OpenAIKey(models.Model):
+    key = models.CharField(
+        max_length=255,
+        help_text="OpenAI API Key (starts with 'sk-')",
+    )
+    name = models.CharField(
+        max_length=100,
+        help_text="A name to identify this key (e.g., 'Primary Key', 'Backup Key')",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Only active keys will be used",
+    )
+    order = models.IntegerField(
+        default=10,
+        validators=[MinValueValidator(0)],
+        help_text="Keys with lower order values will be used first",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "OpenAI API Key"
+        verbose_name_plural = "OpenAI API Keys"
+
+    def __str__(self):
+        return f"{self.name} ({'Active' if self.is_active else 'Inactive'})"
+
+    @classmethod
+    def get_available_key(cls):
+        """Get the first available active key."""
+        return cls.objects.filter(is_active=True).order_by("order").first()

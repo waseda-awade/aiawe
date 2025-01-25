@@ -8,6 +8,7 @@ from openpyxl import Workbook
 from .models import APIRequest
 from .models import LLMConfig
 from .models import LLMModel
+from .models import OpenAIKey
 from .models import QuotaConfig
 
 
@@ -110,9 +111,9 @@ class APIRequestAdmin(admin.ModelAdmin):
 @admin.register(LLMModel)
 class LLMModelAdmin(admin.ModelAdmin):
     list_display = [
-        "order",
         "name",
         "display_name",
+        "order",
         "is_default",
         "is_active",
         "created_at",
@@ -132,3 +133,25 @@ class LLMConfigAdmin(admin.ModelAdmin):
         "updated_at",
     ]
     list_filter = ["created_at"]
+
+
+@admin.register(OpenAIKey)
+class OpenAIKeyAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "masked_key",
+        "order",
+        "is_active",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = ["is_active"]
+    search_fields = ["name"]
+    ordering = ["order"]
+
+    @admin.display(
+        description="API Key",
+    )
+    def masked_key(self, obj):
+        """Show only the last 4 characters of the key."""
+        return f"...{obj.key[-4:]}" if obj.key else ""
