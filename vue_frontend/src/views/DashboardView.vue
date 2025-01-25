@@ -237,8 +237,9 @@ const startPolling = (requestId: number) => {
           pollingInterval.value = null
         }
 
-        // Show result or error
+        // Show result or error and update quotas when request completes
         if (data.status === 'COMPLETED') {
+          await updateModelQuotas()
           toast({
             title: 'Evaluation Complete',
             description: `Your essay score: ${data.score}`,
@@ -288,9 +289,6 @@ const handleSubmit = form.handleSubmit(async (values) => {
       model_name: values.model_name
     })
     currentRequest.value = response
-
-    // Update quotas after successful submission
-    await updateModelQuotas()
 
     // Start polling for status
     startPolling(response.id)
