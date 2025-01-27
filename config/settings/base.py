@@ -401,11 +401,13 @@ OPENAI_JSON_SCHEMA_MODELS = [
 DEFAULT_SYSTEM_PROMPT = """You are an essay scoring assistant that always outputs JSON that matches this schema:
 class Response
     score: float
+    reasoning: str
 
 Requirements:
 - Score must be a float between 0 and 10
-- Output must be a valid JSON object with only a 'score' field
-- Example valid response: {"score": 8.5}
+- Reasoning must explain the rationale for the score
+- Output must be a valid JSON object with 'score' and 'reasoning' fields
+- Example valid response: {"score": 8.5, "reasoning": "The essay demonstrates strong critical thinking and clear organization..."}
 
 Invalid responses:
 - {"score": "8.5"}  # score as string is invalid

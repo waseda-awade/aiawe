@@ -9,6 +9,7 @@ export interface EssayRequest {
   id: number
   essay: string
   score: number | null
+  reasoning: string | null
   error: string | null
   status: 'PENDING' | 'COMPLETED' | 'FAILED'
   created_at: string

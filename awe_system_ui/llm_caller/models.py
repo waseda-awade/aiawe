@@ -115,6 +115,7 @@ class APIRequest(models.Model):
     )
     result = models.TextField(blank=True, default="")
     score = models.FloatField(null=True, blank=True)
+    reasoning = models.TextField(blank=True, default="")
     error = models.TextField(blank=True, default="")
     status = models.CharField(
         max_length=20,

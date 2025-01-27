@@ -27,6 +27,7 @@ class APIRequestAdmin(admin.ModelAdmin):
         "get_model_name",
         "essay",
         "score",
+        "reasoning",
         "created_at",
     ]
     list_filter = ["status", "user", "model", "user__course"]
@@ -53,6 +54,7 @@ class APIRequestAdmin(admin.ModelAdmin):
             "model__name",
             "essay",
             "score",
+            "reasoning",
             "result",
         ]
 
@@ -69,6 +71,7 @@ class APIRequestAdmin(admin.ModelAdmin):
             "LLM Model",
             "Essay",
             "Score",
+            "Reasoning",
             "Raw Response",
         ]
         worksheet.append(headers)

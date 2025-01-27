@@ -41,13 +41,20 @@ class APIRequestSerializer(serializers.ModelSerializer):
             "id",
             "essay",
             "score",
+            "reasoning",
             "error",
             "status",
             "created_at",
             "model_name",
             "model_display_name",
         ]
-        read_only_fields = ["score", "status", "created_at", "model_display_name"]
+        read_only_fields = [
+            "score",
+            "reasoning",
+            "status",
+            "created_at",
+            "model_display_name",
+        ]
 
     def create(self, validated_data):
         model_name = validated_data.pop("model_name")

@@ -25,8 +25,9 @@ def get_openai_client():
     return openai.OpenAI(api_key=key.key)
 
 
-class EssayScore(BaseModel):
+class EssayEvaluation(BaseModel):
     score: float
+    reasoning: str
 
 
 @dataclass
@@ -66,8 +67,11 @@ def process_openai_request(
         api_request.task_id = self.request.id
 
         if settings.FAKE_LLM_REQUEST:
-            api_request.result = '{"score": 4.0}'
+            api_request.result = (
+                '{"score": 4.0, "reasoning": "This is a fake response"}'
+            )
             api_request.score = 4.0
+            api_request.reasoning = "This is a fake response"
             api_request.status = "COMPLETED"
             api_request.save()
             return True
@@ -93,8 +97,9 @@ def process_openai_request(
         api_request.result = result
         # Assuming the older models return JSON-like content that can be parsed
         try:
-            parsed_result = EssayScore.model_validate_json(result)
+            parsed_result = EssayEvaluation.model_validate_json(result)
             api_request.score = parsed_result.score
+            api_request.reasoning = parsed_result.reasoning
         except ValueError as e:
             msg = "Failed to parse response from model"
             raise ValueError(msg) from e
