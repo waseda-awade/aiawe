@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { signupFormSchema } from '@/lib/validations'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const authStore = useAuthStore()
 const { loading } = storeToRefs(authStore)
@@ -32,6 +33,7 @@ const form = useForm({
     password: '',
     confirmPassword: '',
     course_id: undefined as number | undefined,
+    acceptTerms: false,
   },
 })
 
@@ -129,6 +131,37 @@ const onSubmit = form.handleSubmit(async (values) => {
               />
             </FormControl>
             <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ value, handleChange }" type="checkbox" name="acceptTerms">
+          <FormItem class="flex flex-row items-start gap-x-3 space-y-0">
+            <FormControl>
+              <Checkbox :checked="value" @update:checked="handleChange" />
+            </FormControl>
+            <div class="space-y-1 leading-none">
+              <FormLabel>
+                I agree to the
+                <a
+                  href="/terms"
+                  target="_blank"
+                  class="underline"
+                  @click.stop
+                >
+                  Terms of Service
+                </a>
+                and
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  class="underline"
+                  @click.stop
+                >
+                  Privacy Policy
+                </a>
+              </FormLabel>
+              <FormMessage />
+            </div>
           </FormItem>
         </FormField>
 
