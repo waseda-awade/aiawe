@@ -33,7 +33,7 @@ const form = useForm({
     password: '',
     confirmPassword: '',
     course_id: undefined as number | undefined,
-    acceptTerms: false,
+    acceptTerms: false as boolean,
   },
 })
 

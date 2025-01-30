@@ -33,8 +33,8 @@ export const signupFormSchema = z.object({
     }),
     z.number(),
   ]).optional(),
-  acceptTerms: z.literal(true, {
-    errorMap: () => ({ message: 'You must accept the terms and privacy policy' }),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the terms and privacy policy',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
