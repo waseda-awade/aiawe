@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-bold mb-6">Privacy Policy</h1>
     <div class="prose dark:prose-invert max-w-none">
       <!-- Add your privacy policy content here -->
-      <p>Last updated: {{ new Date().toLocaleDateString() }}</p>
+      <p>Last updated: 2025-01-30</p>
 
       <h2>1. Information We Collect</h2>
       <p>We collect information that you provide directly to us...</p>

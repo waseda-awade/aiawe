@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-bold mb-6">Terms of Service</h1>
     <div class="prose dark:prose-invert max-w-none">
       <!-- Add your terms of service content here -->
-      <p>Last updated: {{ new Date().toLocaleDateString() }}</p>
+      <p>Last updated: 2025-01-30</p>
 
       <h2>1. Introduction</h2>
       <p>Welcome to AWE. By accessing our service, you agree to these terms...</p>
