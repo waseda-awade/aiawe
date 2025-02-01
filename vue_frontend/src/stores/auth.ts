@@ -76,7 +76,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async signup(email: string, password: string, course_id?: number, router?: Router) {
+    async signup(email: string, password: string, course_id?: string, router?: Router) {
       this.setLoading(true);
       this.setError(null);
 

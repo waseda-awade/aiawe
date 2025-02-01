@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="TData">
+<script setup lang="ts" generic="TData extends { id: number }">
 import { type ColumnDef } from '@tanstack/vue-table'
 import {
   FlexRender,
