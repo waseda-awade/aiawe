@@ -1,10 +1,26 @@
 import { type ColumnDef } from '@tanstack/vue-table'
 import { h } from 'vue'
 import type { EssayRequest } from '@/types/essay'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const MAX_CHARS = 50
 
 export const columns: ColumnDef<EssayRequest>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => h(Checkbox, {
+      'checked': table.getIsAllPageRowsSelected(),
+      'onUpdate:checked': (value: boolean) => table.toggleAllPageRowsSelected(!!value),
+      'ariaLabel': 'Select all',
+    }),
+    cell: ({ row }) => h(Checkbox, {
+      'checked': row.getIsSelected(),
+      'onUpdate:checked': (value: boolean) => row.toggleSelected(!!value),
+      'ariaLabel': 'Select row',
+    }),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'id',
     header: 'ID',

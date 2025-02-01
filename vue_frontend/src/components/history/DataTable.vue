@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 import {
   Table,
@@ -18,6 +18,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/toast/use-toast'
+import { EssayService } from '@/services/essayService'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 const ITEMS_PER_PAGE = 10
 const props = defineProps<{
@@ -27,8 +30,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'rowClick', record: TData): void
+  (e: 'refresh'): void
 }>()
 
+const { toast } = useToast()
+const showConfirmDialog = ref(false)
 const sorting = ref([{ id: 'created_at', desc: true }])
 const pagination = ref({
   pageIndex: 0,
@@ -60,11 +66,60 @@ const table = useVueTable({
         ? updater(pagination.value)
         : updater
   },
+  enableRowSelection: true,
+  enableMultiRowSelection: true,
 })
+
+const selectedCount = computed(() => table.getSelectedRowModel().rows.length)
+
+const handleConfirmDelete = async () => {
+  showConfirmDialog.value = false
+
+  const selectedRows = table.getSelectedRowModel().rows
+
+  const ids = selectedRows.map(row => row.original.id)
+  try {
+    await EssayService.deleteEssays(ids)
+    emit('refresh')
+    table.toggleAllRowsSelected(false)
+    toast({
+      title: 'Success',
+      description: `Deleted ${ids.length} items`,
+    })
+  } catch (error) {
+    toast({
+      title: 'Error',
+      description: 'Failed to delete selected items',
+      variant: 'destructive',
+    })
+  }
+}
+
+const handleDelete = () => {
+  if (selectedCount.value === 0) {
+    toast({
+      title: 'No items selected',
+      description: 'Please select items to delete',
+      variant: 'destructive',
+    })
+    return
+  }
+  showConfirmDialog.value = true
+}
 </script>
 
 <template>
   <div>
+    <div class="mb-4">
+      <Button
+        variant="destructive"
+        size="sm"
+        :disabled="selectedCount === 0"
+        @click="handleDelete"
+      >
+        Delete Selected
+      </Button>
+    </div>
     <div class="rounded-md border">
       <Table>
         <TableHeader>
@@ -116,5 +171,31 @@ const table = useVueTable({
         Next
       </Button>
     </div>
+
+    <Dialog :open="showConfirmDialog" @update:open="showConfirmDialog = false">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete {{ selectedCount }} selected {{ selectedCount === 1 ? 'item' : 'items' }}?
+            This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="showConfirmDialog = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            @click="handleConfirmDelete"
+          >
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -30,8 +31,10 @@ class APIRequestViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        queryset = APIRequest.objects.filter(user=self.request.user)
-        # Add ordering to ensure consistent pagination
+        queryset = APIRequest.objects.filter(
+            user=self.request.user,
+            is_deleted=False,
+        )
         return queryset.order_by("-created_at")
 
     @transaction.atomic
@@ -77,6 +80,24 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             ),
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"])
+    def bulk_delete(self, request):
+        ids = request.data.get("ids", [])
+        if not ids:
+            return Response(
+                {"error": "No IDs provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update is_deleted flag for user's requests
+        updated = APIRequest.objects.filter(
+            id__in=ids,
+            user=request.user,
+            is_deleted=False,
+        ).update(is_deleted=True)
+
+        return Response({"deleted_count": updated})
 
 
 class ActiveModelsView(APIView):

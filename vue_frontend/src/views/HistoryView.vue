@@ -38,6 +38,10 @@ function navigateToDashboard() {
   router.push({ name: 'dashboard' })
 }
 
+const handleRefresh = () => {
+  loadData(currentPage.value)
+}
+
 onMounted(() => {
   loadData(1)
 })
@@ -56,7 +60,7 @@ onMounted(() => {
       </Button>
     </div>
 
-    <DataTable :data="data" :columns="columns" @row-click="handleRowClick" />
+    <DataTable :data="data" :columns="columns" @row-click="handleRowClick" @refresh="handleRefresh" />
 
     <Dialog :open="showDialog" @update:open="showDialog = false">
       <DialogContent class="max-w-2xl max-h-[80vh]">

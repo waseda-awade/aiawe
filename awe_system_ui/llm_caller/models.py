@@ -129,6 +129,10 @@ class APIRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     task_id = models.CharField(max_length=100, blank=True, default="")
+    is_deleted = models.BooleanField(
+        default=False,
+        help_text="Soft delete flag - True means this request is deleted",
+    )
 
     def __str__(self):
         return f"APIRequest(user={self.user}, status={self.status}, \

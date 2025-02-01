@@ -21,4 +21,8 @@ export class EssayService {
     })
     return response.data
   }
+
+  public static async deleteEssays(ids: number[]): Promise<void> {
+    await api.post('/requests/bulk_delete/', { ids })
+  }
 }
