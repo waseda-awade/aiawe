@@ -120,12 +120,10 @@ const onSubmit = form.handleSubmit(async (values) => {
         >
           <FormItem>
             <FormLabel>Course ID (Optional)</FormLabel>
-            <!-- https://stackoverflow.com/a/75872055/1938012 -->
             <FormControl>
               <Input
                 v-bind="componentField"
-                type="number"
-                class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                type="text"
                 placeholder="Enter your Course ID if instructed by your teacher"
                 :disabled="loading"
               />

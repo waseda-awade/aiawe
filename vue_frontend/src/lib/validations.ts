@@ -22,17 +22,7 @@ export const signupFormSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   confirmPassword: z.string().min(1, 'Please confirm your password'),
-  course_id: z.union([
-    z.string().transform((val) => {
-      // Convert empty string to undefined
-      if (val === '') return undefined;
-      // Convert string to number
-      const num = parseInt(val, 10);
-      // Return undefined if NaN, otherwise return the number
-      return isNaN(num) ? undefined : num;
-    }),
-    z.number(),
-  ]).optional(),
+  course_id: z.string().max(10, 'Course ID must be less than 10 characters').optional(),
   acceptTerms: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and privacy policy',
   }),
