@@ -106,6 +106,19 @@ const handleDelete = () => {
   }
   showConfirmDialog.value = true
 }
+
+const handleRowClick = (event: MouseEvent, record: TData) => {
+  // Check if the click originated from the selection column
+  const target = event.target as HTMLElement
+  const cell = target.closest('td')
+
+  // The selection column has the first checkbox, so it will be the first cell
+  if (cell?.cellIndex === 0) {
+    return
+  }
+
+  emit('rowClick', record)
+}
 </script>
 
 <template>
@@ -138,7 +151,7 @@ const handleDelete = () => {
             v-for="row in table.getRowModel().rows"
             :key="row.id"
             class="cursor-pointer hover:bg-muted/50"
-            @click="emit('rowClick', row.original)"
+            @click="(event) => handleRowClick(event, row.original)"
           >
             <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
