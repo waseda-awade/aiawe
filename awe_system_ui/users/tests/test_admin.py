@@ -34,6 +34,7 @@ class TestUserAdmin:
                 "username": "test",
                 "password": "My_R@ndom-P@ssw0rd",
                 "role": "student",
+                "name": "Test User",
             },
         )
         assert response.status_code == HTTPStatus.FOUND
