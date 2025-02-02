@@ -15,7 +15,7 @@ until python manage.py migrate --no-input; do
 done
 
 # If $DJANGO_SUPERUSER_USERNAME is provided, create a superuser
-if [ -n "${DJANGO_SUPERUSER_USERNAME:-}" ] && [ -n "${DJANGO_SUPERUSER_EMAIL:-}" ] && [ -n "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
+if [ -n "${DJANGO_SUPERUSER_USERNAME:-}" ] && [ -n "${DJANGO_SUPERUSER_EMAIL:-}" ] && [ -n "${DJANGO_SUPERUSER_PASSWORD:-}" ] && [ -n "${DJANGO_SUPERUSER_FULL_NAME:-}" ]; then
     # Create superuser from environment variables
     echo "Creating superuser..."
     python manage.py shell << EOF
@@ -26,7 +26,8 @@ try:
         User.objects.create_superuser(
             username='$DJANGO_SUPERUSER_USERNAME',
             email='$DJANGO_SUPERUSER_EMAIL',
-            password='$DJANGO_SUPERUSER_PASSWORD'
+            password='$DJANGO_SUPERUSER_PASSWORD',
+            name='$DJANGO_SUPERUSER_FULL_NAME'
         )
         print('Superuser created successfully')
     else:

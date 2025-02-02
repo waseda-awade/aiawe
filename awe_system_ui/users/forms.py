@@ -51,6 +51,7 @@ class AdminUserRegistrationForm(forms.ModelForm):
     """Form for registering a new user through admin."""
 
     email = forms.EmailField(required=True)
+    name = forms.CharField(required=True)
     password = forms.CharField(widget=forms.PasswordInput)
     role = forms.ChoiceField(choices=User.ROLE_CHOICES, initial="student")
     username = forms.CharField(

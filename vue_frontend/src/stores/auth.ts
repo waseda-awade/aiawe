@@ -76,12 +76,18 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async signup(email: string, password: string, course_id?: string, router?: Router) {
+    async signup(
+      email: string,
+      password: string,
+      name: string,
+      course_id: string | undefined,
+      router?: Router
+    ) {
       this.setLoading(true);
       this.setError(null);
 
       try {
-        await AuthService.signup(email, password, course_id);
+        await AuthService.signup(email, password, name, course_id);
         if (router) {
           await router.push({ name: "verify-email" });
         }
