@@ -85,7 +85,7 @@ const handleSubmit = form.handleSubmit(async (values) => {
         Email Verification
       </CardTitle>
       <CardDescription>
-        Please enter the verification code sent to your email
+        Please check your <span class="font-bold">spam</span> folder if you don't see the email in your inbox.
       </CardDescription>
     </CardHeader>
     <CardContent>
