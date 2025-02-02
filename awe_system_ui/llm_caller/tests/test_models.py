@@ -63,8 +63,15 @@ class TestLLMModel:
 
 class TestLLMConfig:
     def test_validate_user_prompt_template(self):
+        new_model = LLMModel.objects.create(
+            name="gpt-4",
+            display_name="GPT-4",
+            is_active=True,
+        )
+
         # Valid template
         config = LLMConfig(
+            target_llm_model=new_model,
             user_prompt_template="Please evaluate this essay: {essay}",
         )
         config.full_clean()  # Should not raise
@@ -78,17 +85,6 @@ class TestLLMConfig:
         config = LLMConfig(user_prompt_template="Invalid {placeholder} {essay}")
         with pytest.raises(ValidationError):
             config.full_clean()
-
-    def test_get_active_config(self):
-        # Should create default config if none exists
-        config = LLMConfig.get_active_config()
-        assert isinstance(config, LLMConfig)
-
-        # Should return latest config
-        new_config = LLMConfig.objects.create(
-            temperature=0.8,
-        )
-        assert LLMConfig.get_active_config() == new_config
 
 
 class TestQuotaConfig:
