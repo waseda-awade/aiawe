@@ -23,12 +23,6 @@ class User(AbstractUser):
     check forms.SignupForm and forms.SocialSignupForms accordingly.
     """
 
-    ROLE_CHOICES = (
-        ("admin", "Admin"),
-        ("student", "Student"),
-    )
-    role = CharField(max_length=20, choices=ROLE_CHOICES, default="student")
-
     course = models.ForeignKey(
         Course,
         on_delete=models.SET_NULL,
@@ -36,12 +30,6 @@ class User(AbstractUser):
         blank=True,
         help_text="The course this student belongs to",
     )
-
-    def is_admin(self):
-        return self.role == "admin"
-
-    def is_student(self):
-        return self.role == "student"
 
     # First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=False, max_length=255)
