@@ -130,12 +130,14 @@ class LLMModelAdmin(admin.ModelAdmin):
 @admin.register(LLMConfig)
 class LLMConfigAdmin(admin.ModelAdmin):
     list_display = [
+        "target_llm_model",
+        "is_active",
         "system_prompt",
         "user_prompt_template",
         "temperature",
         "updated_at",
     ]
-    list_filter = ["created_at"]
+    list_filter = ["target_llm_model", "is_active", "created_at"]
 
 
 @admin.register(OpenAIKey)

@@ -64,12 +64,13 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         # Create and save the request
         api_request = serializer.save(user=request.user)
 
+        llm_config = LLMConfig.get_active_config(model_name=model_name)
         llm_params = LLMRequestParams(
             request_id=api_request.id,
-            model_name=api_request.model.name,
-            temperature=LLMConfig.get_active_config().temperature,
-            system_prompt=LLMConfig.get_active_config().system_prompt,
-            user_prompt_template=LLMConfig.get_active_config().user_prompt_template,
+            model_name=model_name,
+            temperature=llm_config.temperature,
+            system_prompt=llm_config.system_prompt,
+            user_prompt_template=llm_config.user_prompt_template,
         )
 
         # Ensure the actual task execution happens after transaction commit

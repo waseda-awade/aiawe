@@ -162,6 +162,16 @@ def validate_user_prompt_template(value):
 
 
 class LLMConfig(models.Model):
+    target_llm_model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.CASCADE,
+        related_name="configs",
+        help_text="The LLM model this configuration applies to",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Only one config can be active per model",
+    )
     system_prompt = models.TextField(
         help_text="The system prompt instructs the model to generate JSON format.",
         default=settings.DEFAULT_SYSTEM_PROMPT,
@@ -183,17 +193,33 @@ class LLMConfig(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        ordering = ["-created_at"]
         get_latest_by = "created_at"
 
     def __str__(self):
-        return f"LLM Config (Updated: {self.updated_at})"
+        return f"LLM Config for {self.target_llm_model.display_name}"
+
+    def save(self, *args, **kwargs):
+        # If this config is being set as active,
+        #  deactivate all others for the same model
+        if self.is_active:
+            LLMConfig.objects.filter(
+                target_llm_model=self.target_llm_model,
+            ).exclude(id=self.id).update(is_active=False)
+        super().save(*args, **kwargs)
 
     @classmethod
-    def get_active_config(cls):
+    def get_active_config(cls, model_name):
+        """Get the active config for the specified model."""
         try:
-            return cls.objects.latest()
+            return cls.objects.get(
+                target_llm_model__name=model_name,
+                is_active=True,
+            )
         except cls.DoesNotExist:
-            return cls.objects.create()
+            # Create a default config for this model
+            model = LLMModel.objects.get(name=model_name)
+            return cls.objects.create(target_llm_model=model)
 
     def clean(self):
         # This ensures validation runs even when saving through admin
