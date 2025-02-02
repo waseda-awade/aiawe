@@ -5,6 +5,10 @@
 config-%:
 	docker compose -f docker-compose.$*.yml config
 
+# Enter logs
+logs-%:
+	docker compose -f docker-compose.$*.yml logs
+
 # Build images
 build-%:
 	docker compose -f docker-compose.$*.yml build
