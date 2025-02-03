@@ -20,33 +20,33 @@ export const loginFormSchema = z.object({
 
 export const signupFormSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  password1: passwordSchema,
+  password2: z.string().min(1, 'Please confirm your password'),
   name: z.string().min(1, 'Name is required'),
   course_id: z.string().max(10, 'Course ID must be less than 10 characters').optional(),
   acceptTerms: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and privacy policy',
   }),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => data.password1 === data.password2, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["password2"],
 })
 
 export const resetPasswordFormSchema = z.object({
-  password: passwordSchema,
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine((data) => data.password === data.confirmPassword, {
+  new_password1: passwordSchema,
+  new_password2: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.new_password1 === data.new_password2, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["new_password2"],
 })
 
 export const changePasswordFormSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: passwordSchema,
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
+  old_password: z.string().min(1, 'Current password is required'),
+  new_password1: passwordSchema,
+  new_password2: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.new_password1 === data.new_password2, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["new_password2"],
 })
 
 export const forgotPasswordFormSchema = z.object({

@@ -21,14 +21,15 @@ export class AuthService {
 
   public static async signup(
     email: string,
-    password: string,
+    password1: string,
+    password2: string,
     name: string,
     course_id?: string
   ): Promise<void> {
     await api.post('/dj-rest-auth/registration/', {
       email,
-      password1: password,
-      password2: password,
+      password1,
+      password2,
       name,
       course_id,
     })
@@ -44,8 +45,8 @@ export class AuthService {
     return response
   }
 
-  public static async passwordResetConfirm(uid: string, token: string, password: string): Promise<AxiosResponse> {
-    const response = await api.post('/dj-rest-auth/password/reset/confirm/', { uid, token, new_password1: password, new_password2: password })
+  public static async passwordResetConfirm(uid: string, token: string, new_password1: string, new_password2: string): Promise<AxiosResponse> {
+    const response = await api.post('/dj-rest-auth/password/reset/confirm/', { uid, token, new_password1, new_password2 })
     return response
   }
 
@@ -54,11 +55,15 @@ export class AuthService {
     return response.data
   }
 
-  public static async changePassword(oldPassword: string, newPassword: string): Promise<AxiosResponse> {
+  public static async changePassword(
+    old_password: string,
+    new_password1: string,
+    new_password2: string
+  ): Promise<AxiosResponse> {
     const response = await api.post('/dj-rest-auth/password/change/', {
-      old_password: oldPassword,
-      new_password1: newPassword,
-      new_password2: newPassword,
+      old_password,
+      new_password1,
+      new_password2,
     })
     return response
   }

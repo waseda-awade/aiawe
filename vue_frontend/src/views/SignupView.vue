@@ -30,8 +30,8 @@ const form = useForm({
   validationSchema: toTypedSchema(signupFormSchema),
   initialValues: {
     email: '',
-    password: '',
-    confirmPassword: '',
+    password1: '',
+    password2: '',
     name: '',
     course_id: undefined as string | undefined,
     acceptTerms: false as boolean,
@@ -41,7 +41,7 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   try {
     generalError.value = null
-    await authStore.signup(values.email, values.password, values.name, values.course_id, router)
+    await authStore.signup(values.email, values.password1, values.password2, values.name, values.course_id, router)
   } catch (err: any) {
     if (err.fieldErrors) {
       form.setErrors(err.fieldErrors)
@@ -99,7 +99,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <FormField
           v-slot="{ componentField }"
-          name="password"
+          name="password1"
         >
           <FormItem>
             <FormLabel>Password</FormLabel>
@@ -117,7 +117,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <FormField
           v-slot="{ componentField }"
-          name="confirmPassword"
+          name="password2"
         >
           <FormItem>
             <FormLabel>Confirm Password</FormLabel>

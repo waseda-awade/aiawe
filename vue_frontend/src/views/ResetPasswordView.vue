@@ -8,7 +8,7 @@
       <form @submit="handleSubmit" class="grid gap-4">
         <FormField
           v-slot="{ componentField }"
-          name="password"
+          name="new_password1"
         >
           <FormItem>
             <FormLabel>New Password</FormLabel>
@@ -26,7 +26,7 @@
 
         <FormField
           v-slot="{ componentField }"
-          name="confirmPassword"
+          name="new_password2"
         >
           <FormItem>
             <FormLabel>Confirm Password</FormLabel>
@@ -94,7 +94,8 @@ const form = useForm({
   validationSchema: toTypedSchema(resetPasswordFormSchema),
   initialValues: {
     password: '',
-    confirmPassword: '',
+    new_password1: '',
+    new_password2: '',
   },
 })
 
@@ -106,7 +107,8 @@ const handleSubmit = form.handleSubmit(async (values) => {
     await AuthService.passwordResetConfirm(
       route.params.uid as string,
       route.params.token as string,
-      values.password
+      values.new_password1,
+      values.new_password2,
     )
     success.value = true
     // Navigate to the login page after 3 seconds
