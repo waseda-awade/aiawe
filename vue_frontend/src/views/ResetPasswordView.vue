@@ -67,6 +67,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useToast } from '@/components/ui/toast/use-toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -84,6 +85,7 @@ import {
 } from '@/components/ui/form'
 import { resetPasswordFormSchema } from '@/lib/validations'
 
+const { toast } = useToast()
 const router = useRouter()
 const route = useRoute()
 const isSubmitting = ref(false)
@@ -122,6 +124,10 @@ const handleSubmit = form.handleSubmit(async (values) => {
     if (err.nonFieldError) {
       generalError.value = err.nonFieldError
     }
+    toast({
+      description: err.nonFieldError || 'An error occurred, please try again later.',
+        variant: 'destructive',
+      })
   } finally {
     isSubmitting.value = false
   }
