@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n l10n admin_urls static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    .assign-course-form {
+      max-width: 800px;
+      margin: 20px auto;
+    }
+
+    .object-count {
+      margin-bottom: 20px;
+    }
+  </style>
+{% endblock extrahead %}
+{% block content %}
+  <div class="assign-course-form">
+    <p class="object-count">
+      {% blocktranslate count counter=queryset|length %}
+                Selected {{ counter }} user for course assignment.
+            {% plural %}
+                Selected {{ counter }} users for course assignment.
+            {% endblocktranslate %}
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="post" value="yes" />
+      <input type="hidden" name="action" value="assign_course_action" />
+      {{ form.as_p }}
+      {% for obj in queryset %}
+        <input type="hidden"
+               name="{{ action_checkbox_name }}"
+               value="{{ obj.pk|unlocalize }}" />
+      {% endfor %}
+      <div class="submit-row">
+        <input type="submit" class="default" value="{% translate 'Assign Course' %}" />
+        <a href="{% url 'admin:users_user_changelist' %}"
+           class="button cancel-link">{% translate "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+{% endblock content %}

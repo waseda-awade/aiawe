@@ -1,10 +1,13 @@
 import pandas as pd
 from allauth.account.decorators import secure_admin_login
 from allauth.account.models import EmailAddress
+from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin import helpers
 from django.contrib.auth import admin as auth_admin
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
@@ -25,6 +28,14 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
     # https://docs.allauth.org/en/latest/common/admin.html#admin
     admin.autodiscover()
     admin.site.login = secure_admin_login(admin.site.login)  # type: ignore[method-assign]
+
+
+class AssignCourseForm(forms.Form):
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.all(),
+        required=False,
+        help_text="Select a course to assign to the selected users",
+    )
 
 
 @admin.register(User)
@@ -59,6 +70,8 @@ class UserAdmin(auth_admin.UserAdmin):
     ]
     search_fields = ["username", "email", "name", "course__course_name"]
     list_filter = ["course__course_name", "created_by"]
+
+    actions = ["assign_course_action"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -192,6 +205,50 @@ class UserAdmin(auth_admin.UserAdmin):
         extra_context["show_register_button"] = True
         extra_context["show_batch_upload_button"] = True
         return super().changelist_view(request, extra_context=extra_context)
+
+    @admin.action(description="Assign selected users to a course")
+    def assign_course_action(self, request, queryset):
+        if not self.has_change_permission(request):
+            raise PermissionDenied
+
+        # Handle form submission
+        if request.POST.get("post"):
+            form = AssignCourseForm(request.POST)
+            if form.is_valid():
+                course = form.cleaned_data["course"]
+                updated = 0
+                for user in queryset:
+                    if self.has_change_permission(request, user):
+                        user.course = course
+                        user.save()
+                        updated += 1
+
+                if not course:
+                    msg = f"Set empty course for {updated} users"
+                else:
+                    msg = f"Assigned {updated} users to course: {course.course_name}"
+                messages.success(request, msg)
+                return None
+
+        else:
+            form = AssignCourseForm()
+
+        # If we're allowed to change any of the selected users, show the form
+        if not any(self.has_change_permission(request, obj) for obj in queryset):
+            raise PermissionDenied
+
+        context = {
+            "title": "Assign users to course",
+            "queryset": queryset,
+            "form": form,
+            "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
+            **self.admin_site.each_context(request),
+        }
+        return TemplateResponse(
+            request,
+            "admin/users/user/assign_course.html",
+            context,
+        )
 
 
 @admin.register(Course)
