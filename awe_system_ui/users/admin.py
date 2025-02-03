@@ -50,13 +50,14 @@ class UserAdmin(auth_admin.UserAdmin):
     )
     list_display = [
         "username",
+        "email",
         "name",
         "course",
         "created_by",
         "is_staff",
         "is_superuser",
     ]
-    search_fields = ["name", "course__course_name"]
+    search_fields = ["username", "email", "name", "course__course_name"]
     list_filter = ["course__course_name", "created_by"]
 
     def get_queryset(self, request):

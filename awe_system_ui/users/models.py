@@ -44,6 +44,9 @@ class User(AbstractUser):
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
 
+    def __str__(self):
+        return f"{self.name} <{self.email}>"
+
     class Meta:
         permissions = [
             ("can_add_limited_users", "Can add users with limited visibility"),
