@@ -46,11 +46,39 @@ class UserAdmin(auth_admin.UserAdmin):
                 ),
             },
         ),
-        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+        (_("Meta data"), {"fields": ("created_by", "last_login", "date_joined")}),
     )
-    list_display = ["username", "name", "course", "is_superuser"]
+    list_display = [
+        "username",
+        "name",
+        "course",
+        "created_by",
+        "is_staff",
+        "is_superuser",
+    ]
     search_fields = ["name", "course__course_name"]
-    list_filter = ["course"]
+    list_filter = ["course__course_name", "created_by"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Staff with limited permission can only see users they created
+        if request.user.has_perm("users.can_add_limited_users"):
+            return qs.filter(created_by=request.user)
+        return qs.none()
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # If creating new user
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if request.user.has_perm("users.can_add_limited_users"):
+            return obj is None or obj.created_by == request.user
+        return False
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         """Disable the default add user button"""
@@ -76,7 +104,10 @@ class UserAdmin(auth_admin.UserAdmin):
         if request.method == "POST":
             form = AdminUserRegistrationForm(request.POST)
             if form.is_valid():
-                form.save()
+                with transaction.atomic():
+                    user = form.save(commit=False)
+                    user.created_by = request.user
+                    user.save()
                 messages.success(request, "User registered successfully.")
                 return HttpResponseRedirect(reverse("admin:users_user_changelist"))
         else:
@@ -109,6 +140,7 @@ class UserAdmin(auth_admin.UserAdmin):
                                 email=row_dict["email"],
                                 username=row_dict.get("username") or row_dict["email"],
                                 name=row_dict.get("name") or "",
+                                created_by=request.user,
                             )
                             user.set_password(row_dict["password"])
 

@@ -31,10 +31,23 @@ class User(AbstractUser):
         help_text="The course this student belongs to",
     )
 
+    created_by = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="created_users",
+    )
+
     # First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=False, max_length=255)
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
+
+    class Meta:
+        permissions = [
+            ("can_add_limited_users", "Can add users with limited visibility"),
+        ]
 
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.
