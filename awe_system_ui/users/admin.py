@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.admin import helpers
 from django.contrib.auth import admin as auth_admin
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.db import transaction
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
@@ -46,6 +47,17 @@ class UserAdmin(auth_admin.UserAdmin):
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("name", "email", "course")}),
         (
+            _("Course Management"),
+            {
+                "fields": ("managed_courses",),
+                "description": (
+                    "Courses that this user can manage."
+                    " Course managers can view and"
+                    " modify users in their managed courses."
+                ),
+            },
+        ),
+        (
             _("Permissions"),
             {
                 "fields": (
@@ -64,12 +76,26 @@ class UserAdmin(auth_admin.UserAdmin):
         "email",
         "name",
         "course",
+        "get_managed_courses",
         "created_by",
         "is_staff",
         "is_superuser",
     ]
-    search_fields = ["username", "email", "name", "course__course_name"]
-    list_filter = ["course__course_name", "created_by"]
+    search_fields = [
+        "username",
+        "email",
+        "name",
+        "course__course_name",
+    ]
+    list_filter = [
+        "course__course_name",
+        "created_by",
+    ]
+    filter_horizontal = ["managed_courses", "groups", "user_permissions"]
+
+    @admin.display(description="Managed Courses")
+    def get_managed_courses(self, obj):
+        return ", ".join(c.course_id for c in obj.managed_courses.all()) or "-"
 
     actions = ["assign_course_action"]
 
@@ -77,9 +103,13 @@ class UserAdmin(auth_admin.UserAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        # Staff with limited permission can only see users they created
+        # Staff with limited permission can see users they created
+        #  OR users in courses they manage
         if request.user.has_perm("users.can_add_limited_users"):
-            return qs.filter(created_by=request.user)
+            return qs.filter(
+                models.Q(created_by=request.user)
+                | models.Q(course__in=request.user.managed_courses.all()),
+            ).distinct()
         return qs.none()
 
     def save_model(self, request, obj, form, change):
@@ -91,7 +121,12 @@ class UserAdmin(auth_admin.UserAdmin):
         if request.user.is_superuser:
             return True
         if request.user.has_perm("users.can_add_limited_users"):
-            return obj is None or obj.created_by == request.user
+            if obj is None:
+                return True
+            return (
+                obj.created_by == request.user
+                or obj.course in request.user.managed_courses.all()
+            )
         return False
 
     def has_add_permission(self, request: HttpRequest) -> bool:

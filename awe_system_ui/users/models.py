@@ -31,6 +31,13 @@ class User(AbstractUser):
         help_text="The course this student belongs to",
     )
 
+    managed_courses = models.ManyToManyField(
+        Course,
+        related_name="managers",
+        blank=True,
+        help_text="Courses that this user manages.",
+    )
+
     created_by = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
