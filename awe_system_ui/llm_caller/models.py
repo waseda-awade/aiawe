@@ -54,7 +54,11 @@ class LLMModel(models.Model):
     url = models.URLField(
         max_length=500,
         blank=True,
-        help_text="URL for third-party LLM service (leave empty for OpenAI)",
+        help_text=(
+            "URL for third-party LLM service "
+            "(e.g., http://host.docker.internal:8080/v1). "
+            "Leave empty for OpenAI."
+        ),
         validators=[URLValidator()],
     )
 

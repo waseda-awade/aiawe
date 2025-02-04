@@ -1,6 +1,7 @@
 import logging
 import time
 from dataclasses import dataclass
+from typing import Literal
 
 import openai
 from celery import shared_task
@@ -14,15 +15,21 @@ from .models import OpenAIKey
 logger = logging.getLogger(__name__)
 
 
-def get_openai_client():
-    key = OpenAIKey.get_available_key()
-    if not key:
-        msg = (
-            "No active OpenAI API key found."
-            " Please add an API key in the admin interface."
-        )
-        raise ValueError(msg)
-    return openai.OpenAI(api_key=key.key)
+def get_openai_client(
+    llm_type: Literal["openai", "third_party"],
+    base_url: str | None = None,
+):
+    key = "dummy"
+    if llm_type == "openai":
+        key_obj = OpenAIKey.get_available_key()
+        if not key_obj:
+            msg = (
+                "No active OpenAI API key found."
+                " Please add an API key in the admin interface."
+            )
+            raise ValueError(msg)
+        key = key_obj.key
+    return openai.OpenAI(api_key=key, base_url=base_url)
 
 
 class EssayEvaluation(BaseModel):
@@ -81,7 +88,10 @@ def process_openai_request(
             essay=api_request.essay,
         )
 
-        client = get_openai_client()
+        client = get_openai_client(
+            llm_type=api_request.model.llm_type,
+            base_url=api_request.model.url,
+        )
         response = client.chat.completions.create(
             model=request_params.model_name,
             messages=[
