@@ -28,6 +28,7 @@ class APIRequestAdmin(admin.ModelAdmin):
         "essay",
         "score",
         "reasoning",
+        "error",
         "created_at",
     ]
     list_filter = ["status", "user", "model", "user__course"]
@@ -114,17 +115,42 @@ class APIRequestAdmin(admin.ModelAdmin):
 @admin.register(LLMModel)
 class LLMModelAdmin(admin.ModelAdmin):
     list_display = [
-        "name",
         "display_name",
+        "name",
+        "url",
+        "llm_type",
         "order",
         "is_default",
         "is_active",
         "created_at",
         "updated_at",
     ]
-    list_filter = ["is_active", "is_default"]
+    list_filter = ["is_active", "is_default", "llm_type"]
     search_fields = ["name", "display_name"]
     ordering = ["order"]
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "display_name",
+                    "llm_type",
+                    "url",
+                ),
+            },
+        ),
+        (
+            "Settings",
+            {
+                "fields": (
+                    "order",
+                    "is_default",
+                    "is_active",
+                ),
+            },
+        ),
+    )
 
 
 @admin.register(LLMConfig)

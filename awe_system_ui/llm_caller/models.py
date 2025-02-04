@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
+from django.core.validators import URLValidator
 from django.db import models
 
 from .utils import get_today_date_range
@@ -13,6 +14,11 @@ User = get_user_model()
 
 
 class LLMModel(models.Model):
+    LLM_TYPE_CHOICES = [
+        ("openai", "OpenAI"),
+        ("third_party", "Third Party"),
+    ]
+
     order = models.IntegerField(
         default=10,
         help_text="Order of the model in the UI (smaller number comes first)",
@@ -39,6 +45,18 @@ class LLMModel(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    llm_type = models.CharField(
+        max_length=20,
+        choices=LLM_TYPE_CHOICES,
+        default="openai",
+        help_text="The type of LLM service to use",
+    )
+    url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="URL for third-party LLM service (leave empty for OpenAI)",
+        validators=[URLValidator()],
+    )
 
     class Meta:
         ordering = ["order"]
@@ -81,6 +99,13 @@ class LLMModel(models.Model):
 
         used_quota = self.get_used_quota(user)
         return used_quota < quota_config.daily_limit
+
+    def clean(self):
+        super().clean()
+        if self.llm_type == "third_party" and not self.url:
+            raise ValidationError(
+                {"url": "URL is required for third-party LLM services"},
+            )
 
 
 class QuotaConfig(models.Model):
