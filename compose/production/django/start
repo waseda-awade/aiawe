@@ -27,7 +27,7 @@ try:
             username='$DJANGO_SUPERUSER_USERNAME',
             email='$DJANGO_SUPERUSER_EMAIL',
             password='$DJANGO_SUPERUSER_PASSWORD',
-            name='$DJANGO_SUPERUSER_FULL_NAME'
+            name='$DJANGO_SUPERUSER_FULL_NAME',
         )
         print('Superuser created successfully')
     else:
