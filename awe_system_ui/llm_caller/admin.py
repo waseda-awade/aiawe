@@ -133,8 +133,8 @@ class LLMModelAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": (
-                    "name",
                     "display_name",
+                    "name",
                     "llm_type",
                     "url",
                 ),
