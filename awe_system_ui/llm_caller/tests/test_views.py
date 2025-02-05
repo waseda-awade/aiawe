@@ -56,7 +56,7 @@ class TestActiveModelsView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == 1
-        assert data[0]["name"] == active_model.name
+        assert data[0]["display_name"] == active_model.display_name
         assert data[0]["used_quota"] == 0
         assert data[0]["daily_limit"] == 10  # noqa: PLR2004
 
@@ -95,7 +95,7 @@ class TestAPIRequestViewSet:
 
         data = {
             "essay": "This is a test essay",
-            "model_name": active_model.name,
+            "model_id": active_model.id,
         }
 
         response = client.post(url, data, format="json")
@@ -124,7 +124,7 @@ class TestAPIRequestViewSet:
         # Try to create one more request
         data = {
             "essay": "This is a test essay",
-            "model_name": active_model.name,
+            "model_id": active_model.id,
         }
 
         response = client.post(url, data, format="json")
