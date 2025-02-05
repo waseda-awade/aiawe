@@ -8,7 +8,7 @@
       <form @submit="handleSubmit" class="space-y-4">
         <FormField
           v-slot="{ componentField }"
-          name="model_name"
+          name="model_id"
         >
           <FormItem>
             <Select
@@ -22,8 +22,8 @@
                 <SelectGroup>
                   <SelectItem
                     v-for="model in modelOptions"
-                    :key="model.name"
-                    :value="model.name"
+                    :key="model.id"
+                    :value="model.id.toString()"
                   >
                     {{ model.display_name }}
                     <span
@@ -151,7 +151,7 @@ const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
   initialValues: {
     essay: '',
-    model_name: '',
+    model_id: '',
   },
 })
 
@@ -177,12 +177,12 @@ const updateModelQuotas = async () => {
     const models = await LLMModelService.getActiveModels()
     modelOptions.value = models
     // Keep the same selected model but with updated quota
-    const updatedSelectedModel = models.find(model => model.name === selectedModel.value)
+    const updatedSelectedModel = models.find(model => model.id.toString() === selectedModel.value)
     if (!updatedSelectedModel) {
       // If current selected model is no longer available, select default or first
       const defaultModel = models.find(model => model.is_default)
-      selectedModel.value = defaultModel?.name || models[0]?.name || ''
-      form.setFieldValue('model_name', selectedModel.value)
+      selectedModel.value = (defaultModel?.id || models[0]?.id || 0).toString()
+      form.setFieldValue('model_id', selectedModel.value)
     }
   } catch (err) {
     console.error('Error updating models:', err)
@@ -290,7 +290,7 @@ const handleSubmit = form.handleSubmit(async (values) => {
   try {
     const response = await EssayService.submitEssay({
       essay: values.essay,
-      model_name: values.model_name
+      model_id: Number(values.model_id)
     })
     currentRequest.value = response
 

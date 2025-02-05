@@ -2,8 +2,8 @@ import api from '@/services/api'
 import type { EssayRequest, EssayListResponse } from '@/types/essay'
 
 export class EssayService {
-  public static async submitEssay({essay, model_name}: {essay: string, model_name: string}): Promise<EssayRequest> {
-    const response = await api.post<EssayRequest>('/requests/', { essay, model_name })
+  public static async submitEssay({essay, model_id}: {essay: string, model_id: number}): Promise<EssayRequest> {
+    const response = await api.post<EssayRequest>('/requests/', { essay, model_id })
     return response.data
   }
 

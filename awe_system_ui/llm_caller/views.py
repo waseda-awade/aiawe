@@ -44,11 +44,11 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         # Get the model instance
-        model_name = serializer.validated_data["model_name"]
-        model = LLMModel.objects.filter(name=model_name, is_active=True).first()
+        model_id = serializer.validated_data["model_id"]
+        model = LLMModel.objects.filter(id=model_id, is_active=True).first()
         if not model:
             return Response(
-                {"model_name": f"Model not found: {model_name}"},
+                {"model_id": f"Model not found: {model_id}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -57,17 +57,17 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         if not has_quota:
             msg = f"Daily quota exceeded for model {model.display_name}"
             return Response(
-                {"model_name": msg},
+                {"model_id": msg},
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
         # Create and save the request
         api_request = serializer.save(user=request.user)
 
-        llm_config = LLMConfig.get_active_config(model_name=model_name)
+        llm_config = LLMConfig.get_active_config(model_name=model.name)
         llm_params = LLMRequestParams(
             request_id=api_request.id,
-            model_name=model_name,
+            model_name=model.name,
             temperature=llm_config.temperature,
             system_prompt=llm_config.system_prompt,
             user_prompt_template=llm_config.user_prompt_template,

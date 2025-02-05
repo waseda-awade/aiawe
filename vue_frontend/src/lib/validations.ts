@@ -64,5 +64,5 @@ export const essayFormSchema = z.object({
   essay: z.string()
     .min(1, 'Please enter your essay')
     .max(MAX_CHARS, `Text cannot exceed ${MAX_CHARS} characters`),
-  model_name: z.string().min(1, 'Please select a model'),
+  model_id: z.string().min(1, 'Please select a model'),
 })

@@ -11,9 +11,9 @@ class LLMModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = LLMModel
         fields = [
+            "id",
             "order",
             "is_default",
-            "name",
             "display_name",
             "used_quota",
             "daily_limit",
@@ -29,7 +29,7 @@ class LLMModelSerializer(serializers.ModelSerializer):
 
 
 class APIRequestSerializer(serializers.ModelSerializer):
-    model_name = serializers.CharField(write_only=True)
+    model_id = serializers.IntegerField(write_only=True)
     model_display_name = serializers.CharField(
         source="model.display_name",
         read_only=True,
@@ -45,7 +45,7 @@ class APIRequestSerializer(serializers.ModelSerializer):
             "error",
             "status",
             "created_at",
-            "model_name",
+            "model_id",
             "model_display_name",
         ]
         read_only_fields = [
@@ -57,12 +57,12 @@ class APIRequestSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        model_name = validated_data.pop("model_name")
+        model_id = validated_data.pop("model_id")
         try:
-            model = LLMModel.objects.get(name=model_name, is_active=True)
+            model = LLMModel.objects.get(id=model_id, is_active=True)
         except LLMModel.DoesNotExist as e:
             raise serializers.ValidationError(
-                {"model_name": "Selected model is not supported"},
+                {"model_id": "Selected model is not supported"},
             ) from e
 
         return APIRequest.objects.create(
