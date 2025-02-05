@@ -95,7 +95,6 @@ const success = ref(false)
 const form = useForm({
   validationSchema: toTypedSchema(resetPasswordFormSchema),
   initialValues: {
-    password: '',
     new_password1: '',
     new_password2: '',
   },
