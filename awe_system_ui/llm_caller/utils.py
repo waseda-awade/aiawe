@@ -15,3 +15,15 @@ def get_today_date_range():
     today_end = today_start + timedelta(days=1)
 
     return today_start, today_end
+
+
+def mask_api_key(content: str) -> str:
+    """
+    Masks API keys in error messages etc.
+    Looks for patterns like 'sk-*' and replaces the it with 'sk-[MASKED]'
+    """
+    import re
+
+    # Match sk- followed by any characters until a space, quote, or end of string
+    pattern = r"(sk-[a-zA-Z0-9]+)"
+    return re.sub(pattern, "sk-[MASKED]", str(content))

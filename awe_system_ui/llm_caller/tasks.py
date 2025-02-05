@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from .models import APIRequest
 from .models import OpenAIKey
+from .utils import mask_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +119,8 @@ def process_openai_request(
         api_request.save()
     except (openai.OpenAIError, KeyError, ValueError) as e:
         api_request.status = "FAILED"
-        api_request.error = str(e)
+        masked_error = mask_api_key(str(e))
+        api_request.error = masked_error
         api_request.save()
         return False
     else:
