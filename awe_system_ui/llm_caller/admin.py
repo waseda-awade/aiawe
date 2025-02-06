@@ -2,6 +2,7 @@ from io import BytesIO
 
 from django.contrib import admin
 from django.http import HttpResponse
+from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from openpyxl import Workbook
 
@@ -25,15 +26,27 @@ class APIRequestAdmin(admin.ModelAdmin):
         "get_course",
         "status",
         "get_model_name",
-        "essay",
+        "get_truncated_essay",
         "score",
-        "reasoning",
-        "error",
+        "get_truncated_reasoning",
+        "get_truncated_error",
         "created_at",
     ]
     list_filter = ["status", "user", "model", "user__course"]
     search_fields = ["essay", "result", "user__email", "user__course__course_name"]
     actions = ["export_as_csv"]
+
+    @admin.display(description="Essay")
+    def get_truncated_essay(self, obj):
+        return truncatechars(obj.essay, 50)
+
+    @admin.display(description="Reasoning")
+    def get_truncated_reasoning(self, obj):
+        return truncatechars(obj.reasoning, 50)
+
+    @admin.display(description="Error")
+    def get_truncated_error(self, obj):
+        return truncatechars(obj.error, 50)
 
     @admin.display(description="Course", ordering="user__course")
     def get_course(self, obj):
