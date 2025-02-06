@@ -83,10 +83,12 @@
           <p v-if="isCompleted" class="mb-2 text-4xl font-semibold text-green-600 mt-2">
             Score: {{ currentRequest?.score }}
           </p>
-          <span class="font-semibold">Reasoning:</span>
-          <p v-if="isCompleted" class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
-            {{ currentRequest?.reasoning }}
-          </p>
+          <div v-if="isCompleted">
+            <span class="font-semibold">Reasoning:</span>
+            <p class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
+              {{ currentRequest?.reasoning }}
+            </p>
+          </div>
           <p v-if="isFailed" class="text-sm text-destructive mt-2">
             {{ currentRequest?.error }}
           </p>
