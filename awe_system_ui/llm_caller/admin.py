@@ -62,6 +62,7 @@ class APIRequestAdmin(admin.ModelAdmin):
     def export_as_csv(self, request, queryset):
         field_names = [
             "created_at",
+            "status",
             "user__email",
             "user__course__course_id",
             "user__course__course_name",
@@ -79,6 +80,7 @@ class APIRequestAdmin(admin.ModelAdmin):
         # Write header
         headers = [
             "Timestamp",
+            "Status",
             "User Email",
             "Course ID",
             "Course Name",
