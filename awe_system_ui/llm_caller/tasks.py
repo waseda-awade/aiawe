@@ -9,27 +9,35 @@ from celery.exceptions import MaxRetriesExceededError
 from django.conf import settings
 from pydantic import BaseModel
 
+from .models import APIKey
 from .models import APIRequest
-from .models import OpenAIKey
 from .utils import mask_api_key
 
 logger = logging.getLogger(__name__)
 
 
 def get_openai_client(
+    model_id: int,
     llm_type: Literal["openai", "third_party"],
     base_url: str | None = None,
 ):
-    key = "dummy"
-    if llm_type == "openai":
-        key_obj = OpenAIKey.get_available_key()
-        if not key_obj:
-            msg = (
-                "No active OpenAI API key found."
-                " Please add an API key in the admin interface."
-            )
+    default_key = ""
+    match llm_type:
+        case "openai":
+            default_key = ""
+        case "third_party":
+            default_key = "dummy"
+        case _:
+            msg = f"Invalid LLM type: {llm_type}"
             raise ValueError(msg)
-        key = key_obj.key
+
+    key = APIKey.get_available_key(model_id, default_key=default_key)
+    if not key:
+        msg = (
+            f"No active API key found for llm model {model_id}."
+            f" Please add an API key in the admin interface."
+        )
+        raise ValueError(msg)
     return openai.OpenAI(api_key=key, base_url=base_url)
 
 
@@ -90,6 +98,7 @@ def process_openai_request(
         )
 
         client = get_openai_client(
+            model_id=api_request.model.id,
             llm_type=api_request.model.llm_type,
             base_url=api_request.model.url,
         )

@@ -255,36 +255,50 @@ class LLMConfig(models.Model):
         validate_user_prompt_template(self.user_prompt_template)
 
 
-class OpenAIKey(models.Model):
+class APIKey(models.Model):
+    model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.CASCADE,
+        related_name="api_keys",
+        help_text="The LLM model this key is associated with",
+    )
     key = models.CharField(
         max_length=255,
-        help_text="OpenAI API Key (starts with 'sk-')",
-    )
-    name = models.CharField(
-        max_length=100,
-        help_text="A name to identify this key (e.g., 'Primary Key', 'Backup Key')",
+        help_text="API Key (e.g., OpenAI starts with 'sk-')",
     )
     is_active = models.BooleanField(
         default=True,
         help_text="Only active keys will be used",
     )
-    order = models.IntegerField(
-        default=10,
-        validators=[MinValueValidator(0)],
-        help_text="Keys with lower order values will be used first",
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["order"]
-        verbose_name = "OpenAI API Key"
-        verbose_name_plural = "OpenAI API Keys"
+        ordering = ["created_at"]
+        verbose_name = "API Key"
+        verbose_name_plural = "API Keys"
 
     def __str__(self):
-        return f"{self.name} ({'Active' if self.is_active else 'Inactive'})"
+        return (
+            f"{self.model.display_name} API Key "
+            f"({'Active' if self.is_active else 'Inactive'})"
+        )
 
     @classmethod
-    def get_available_key(cls):
-        """Get the first available active key."""
-        return cls.objects.filter(is_active=True).order_by("order").first()
+    def get_available_key(
+        cls,
+        model_id: int,
+        default_key: str | None = None,
+    ) -> str | None:
+        """Get the first available active key for the specified model."""
+        obj = (
+            cls.objects.filter(
+                model__id=model_id,
+                is_active=True,
+            )
+            .order_by("created_at")
+            .first()
+        )
+        if not obj:
+            return default_key
+        return obj.key

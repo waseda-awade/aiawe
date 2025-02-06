@@ -6,10 +6,10 @@ from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from openpyxl import Workbook
 
+from .models import APIKey
 from .models import APIRequest
 from .models import LLMConfig
 from .models import LLMModel
-from .models import OpenAIKey
 from .models import QuotaConfig
 
 
@@ -179,19 +179,18 @@ class LLMConfigAdmin(admin.ModelAdmin):
     list_filter = ["target_llm_model", "is_active", "created_at"]
 
 
-@admin.register(OpenAIKey)
-class OpenAIKeyAdmin(admin.ModelAdmin):
+@admin.register(APIKey)
+class APIKeyAdmin(admin.ModelAdmin):
     list_display = [
-        "name",
+        "model",
         "masked_key",
-        "order",
         "is_active",
         "created_at",
         "updated_at",
     ]
-    list_filter = ["is_active"]
-    search_fields = ["name"]
-    ordering = ["order"]
+    list_filter = ["is_active", "model"]
+    search_fields = ["model__display_name"]
+    ordering = ["created_at"]
 
     @admin.display(
         description="API Key",
