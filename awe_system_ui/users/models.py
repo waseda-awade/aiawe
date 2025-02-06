@@ -8,9 +8,22 @@ from django.utils.translation import gettext_lazy as _
 class Course(models.Model):
     course_id = models.CharField(max_length=10, unique=True)
     course_name = models.CharField(max_length=200)
+    created_by = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_courses",
+    )
 
     class Meta:
         ordering = ["course_id"]
+        permissions = [
+            (
+                "can_manage_limited_courses",
+                "Can manage courses with limited visibility",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.course_id}: {self.course_name}"

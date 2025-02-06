@@ -288,5 +288,57 @@ class UserAdmin(auth_admin.UserAdmin):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ["course_id", "course_name"]
+    list_display = ["course_id", "course_name", "created_by", "get_managers"]
     search_fields = ["course_id", "course_name"]
+    list_filter = ["created_by"]
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser:
+            return ((None, {"fields": ("course_id", "course_name", "created_by")}),)
+        return ((None, {"fields": ("course_id", "course_name")}),)
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return ["course_id", "course_name", "created_by", "get_managers"]
+        return ["course_id", "course_name", "get_managers"]
+
+    @admin.display(description="Managers")
+    def get_managers(self, obj):
+        return ", ".join(user.username for user in obj.managers.all()) or "-"
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # If creating new course
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Staff with limited permission can see courses they created
+        # OR courses they manage
+        if request.user.has_perm("users.can_manage_limited_courses"):
+            return qs.filter(
+                models.Q(created_by=request.user) | models.Q(managers=request.user),
+            ).distinct()
+        return qs.none()
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if request.user.has_perm("users.can_manage_limited_courses"):
+            if obj is None:
+                return True
+            return obj.created_by == request.user or request.user in obj.managers.all()
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser or request.user.has_perm(
+            "users.can_manage_limited_courses",
+        )
