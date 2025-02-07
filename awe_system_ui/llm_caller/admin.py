@@ -279,23 +279,11 @@ class BatchProcessingAdmin(admin.ModelAdmin):
         return self.has_view_permission(request, obj)
 
     def has_add_permission(self, request):
-        """Disable the default add batch processing button"""
-        return False
-
-    def has_create_permission(self, request):
-        """Enable the create batch processing button"""
-        if request.user.is_superuser:
-            return True
-        return request.user.has_perm("llm_caller.can_create_limited_batch_processing")
+        return self.has_view_permission(request, obj=None)
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path(
-                "upload/",
-                self.admin_site.admin_view(self.batch_request_creation_view),
-                name="llm_caller_batchprocessing_upload",
-            ),
             path(
                 "<path:object_id>/download/",
                 self.admin_site.admin_view(self.download_view),
@@ -307,12 +295,11 @@ class BatchProcessingAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         """Add the upload button to the changelist view"""
         extra_context = extra_context or {}
-        extra_context["has_upload_permission"] = True
         return super().changelist_view(request, extra_context)
 
-    def batch_request_creation_view(self, request):
-        """Handle the batch upload form"""
-        if not self.has_create_permission(request):
+    def add_view(self, request, form_url="", extra_context=None):
+        """Replace the default add view to handle the batch upload form"""
+        if not self.has_add_permission(request):
             raise PermissionDenied
 
         if request.method == "POST":
