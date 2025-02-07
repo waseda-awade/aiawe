@@ -7,7 +7,7 @@ Details:
 - Created: {{ batch.created_at }}
 - Status: {{ batch.status }}
 
-You can download the results from the admin interface at:
+You can download the results by clicking this link:
 {{ download_url }}
 
 Best regards,

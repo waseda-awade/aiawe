@@ -415,10 +415,6 @@ class BatchProcessing(models.Model):
             "admin/llm_caller/batch_completion_email.txt",
             context,
         )
-        html_message = render_to_string(
-            "admin/llm_caller/batch_completion_email.html",
-            context,
-        )
 
         # Send the email with both text and HTML versions
         send_mail(
@@ -426,7 +422,6 @@ class BatchProcessing(models.Model):
             message=text_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[self.user.email],
-            html_message=html_message,
         )
 
 
