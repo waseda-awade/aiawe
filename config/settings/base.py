@@ -416,3 +416,6 @@ Invalid responses:
 - {"grade": 8.5}    # wrong field name"""
 
 DEFAULT_USER_PROMPT_TEMPLATE = "Please evalute the following essay:\n\n{essay}"
+
+# Site URL for building absolute URLs (e.g., 'https://example.com')
+SITE_URL = env("SITE_URL", default="http://localhost:8000")

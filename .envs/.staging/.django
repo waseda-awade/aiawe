@@ -11,6 +11,7 @@ DJANGO_SETTINGS_MODULE=config.settings.staging
 # DJANGO_SECRET_KEY=YOUR_SECRET_KEY_HERE
 # DJANGO_ADMIN_URL=admin/
 DJANGO_ALLOWED_HOSTS=localhost
+SITE_URL=http://localhost
 
 # Security
 # ------------------------------------------------------------------------------
@@ -28,6 +29,3 @@ DJANGO_SECURE_SSL_REDIRECT=False
 # Redis
 # ------------------------------------------------------------------------------
 # REDIS_URL=redis://redis:6379/0
-
-# Vue
-VITE_API_BASE_URL=http://localhost/api

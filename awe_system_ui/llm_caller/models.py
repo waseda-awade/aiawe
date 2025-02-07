@@ -3,10 +3,13 @@ import re
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.core.validators import URLValidator
 from django.db import models
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 from .utils import get_today_date_range
 
@@ -302,3 +305,165 @@ class APIKey(models.Model):
         if not obj:
             return default_key
         return obj.key
+
+
+class BatchProcessingQuota(models.Model):
+    """Quota configuration for batch processing."""
+
+    model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.CASCADE,
+        related_name="batch_quotas",
+    )
+    daily_limit = models.IntegerField(
+        default=100,
+        help_text="Maximum number of batch requests allowed per day",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Batch processing quotas"
+
+    def __str__(self):
+        return f"BatchQuota({self.model.display_name}, limit={self.daily_limit})"
+
+    def get_remaining_quota(self, user):
+        """Get remaining quota for the user."""
+        today_start, today_end = get_today_date_range()
+        used_today = BatchItem.objects.filter(
+            batch__user=user,
+            batch__model=self.model,
+            batch__created_at__range=(today_start, today_end),
+        ).count()
+        return max(0, self.daily_limit - used_today)
+
+
+class BatchProcessing(models.Model):
+    """Model for batch processing requests."""
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("PROCESSING", "Processing"),
+        ("COMPLETED", "Completed"),
+        ("FAILED", "Failed"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="batch_requests",
+    )
+    model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.PROTECT,
+        related_name="batch_requests",
+    )
+    essay_field_name = models.CharField(
+        max_length=50,
+        default="Essay",
+        help_text="Column name containing the essays in the Excel file",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING",
+    )
+    input_file = models.FileField(
+        upload_to="batch_inputs/%Y/%m/%d/",
+        help_text="Excel file containing essays to process",
+    )
+    output_file = models.FileField(
+        upload_to="batch_outputs/%Y/%m/%d/",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "Batch processing requests"
+        permissions = [
+            (
+                "can_create_limited_batch_processing",
+                "Can create batch processing requests with limited visibility",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Batch({self.model.display_name}, {self.status}, {self.created_at})"
+
+    def notify_completion(self):
+        """Send email notification when batch processing is complete."""
+        if not self.output_file:
+            return
+
+        subject = "Batch Processing Complete"
+        relative_url = reverse(
+            "admin:llm_caller_batchprocessing_download",
+            args=[self.pk],
+        )
+        download_url = f"{settings.SITE_URL.rstrip('/')}{relative_url}"
+        context = {
+            "batch": self,
+            "download_url": download_url,
+        }
+
+        # Render both text and HTML versions
+        text_message = render_to_string(
+            "admin/llm_caller/batch_completion_email.txt",
+            context,
+        )
+        html_message = render_to_string(
+            "admin/llm_caller/batch_completion_email.html",
+            context,
+        )
+
+        # Send the email with both text and HTML versions
+        send_mail(
+            subject=subject,
+            message=text_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[self.user.email],
+            html_message=html_message,
+        )
+
+
+class BatchItem(models.Model):
+    """Individual items in a batch processing request."""
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("PROCESSING", "Processing"),
+        ("COMPLETED", "Completed"),
+        ("FAILED", "Failed"),
+    ]
+
+    batch = models.ForeignKey(
+        BatchProcessing,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    essay = models.TextField()
+    result = models.TextField(blank=True)
+    score = models.FloatField(null=True, blank=True)
+    reasoning = models.TextField(blank=True)
+    error = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING",
+    )
+    row_data = models.JSONField(
+        help_text="Original row data from input file",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    task_id = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"BatchItem({self.batch.id}, {self.status})"

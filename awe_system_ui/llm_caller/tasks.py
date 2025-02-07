@@ -1,16 +1,23 @@
 import logging
 import time
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Literal
 
 import openai
+import pandas as pd
 from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.utils import timezone
 from pydantic import BaseModel
 
 from .models import APIKey
 from .models import APIRequest
+from .models import BatchProcessing
+from .models import LLMConfig
 from .utils import mask_api_key
 
 logger = logging.getLogger(__name__)
@@ -134,3 +141,111 @@ def process_openai_request(
         return False
     else:
         return True
+
+
+@shared_task
+def process_batch(batch_id: int):
+    """Process a batch of essays."""
+    try:
+        batch = BatchProcessing.objects.get(id=batch_id)
+        batch.status = "PROCESSING"
+        batch.save()
+
+        # Process each item
+        for item in batch.items.filter(status="PENDING"):
+            item.status = "PROCESSING"
+            item.save()
+
+            try:
+                # Get LLM config
+                llm_config = LLMConfig.get_active_config(model_name=batch.model.name)
+                llm_params = LLMRequestParams(
+                    request_id=item.id,
+                    model_name=batch.model.name,
+                    temperature=llm_config.temperature,
+                    system_prompt=llm_config.system_prompt,
+                    user_prompt_template=llm_config.user_prompt_template,
+                )
+
+                # Process with OpenAI
+                client = get_openai_client(
+                    model_id=batch.model.id,
+                    llm_type=batch.model.llm_type,
+                    base_url=batch.model.url,
+                )
+                response = client.chat.completions.create(
+                    model=llm_params.model_name,
+                    messages=[
+                        {"role": "system", "content": llm_params.system_prompt},
+                        {
+                            "role": "user",
+                            "content": llm_params.user_prompt_template.format(
+                                essay=item.essay,
+                            ),
+                        },
+                    ],
+                    temperature=llm_params.temperature,
+                    response_format={"type": "json_object"},
+                )
+
+                # Parse response
+                result = response.choices[0].message.content
+                item.result = result
+                parsed_result = EssayEvaluation.model_validate_json(result)
+                item.score = parsed_result.score
+                item.reasoning = parsed_result.reasoning
+                item.status = "COMPLETED"
+
+            except (openai.OpenAIError, ValueError, TypeError) as e:
+                item.status = "FAILED"
+                item.error = str(e)
+
+            item.save()
+
+        # Create output file
+        if batch.items.exclude(status="COMPLETED").exists():
+            batch.status = "FAILED"
+        else:
+            batch.status = "COMPLETED"
+            create_output_file(batch)
+            batch.notify_completion()
+
+        batch.save()
+
+    except (ValueError, TypeError):
+        batch.status = "FAILED"
+        batch.save()
+
+
+def create_output_file(batch):
+    """Create output Excel file for completed batch."""
+    # Collect all data
+    rows = []
+    for item in batch.items.all():
+        row = item.row_data.copy()
+        row.update(
+            {
+                "Timestamp": item.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "Status": item.status,
+                "Score": item.score,
+                "Reasoning": item.reasoning,
+                "Error": item.error,
+                "Raw Response": item.result,
+            },
+        )
+        rows.append(row)
+
+    # Create Excel file
+    df_data = pd.DataFrame(rows)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df_data.to_excel(writer, index=False)
+
+    # Save to storage
+    filename = (
+        f"batch_output_{batch.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    )
+    path = f"batch_outputs/{timezone.now().strftime('%Y/%m/%d')}/{filename}"
+    default_storage.save(path, ContentFile(output.getvalue()))
+    batch.output_file = path
+    batch.save()

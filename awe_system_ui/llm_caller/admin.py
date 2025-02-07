@@ -1,13 +1,31 @@
 from io import BytesIO
 
+import pandas as pd
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.admin.options import IS_POPUP_VAR
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
+from django.http import FileResponse
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatechars
+from django.template.response import TemplateResponse
+from django.urls import path
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from openpyxl import Workbook
+
+from awe_system_ui.llm_caller.forms import BatchProcessingForm
+from awe_system_ui.llm_caller.tasks import process_batch
 
 from .models import APIKey
 from .models import APIRequest
+from .models import BatchItem
+from .models import BatchProcessing
+from .models import BatchProcessingQuota
 from .models import LLMConfig
 from .models import LLMModel
 from .models import QuotaConfig
@@ -70,6 +88,7 @@ class APIRequestAdmin(admin.ModelAdmin):
             "essay",
             "score",
             "reasoning",
+            "error",
             "result",
         ]
 
@@ -88,6 +107,7 @@ class APIRequestAdmin(admin.ModelAdmin):
             "Essay",
             "Score",
             "Reasoning",
+            "Error",
             "Raw Response",
         ]
         worksheet.append(headers)
@@ -200,3 +220,195 @@ class APIKeyAdmin(admin.ModelAdmin):
     def masked_key(self, obj):
         """Show only the last 4 characters of the key."""
         return f"...{obj.key[-4:]}" if obj.key else ""
+
+
+@admin.register(BatchProcessingQuota)
+class BatchProcessingQuotaAdmin(admin.ModelAdmin):
+    list_display = ["model", "daily_limit", "created_at", "updated_at"]
+    list_filter = ["model"]
+
+
+@admin.register(BatchProcessing)
+class BatchProcessingAdmin(admin.ModelAdmin):
+    form = BatchProcessingForm
+    readonly_fields = [
+        "user",
+        "model",
+        "essay_field_name",
+        "status",
+        "input_file",
+        "output_file",
+        "created_at",
+        "updated_at",
+    ]
+
+    def get_list_display(self, request):
+        list_display = [
+            "model",
+            "get_download_link",
+            "get_items_count",
+            "status",
+            "created_at",
+        ]
+        if request.user.is_superuser:
+            list_display += ["user"]
+        return list_display
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Staff with limited permission can see batch processings they created
+        if request.user.has_perm("llm_caller.can_create_limited_batch_processing"):
+            return qs.filter(user=request.user)
+        return qs.none()
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if request.user.has_perm("llm_caller.can_create_limited_batch_processing"):
+            if obj is None:
+                return True
+            return obj.user == request.user
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
+
+    def has_add_permission(self, request):
+        """Disable the default add batch processing button"""
+        return False
+
+    def has_create_permission(self, request):
+        """Enable the create batch processing button"""
+        if request.user.is_superuser:
+            return True
+        return request.user.has_perm("llm_caller.can_create_limited_batch_processing")
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "upload/",
+                self.admin_site.admin_view(self.batch_request_creation_view),
+                name="llm_caller_batchprocessing_upload",
+            ),
+            path(
+                "<path:object_id>/download/",
+                self.admin_site.admin_view(self.download_view),
+                name="llm_caller_batchprocessing_download",
+            ),
+        ]
+        return custom_urls + urls
+
+    def changelist_view(self, request, extra_context=None):
+        """Add the upload button to the changelist view"""
+        extra_context = extra_context or {}
+        extra_context["has_upload_permission"] = True
+        return super().changelist_view(request, extra_context)
+
+    def batch_request_creation_view(self, request):
+        """Handle the batch upload form"""
+        if not self.has_create_permission(request):
+            raise PermissionDenied
+
+        if request.method == "POST":
+            form = BatchProcessingForm(request.POST, request.FILES)
+            if form.is_valid():
+                batch = form.save(commit=False)
+                batch.user = request.user
+                df_data = pd.read_excel(batch.input_file, keep_default_na=False)
+                # Check quota
+                quota = BatchProcessingQuota.objects.filter(model=batch.model).first()
+                if not quota:
+                    # Create a default quota for this model if none exists
+                    quota = BatchProcessingQuota.objects.create(
+                        model=batch.model,
+                    )
+                remaining = quota.get_remaining_quota(request.user) if quota else 0
+                if remaining < df_data.shape[0]:
+                    msg = (
+                        f"Daily batch processing quota exceeded. Remaining: {remaining}"
+                    )
+                    messages.error(request, msg)
+                else:
+                    try:
+                        batch.save()
+
+                        # Create batch items
+                        items = []
+                        for _, row in df_data.iterrows():
+                            items.append(
+                                BatchItem(
+                                    batch=batch,
+                                    essay=row[batch.essay_field_name],
+                                    row_data=row.to_dict(),
+                                ),
+                            )
+                        BatchItem.objects.bulk_create(items)
+
+                        # Start processing
+                        transaction.on_commit(lambda: process_batch.delay(batch.id))
+                        messages.success(request, "Batch processing started")
+                        return HttpResponseRedirect(
+                            reverse("admin:llm_caller_batchprocessing_changelist"),
+                        )
+                    except (ValueError, TypeError) as e:
+                        messages.error(request, f"Error processing file: {e}")
+        else:
+            form = BatchProcessingForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Create Batch Processing",
+            "form": form,
+            "has_view_permission": self.has_view_permission(request),
+            IS_POPUP_VAR: request.GET.get(IS_POPUP_VAR, ""),
+        }
+        return TemplateResponse(
+            request,
+            "admin/llm_caller/batchprocessing/batch_request_creation.html",
+            context,
+        )
+
+    def download_view(self, request, object_id):
+        batch = get_object_or_404(BatchProcessing, pk=object_id)
+        if not batch.output_file:
+            messages.error(request, "Output file not available")
+            return HttpResponseRedirect(
+                reverse("admin:llm_caller_batchprocessing_changelist"),
+            )
+
+        return FileResponse(
+            batch.output_file.open("rb"),
+            as_attachment=True,
+            filename=batch.output_file.name.split("/")[-1],
+        )
+
+    @admin.display(description="Download")
+    def get_download_link(self, obj):
+        if obj.output_file:
+            url = reverse("admin:llm_caller_batchprocessing_download", args=[obj.pk])
+            return format_html('<a href="{}">Download</a>', url)
+        return "-"
+
+    @admin.display(description="Items")
+    def get_items_count(self, obj):
+        return obj.items.count()
+
+
+@admin.register(BatchItem)
+class BatchItemAdmin(admin.ModelAdmin):
+    list_display = [
+        "batch",
+        "status",
+        "score",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = ["status", "batch"]
+    search_fields = ["essay", "reasoning", "error"]
+    readonly_fields = ["status", "score", "reasoning", "error", "result"]

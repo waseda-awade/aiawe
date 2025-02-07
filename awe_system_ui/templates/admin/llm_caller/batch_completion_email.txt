@@ -1,0 +1,14 @@
+Hello {{ batch.user.name }},
+
+Your batch processing request has been completed.
+
+Details:
+- Model: {{ batch.model.display_name }}
+- Created: {{ batch.created_at }}
+- Status: {{ batch.status }}
+
+You can download the results from the admin interface at:
+{{ download_url }}
+
+Best regards,
+AWE System

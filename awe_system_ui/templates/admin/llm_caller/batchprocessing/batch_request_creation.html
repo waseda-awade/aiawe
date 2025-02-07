@@ -1,0 +1,70 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n static admin_urls %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    .batch-upload-form {
+      max-width: 800px;
+      margin: 20px auto;
+    }
+
+    .form-row {
+      margin-bottom: 20px;
+    }
+
+    .form-row label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-row .help-text {
+      font-size: 0.9em;
+      margin: 5px 0;
+    }
+
+    .errorlist {
+      color: #dc3545;
+      margin: 5px 0;
+      padding-left: 20px;
+    }
+  </style>
+{% endblock extrahead %}
+{% block content %}
+  <div class="batch-upload-form">
+    <div class="help-text">
+      <h3>Instructions:</h3>
+      <p>Upload an Excel file (.xlsx) containing essays to process. The file should have:</p>
+      <ul>
+        <li>A column containing the essays (default column name: "Essay")</li>
+        <li>Any additional columns will be preserved in the output file</li>
+      </ul>
+      <p>The output file will include these columns:</p>
+      <ul>
+        <li>All original columns from the input file</li>
+        <li>Timestamp - date and time of creation</li>
+        <li>Status - processing status</li>
+        <li>Score - evaluation score for each essay</li>
+        <li>Reasoning - explanation for the score</li>
+        <li>Error - any error messages (if applicable)</li>
+        <li>Raw Response - raw response from the LLM</li>
+      </ul>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <div class="submit-row">
+        <input type="submit" value="Submit Batch Processing" class="default" />
+      </div>
+    </form>
+  </div>
+{% endblock content %}
