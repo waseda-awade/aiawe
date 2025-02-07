@@ -1,8 +1,21 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager
 from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+
+class CourseManager(models.Manager):
+    def accessible_by_user(self, user):
+        """Returns queryset of courses that the user can access."""
+        if not user or not user.is_authenticated:
+            return self.none()
+        if user.is_superuser:
+            return self.all()
+        return self.filter(
+            models.Q(created_by=user) | models.Q(managers=user),
+        ).distinct()
 
 
 class Course(models.Model):
@@ -15,6 +28,8 @@ class Course(models.Model):
         blank=True,
         related_name="created_courses",
     )
+
+    objects = CourseManager()
 
     class Meta:
         ordering = ["course_id"]
@@ -29,12 +44,24 @@ class Course(models.Model):
         return f"{self.course_id}: {self.course_name}"
 
 
+class CustomUserManager(UserManager):
+    def accessible_by_user(self, user):
+        """Returns queryset of users that the user can access."""
+        if user.is_superuser:
+            return self.all()
+        return self.filter(
+            models.Q(created_by=user) | models.Q(course__in=user.managed_courses.all()),
+        ).distinct()
+
+
 class User(AbstractUser):
     """
     Default custom user model for AWE.
     If adding fields that need to be filled at user signup,
     check forms.SignupForm and forms.SocialSignupForms accordingly.
     """
+
+    objects = CustomUserManager()
 
     course = models.ForeignKey(
         Course,

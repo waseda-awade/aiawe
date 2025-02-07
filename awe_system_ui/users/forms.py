@@ -63,6 +63,17 @@ class AdminUserRegistrationForm(forms.ModelForm):
         help_text="Optional: select a course for this user",
     )
 
+    def __init__(self, *args, **kwargs):
+        # Extract user from kwargs before calling super()
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if self.user and self.user.is_authenticated:
+            self.fields["course"] = forms.ModelChoiceField(
+                queryset=Course.objects.accessible_by_user(self.user),
+                required=False,
+                help_text="Optional: select a course for this user",
+            )
+
     class Meta:
         model = User
         fields = ["email", "username", "password", "name", "course"]
@@ -145,3 +156,15 @@ class UserBatchUploadForm(forms.Form):
             # Reset file pointer for later use
             file.seek(0)
             return file
+
+
+class AssignCourseForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        # Extract user from kwargs before calling super()
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        self.fields["course"] = forms.ModelChoiceField(
+            queryset=Course.objects.accessible_by_user(self.user),
+            required=False,
+            help_text="Select a course to assign to the selected users",
+        )

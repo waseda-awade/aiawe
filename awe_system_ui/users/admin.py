@@ -1,7 +1,6 @@
 import pandas as pd
 from allauth.account.decorators import secure_admin_login
 from allauth.account.models import EmailAddress
-from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
@@ -9,7 +8,6 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import helpers
 from django.contrib.auth import admin as auth_admin
 from django.core.exceptions import PermissionDenied
-from django.db import models
 from django.db import transaction
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
@@ -19,6 +17,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from .forms import AdminUserRegistrationForm
+from .forms import AssignCourseForm
 from .forms import UserAdminChangeForm
 from .forms import UserAdminCreationForm
 from .forms import UserBatchUploadForm
@@ -32,14 +31,6 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
     admin.site.login = secure_admin_login(admin.site.login)  # type: ignore[method-assign]
 
 
-class AssignCourseForm(forms.Form):
-    course = forms.ModelChoiceField(
-        queryset=Course.objects.all(),
-        required=False,
-        help_text="Select a course to assign to the selected users",
-    )
-
-
 class CourseListFilter(SimpleListFilter):
     title = "Course"  # Display name of the filter
     parameter_name = "course__course_name"  # URL parameter
@@ -49,9 +40,7 @@ class CourseListFilter(SimpleListFilter):
             courses = Course.objects.all()
         else:
             # Get courses user has created or manages
-            courses = Course.objects.filter(
-                models.Q(created_by=request.user) | models.Q(managers=request.user),
-            ).distinct()
+            courses = Course.objects.accessible_by_user(request.user)
         return [(c.course_name, c.course_name) for c in courses]
 
     def queryset(self, request, queryset):
@@ -144,17 +133,7 @@ class UserAdmin(auth_admin.UserAdmin):
     actions = ["assign_course_action"]
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        # Staff with limited permission can see users they created
-        #  OR users in courses they manage
-        if request.user.has_perm("users.can_add_limited_users"):
-            return qs.filter(
-                models.Q(created_by=request.user)
-                | models.Q(course__in=request.user.managed_courses.all()),
-            ).distinct()
-        return qs.none()
+        return self.model.objects.accessible_by_user(request.user)
 
     def save_model(self, request, obj, form, change):
         if not change:  # If creating new user
@@ -201,7 +180,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
     def register_user_view(self, request):
         if request.method == "POST":
-            form = AdminUserRegistrationForm(request.POST)
+            form = AdminUserRegistrationForm(data=request.POST, user=request.user)
             if form.is_valid():
                 with transaction.atomic():
                     user = form.save(commit=False)
@@ -210,7 +189,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 messages.success(request, "User registered successfully.")
                 return HttpResponseRedirect(reverse("admin:users_user_changelist"))
         else:
-            form = AdminUserRegistrationForm()
+            form = AdminUserRegistrationForm(user=request.user)
 
         context = {
             "form": form,
@@ -298,7 +277,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
         # Handle form submission
         if request.POST.get("post"):
-            form = AssignCourseForm(request.POST)
+            form = AssignCourseForm(data=request.POST, user=request.user)
             if form.is_valid():
                 course = form.cleaned_data["course"]
                 updated = 0
@@ -316,7 +295,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 return None
 
         else:
-            form = AssignCourseForm()
+            form = AssignCourseForm(user=request.user)
 
         # If we're allowed to change any of the selected users, show the form
         if not any(self.has_change_permission(request, obj) for obj in queryset):
@@ -365,16 +344,7 @@ class CourseAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        # Staff with limited permission can see courses they created
-        # OR courses they manage
-        if request.user.has_perm("users.can_manage_limited_courses"):
-            return qs.filter(
-                models.Q(created_by=request.user) | models.Q(managers=request.user),
-            ).distinct()
-        return qs.none()
+        return self.model.objects.accessible_by_user(request.user)
 
     def has_view_permission(self, request, obj=None):
         if request.user.is_superuser:
