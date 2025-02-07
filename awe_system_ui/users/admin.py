@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import helpers
 from django.contrib.auth import admin as auth_admin
 from django.core.exceptions import PermissionDenied
@@ -39,59 +40,102 @@ class AssignCourseForm(forms.Form):
     )
 
 
+class CourseListFilter(SimpleListFilter):
+    title = "Course"  # Display name of the filter
+    parameter_name = "course__course_name"  # URL parameter
+
+    def lookups(self, request, model_admin):
+        if request.user.is_superuser:
+            courses = Course.objects.all()
+        else:
+            # Get courses user has created or manages
+            courses = Course.objects.filter(
+                models.Q(created_by=request.user) | models.Q(managers=request.user),
+            ).distinct()
+        return [(c.course_name, c.course_name) for c in courses]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(course__course_name=self.value())
+        return queryset
+
+
 @admin.register(User)
 class UserAdmin(auth_admin.UserAdmin):
     form = UserAdminChangeForm
     add_form = UserAdminCreationForm
-    fieldsets = (
-        (None, {"fields": ("username", "password")}),
-        (_("Personal info"), {"fields": ("name", "email", "course")}),
-        (
-            _("Course Management"),
-            {
-                "fields": ("managed_courses",),
-                "description": (
-                    "Courses that this user can manage."
-                    " Course managers can view and"
-                    " modify users in their managed courses."
-                ),
-            },
-        ),
-        (
-            _("Permissions"),
-            {
-                "fields": (
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions",
-                ),
-            },
-        ),
-        (_("Meta data"), {"fields": ("created_by", "last_login", "date_joined")}),
-    )
-    list_display = [
-        "username",
-        "email",
-        "name",
-        "course",
-        "get_managed_courses",
-        "created_by",
-        "is_staff",
-        "is_superuser",
-    ]
     search_fields = [
         "username",
         "email",
         "name",
         "course__course_name",
     ]
-    list_filter = [
-        "course__course_name",
-        "created_by",
-    ]
     filter_horizontal = ["managed_courses", "groups", "user_permissions"]
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return [
+                "username",
+                "email",
+                "name",
+                "course",
+                "get_managed_courses",
+                "created_by",
+                "is_staff",
+                "is_superuser",
+            ]
+        return ["username", "email", "name", "course"]
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser:
+            fieldsets = (
+                (None, {"fields": ("username", "password")}),
+                (_("Personal info"), {"fields": ("name", "email", "course")}),
+                (
+                    _("Course Management"),
+                    {
+                        "fields": ("managed_courses",),
+                        "description": (
+                            "Courses that this user can manage."
+                            " Course managers can view and"
+                            " modify users in their managed courses."
+                        ),
+                    },
+                ),
+                (
+                    _("Permissions"),
+                    {
+                        "fields": (
+                            "is_active",
+                            "is_staff",
+                            "is_superuser",
+                            "groups",
+                            "user_permissions",
+                        ),
+                    },
+                ),
+                (
+                    _("Meta data"),
+                    {"fields": ("created_by", "last_login", "date_joined")},
+                ),
+            )
+        elif request.user.has_perm("users.can_add_limited_users"):
+            fieldsets = (
+                (None, {"fields": ("username", "password")}),
+                (_("Personal info"), {"fields": ("name", "email", "course")}),
+            )
+        return fieldsets
+
+    def get_list_filter(self, request):
+        if request.user.is_superuser:
+            return [
+                "is_active",
+                "is_staff",
+                "is_superuser",
+                CourseListFilter,
+                "created_by",
+            ]
+        return [CourseListFilter]
 
     @admin.display(description="Managed Courses")
     def get_managed_courses(self, obj):
@@ -128,6 +172,12 @@ class UserAdmin(auth_admin.UserAdmin):
                 or obj.course in request.user.managed_courses.all()
             )
         return False
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_view_permission(request, obj)
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         """Disable the default add user button"""
@@ -288,9 +338,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ["course_id", "course_name", "created_by", "get_managers"]
     search_fields = ["course_id", "course_name"]
-    list_filter = ["created_by"]
 
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
@@ -301,6 +349,11 @@ class CourseAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return ["course_id", "course_name", "created_by", "get_managers"]
         return ["course_id", "course_name", "get_managers"]
+
+    def get_list_filter(self, request):
+        if request.user.is_superuser:
+            return ["created_by"]
+        return []
 
     @admin.display(description="Managers")
     def get_managers(self, obj):
