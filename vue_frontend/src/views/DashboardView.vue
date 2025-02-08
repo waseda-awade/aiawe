@@ -86,9 +86,11 @@
             </p>
             <div v-if="isCompleted">
               <span class="font-semibold">Reasoning:</span>
-              <p class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
-                {{ currentRequest?.reasoning }}
-              </p>
+              <ScrollArea class="text-sm flex max-h-[150px] flex-col overflow-y-auto mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-100/50 shadow-sm">
+                <div class="pr-4">
+                  {{ currentRequest?.reasoning }}
+                </div>
+              </ScrollArea>
             </div>
             <p v-if="isFailed" class="text-sm text-destructive mt-2">
               {{ currentRequest?.error }}
@@ -209,7 +211,7 @@ import {
 import { essayFormSchema, MAX_CHARS } from '@/lib/validations'
 import EvaluationDetailsDialog from '@/components/evaluation/EvaluationDetailsDialog.vue'
 import { ArrowRight } from 'lucide-vue-next'
-
+import { ScrollArea } from '@/components/ui/scroll-area'
 const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
   initialValues: {

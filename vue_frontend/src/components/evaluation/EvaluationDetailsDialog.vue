@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import type { EssayRequest } from '@/types/essay'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 defineProps<{
   open: boolean
@@ -29,9 +29,11 @@ defineEmits<{
         <!-- Reasoning section -->
         <div v-if="record.status === 'COMPLETED'">
           <span class="font-semibold">Reasoning:</span>
-          <p class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
-            {{ record.reasoning }}
-          </p>
+          <ScrollArea class="text-sm flex max-h-[150px] flex-col overflow-y-auto mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-100/50 shadow-sm">
+            <div class="pr-4">
+              {{ record.reasoning }}
+            </div>
+          </ScrollArea>
         </div>
 
         <!-- Error message -->
@@ -60,7 +62,7 @@ defineEmits<{
         <!-- Essay section with scroll -->
         <div>
           <h3 class="font-medium mb-2">Essay</h3>
-          <ScrollArea class="h-[300px] w-full p-2 border border-gray-200 rounded-lg">
+          <ScrollArea class="text-sm flex max-h-[150px] flex-col overflow-y-auto mt-2 px-4 py-2 border border-gray-200 rounded-lg">
             <div class="pr-4">
               {{ record.essay }}
             </div>
