@@ -12,13 +12,14 @@ from django.utils.translation import gettext_lazy as _
 
 from awe_system_ui.core.mixins import AccessControlManagerMixin
 from awe_system_ui.core.mixins import AccessControlMixin
+from awe_system_ui.core.models import TimestampedBase
 
 
 class CourseManager(AccessControlManagerMixin, models.Manager):
     pass
 
 
-class Course(AccessControlMixin, models.Model):
+class Course(AccessControlMixin, TimestampedBase):
     course_id = models.CharField(max_length=10, unique=True)
     course_name = models.CharField(max_length=200)
 

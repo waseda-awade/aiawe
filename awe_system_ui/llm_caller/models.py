@@ -15,13 +15,15 @@ from django.urls import reverse
 
 from awe_system_ui.core.mixins import AccessControlManagerMixin
 from awe_system_ui.core.mixins import AccessControlMixin
+from awe_system_ui.core.models import TaskTimestampedBase
+from awe_system_ui.core.models import TimestampedBase
 
 from .utils import get_today_date_range
 
 User = get_user_model()
 
 
-class LLMModel(models.Model):
+class LLMModel(TimestampedBase):
     LLM_TYPE_CHOICES = [
         ("openai", "OpenAI"),
         ("third_party", "Third Party"),
@@ -51,8 +53,6 @@ class LLMModel(models.Model):
         default=True,
         help_text="Only active models will be listed in the UI",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     llm_type = models.CharField(
         max_length=20,
         choices=LLM_TYPE_CHOICES,
@@ -120,7 +120,7 @@ class LLMModel(models.Model):
             )
 
 
-class QuotaConfig(models.Model):
+class QuotaConfig(TimestampedBase):
     model = models.OneToOneField(
         LLMModel,
         on_delete=models.CASCADE,
@@ -131,8 +131,6 @@ class QuotaConfig(models.Model):
         default=10,
         help_text="Maximum number of requests per day for this model",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         get_latest_by = "created_at"
@@ -149,7 +147,7 @@ class APIRequestManager(AccessControlManagerMixin, models.Manager):
         return query
 
 
-class APIRequest(AccessControlMixin, models.Model):
+class APIRequest(AccessControlMixin, TaskTimestampedBase):
     essay = models.TextField()
     model = models.ForeignKey(
         LLMModel,
@@ -179,8 +177,6 @@ class APIRequest(AccessControlMixin, models.Model):
         ],
         default="PENDING",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     task_id = models.CharField(max_length=100, blank=True, default="")
     is_deleted = models.BooleanField(
         default=False,
@@ -225,7 +221,7 @@ def validate_user_prompt_template(value):
         )
 
 
-class LLMConfig(models.Model):
+class LLMConfig(TimestampedBase):
     target_llm_model = models.ForeignKey(
         LLMModel,
         on_delete=models.CASCADE,
@@ -253,8 +249,6 @@ class LLMConfig(models.Model):
         ],
         help_text="Value between 0 and 2",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -290,7 +284,7 @@ class LLMConfig(models.Model):
         validate_user_prompt_template(self.user_prompt_template)
 
 
-class APIKey(models.Model):
+class APIKey(TimestampedBase):
     model = models.ForeignKey(
         LLMModel,
         on_delete=models.CASCADE,
@@ -305,8 +299,6 @@ class APIKey(models.Model):
         default=True,
         help_text="Only active keys will be used",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["created_at"]
@@ -339,7 +331,7 @@ class APIKey(models.Model):
         return obj.key
 
 
-class BatchProcessingQuota(models.Model):
+class BatchProcessingQuota(TimestampedBase):
     """Quota configuration for batch processing."""
 
     model = models.ForeignKey(
@@ -351,8 +343,6 @@ class BatchProcessingQuota(models.Model):
         default=100,
         help_text="Maximum number of batch requests allowed per day",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "Batch processing quotas"
@@ -375,7 +365,7 @@ class BatchProcessingManager(AccessControlManagerMixin, models.Manager):
     pass
 
 
-class BatchProcessing(AccessControlMixin, models.Model):
+class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
     """Model for batch processing requests."""
 
     STATUS_CHOICES = [
@@ -410,8 +400,6 @@ class BatchProcessing(AccessControlMixin, models.Model):
         null=True,
         blank=True,
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     task_id = models.CharField(max_length=100, blank=True)
 
     objects = BatchProcessingManager()
@@ -480,7 +468,7 @@ class BatchProcessing(AccessControlMixin, models.Model):
         )
 
 
-class BatchItem(models.Model):
+class BatchItem(TaskTimestampedBase):
     """Individual items in a batch processing request."""
 
     STATUS_CHOICES = [
@@ -517,8 +505,6 @@ class BatchItem(models.Model):
     row_data = models.JSONField(
         help_text="Original row data from input file",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     task_id = models.CharField(max_length=100, blank=True)
 
     class Meta:

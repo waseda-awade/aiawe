@@ -61,6 +61,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "created_by__email",
         "created_by__course__course_name",
     ]
+    readonly_fields = ["task_id", "created_at", "updated_at", "started_at", "ended_at"]
 
     actions = ["export_as_excel"]
 
@@ -166,7 +167,7 @@ class LLMModelAdmin(admin.ModelAdmin):
     ]
     list_filter = ["is_active", "is_default", "llm_type"]
     search_fields = ["name", "display_name"]
-    ordering = ["order"]
+    readonly_fields = ["created_at", "updated_at"]
     fieldsets = (
         (
             None,
@@ -189,7 +190,14 @@ class LLMModelAdmin(admin.ModelAdmin):
                 ),
             },
         ),
+        (
+            "Metadata",
+            {
+                "fields": ("created_at", "updated_at"),
+            },
+        ),
     )
+    ordering = ["order"]
 
 
 @admin.register(LLMConfig)
@@ -200,9 +208,11 @@ class LLMConfigAdmin(admin.ModelAdmin):
         "system_prompt",
         "user_prompt_template",
         "temperature",
+        "created_at",
         "updated_at",
     ]
     list_filter = ["target_llm_model", "is_active", "created_at"]
+    readonly_fields = ["created_at", "updated_at"]
 
 
 @admin.register(APIKey)
@@ -216,6 +226,7 @@ class APIKeyAdmin(admin.ModelAdmin):
     ]
     list_filter = ["is_active", "model"]
     search_fields = ["model__display_name"]
+    readonly_fields = ["created_at", "updated_at"]
     ordering = ["created_at"]
 
     @admin.display(
@@ -230,6 +241,7 @@ class APIKeyAdmin(admin.ModelAdmin):
 class BatchProcessingQuotaAdmin(admin.ModelAdmin):
     list_display = ["model", "daily_limit", "created_at", "updated_at"]
     list_filter = ["model"]
+    readonly_fields = ["created_at", "updated_at"]
 
 
 @admin.register(BatchProcessing)
@@ -243,6 +255,8 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "output_file",
         "created_at",
         "updated_at",
+        "started_at",
+        "ended_at",
         "task_id",
     ]
 
@@ -253,6 +267,8 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             "get_items_count",
             "status",
             "created_at",
+            "started_at",
+            "ended_at",
         ]
         if request.user.is_superuser:
             list_display = ["created_by", *list_display]
@@ -377,7 +393,16 @@ class BatchItemAdmin(admin.ModelAdmin):
         "status",
         "score",
         "created_at",
-        "updated_at",
+        "started_at",
+        "ended_at",
     ]
     list_filter = ["status", "batch"]
     search_fields = ["essay", "reasoning", "error"]
+    readonly_fields = [
+        "row_data",
+        "task_id",
+        "created_at",
+        "updated_at",
+        "started_at",
+        "ended_at",
+    ]

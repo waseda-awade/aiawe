@@ -85,6 +85,8 @@ def process_openai_request(
     try:
         try:
             api_request = APIRequest.objects.get(id=request_params.request_id)
+            api_request.started_at = timezone.now()
+            api_request.save()
         except APIRequest.DoesNotExist as e:
             try:
                 self.retry(countdown=2**self.request.retries)
@@ -101,6 +103,8 @@ def process_openai_request(
             api_request.score = 4.0
             api_request.reasoning = reasoning
             api_request.status = "COMPLETED"
+            api_request.save()
+            api_request.ended_at = timezone.now()
             api_request.save()
             return True
 
@@ -137,12 +141,14 @@ def process_openai_request(
             raise ValueError(msg) from e
 
         api_request.status = "COMPLETED"
+        api_request.ended_at = timezone.now()
         api_request.save()
     except (openai.OpenAIError, KeyError, ValueError) as e:
         api_request.status = "FAILED"
         api_request.error = mask_api_key(str(e))
         if e.__context__:
             api_request.error_details = mask_api_key(str(e.__context__))
+        api_request.ended_at = timezone.now()
         api_request.save()
         return False
     else:
@@ -157,12 +163,14 @@ def process_batch(
     """Process a batch of essays."""
     try:
         batch = BatchProcessing.objects.get(id=batch_id)
+        batch.started_at = timezone.now()
         batch.status = "PROCESSING"
         batch.task_id = self.request.id
         batch.save()
 
         # Process each item
         for item in batch.items.filter(status="PENDING"):
+            item.started_at = timezone.now()
             item.status = "PROCESSING"
             item.task_id = self.request.id
             item.save()
@@ -213,7 +221,10 @@ def process_batch(
                 if e.__context__:
                     item.error_details = mask_api_key(str(e.__context__))
 
+            item.ended_at = timezone.now()
             item.save()
+            batch.updated_at = timezone.now()
+            batch.save()
 
         # Create output file
         if batch.items.exclude(status="COMPLETED").exists():
@@ -223,10 +234,12 @@ def process_batch(
             create_output_file(batch)
             batch.notify_completion()
 
+        batch.ended_at = timezone.now()
         batch.save()
 
     except (ValueError, TypeError):
         batch.status = "FAILED"
+        batch.ended_at = timezone.now()
         batch.save()
 
 

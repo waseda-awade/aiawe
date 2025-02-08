@@ -59,8 +59,9 @@ class UserAdmin(AccessControlAdminMixin, auth_admin.UserAdmin):
                 "created_by",
                 "is_staff",
                 "is_superuser",
+                "date_joined",
             ]
-        return ["username", "email", "name", "course"]
+        return ["username", "email", "name", "course", "date_joined"]
 
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
@@ -282,16 +283,22 @@ class UserAdmin(AccessControlAdminMixin, auth_admin.UserAdmin):
 @admin.register(Course)
 class CourseAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     search_fields = ["course_id", "course_name"]
+    readonly_fields = ["created_at", "updated_at"]
 
     def get_fieldsets(self, request, obj=None):
+        fieldsets = [
+            (None, {"fields": ["course_id", "course_name"]}),
+            ("Metadata", {"fields": ["created_at", "updated_at"]}),
+        ]
         if request.user.is_superuser:
-            return ((None, {"fields": ("course_id", "course_name", "created_by")}),)
-        return ((None, {"fields": ("course_id", "course_name")}),)
+            fieldsets[0][1]["fields"].append("created_by")
+        return fieldsets
 
     def get_list_display(self, request):
+        list_display = ["course_id", "course_name", "get_managers", "created_at"]
         if request.user.is_superuser:
-            return ["course_id", "course_name", "created_by", "get_managers"]
-        return ["course_id", "course_name", "get_managers"]
+            list_display.append("created_by")
+        return list_display
 
     def get_list_filter(self, request):
         if request.user.is_superuser:
