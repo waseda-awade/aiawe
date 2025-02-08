@@ -148,6 +148,9 @@
                 </span>
               </div>
             </div>
+            <div v-if="recentHistory.length === 0">
+              <p class="text-sm text-muted-foreground">(No recent evaluations)</p>
+            </div>
           </div>
 
           <router-link
