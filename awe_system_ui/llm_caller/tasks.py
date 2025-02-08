@@ -46,6 +46,10 @@ def get_openai_client(
             f" Please add an API key in the admin interface."
         )
         raise ValueError(msg)
+
+    if not base_url:
+        # Set it to None (it might be an empty string which will cause an error)
+        base_url = None
     return openai.OpenAI(api_key=key, base_url=base_url)
 
 
