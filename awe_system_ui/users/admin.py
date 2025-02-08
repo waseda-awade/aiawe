@@ -19,6 +19,8 @@ from django.urls import path
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from awe_system_ui.core.mixins import AccessControlAdminMixin
+
 from .forms import AdminUserRegistrationForm
 from .forms import AssignCourseForm
 from .forms import UserAdminChangeForm
@@ -53,7 +55,7 @@ class CourseListFilter(SimpleListFilter):
 
 
 @admin.register(User)
-class UserAdmin(auth_admin.UserAdmin):
+class UserAdmin(AccessControlAdminMixin, auth_admin.UserAdmin):
     form = UserAdminChangeForm
     add_form = UserAdminCreationForm
     search_fields = [
@@ -137,29 +139,6 @@ class UserAdmin(auth_admin.UserAdmin):
 
     def get_queryset(self, request):
         return self.model.objects.accessible_by_user(request.user)
-
-    def save_model(self, request, obj, form, change):
-        if not change:  # If creating new user
-            obj.created_by = request.user
-        super().save_model(request, obj, form, change)
-
-    def has_view_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if request.user.has_perm("users.can_add_limited_users"):
-            if obj is None:
-                return True
-            return (
-                obj.created_by == request.user
-                or obj.course in request.user.managed_courses.all()
-            )
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj)
-
-    def has_change_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj)
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         """Disable the default add user button"""
@@ -319,7 +298,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
 
 @admin.register(Course)
-class CourseAdmin(admin.ModelAdmin):
+class CourseAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     search_fields = ["course_id", "course_name"]
 
     def get_fieldsets(self, request, obj=None):
@@ -340,34 +319,6 @@ class CourseAdmin(admin.ModelAdmin):
     @admin.display(description="Managers")
     def get_managers(self, obj):
         return ", ".join(user.username for user in obj.managers.all()) or "-"
-
-    def save_model(self, request, obj, form, change):
-        if not change:  # If creating new course
-            obj.created_by = request.user
-        super().save_model(request, obj, form, change)
-
-    def get_queryset(self, request):
-        return self.model.objects.accessible_by_user(request.user)
-
-    def has_view_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if request.user.has_perm("users.can_manage_limited_courses"):
-            if obj is None:
-                return True
-            return obj.created_by == request.user or request.user in obj.managers.all()
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj)
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser or request.user.has_perm(
-            "users.can_manage_limited_courses",
-        )
 
 
 admin.site.unregister(EmailAddress)
