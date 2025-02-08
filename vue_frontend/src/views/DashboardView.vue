@@ -105,6 +105,15 @@
             <Loader2 v-if="isLoading || isPending" class="mr-2 h-4 w-4 animate-spin" />
             {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
           </Button>
+
+          <Button
+            v-if="isLoading || isPending"
+            type="button"
+            class="w-full mt-2"
+            @click="handleReset"
+          >
+            Make a new submission
+          </Button>
         </form>
       </CardContent>
     </Card>
@@ -211,9 +220,9 @@ const { toast } = useToast()
 const { processDocument, isProcessing } = useDocumentProcessor()
 
 const generalError = ref('')
-const isLoading = ref(false)
 const charCount = computed(() => form.values.essay?.length || 0)
 const isOverLimit = computed(() => charCount.value > MAX_CHARS)
+const isLoading = ref(false)
 const isPending = computed(() => currentRequest.value?.status === 'PENDING')
 const isCompleted = computed(() => currentRequest.value?.status === 'COMPLETED')
 const isFailed = computed(() => currentRequest.value?.status === 'FAILED')
@@ -387,6 +396,16 @@ const handleSubmit = form.handleSubmit(async (values) => {
 const handleHistoryItemClick = (record: EssayRequest) => {
   selectedHistoryRecord.value = record
   showHistoryDialog.value = true
+}
+
+const handleReset = () => {
+  form.setFieldValue('essay', '')
+  currentRequest.value = null
+  generalError.value = ''
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
 }
 
 // Clean up polling when component is unmounted
