@@ -419,6 +419,18 @@ class BatchProcessing(AccessControlMixin, models.Model):
     def __str__(self):
         return f"Batch({self.model.display_name}, {self.status}, {self.created_at})"
 
+    def delete_files(self):
+        count = 0
+        if self.input_file:
+            self.input_file.delete()
+            self.input_file = None
+            count += 1
+        if self.output_file:
+            self.output_file.delete()
+            self.output_file = None
+            count += 1
+        return count
+
     def notify_completion(self):
         """Send email notification when batch processing is complete."""
         if not self.output_file:

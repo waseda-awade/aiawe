@@ -1,6 +1,7 @@
 import logging
 import time
 from dataclasses import dataclass
+from datetime import timedelta
 from io import BytesIO
 from typing import Literal
 
@@ -254,3 +255,21 @@ def create_output_file(batch):
     default_storage.save(path, ContentFile(output.getvalue()))
     batch.output_file = path
     batch.save()
+
+
+@shared_task()
+def delete_old_batch_processing_files(days_ago: int = 30):
+    """Delete files older than the given number of days.
+    Parameters:
+        days_ago: int = 30
+    Returns:
+        int: The number of files deleted.
+    """
+
+    qs = BatchProcessing.objects.filter(
+        created_at__lt=timezone.now() - timedelta(days=days_ago),
+    )
+    count = 0
+    for batch in qs:
+        count += batch.delete_files()
+    return count

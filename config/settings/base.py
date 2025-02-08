@@ -89,9 +89,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "awe_system_ui.core",
     "awe_system_ui.users",
     "awe_system_ui.llm_caller",
-    # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
