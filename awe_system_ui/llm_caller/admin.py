@@ -347,6 +347,12 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     def download_view(self, request, object_id):
         batch = get_object_or_404(BatchProcessing, pk=object_id)
+
+        # Check if user has permission to download
+        if not (request.user.is_superuser or batch.created_by == request.user):
+            msg = "You don't have permission to download this file."
+            raise PermissionDenied(msg)
+
         if not batch.output_file:
             messages.error(request, "Output file not available")
             return HttpResponseRedirect(
