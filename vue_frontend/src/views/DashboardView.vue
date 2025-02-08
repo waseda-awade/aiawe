@@ -1,116 +1,163 @@
 <template>
-  <Card class="max-w-4xl mx-auto">
-    <CardHeader>
-      <CardTitle>Evaluate your essay</CardTitle>
-      <CardDescription> Enter your text directly or upload a Word document </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <form @submit="handleSubmit" class="space-y-4">
-        <FormField
-          v-slot="{ componentField }"
-          name="model_id"
-        >
-          <FormItem>
-            <Select
-              v-bind="componentField"
-              :disabled="isProcessing || isPending"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem
-                    v-for="model in modelOptions"
-                    :key="model.id"
-                    :value="model.id.toString()"
-                  >
-                    {{ model.display_name }}
-                    <span
-                      v-if="model.daily_limit"
-                      :class="{
-                        'text-red-500': model.used_quota >= model.daily_limit,
-                        'text-muted-foreground': model.used_quota < model.daily_limit
-                      }"
-                      class="ml-2"
-                    >
-                      ({{ model.used_quota }}/{{ model.daily_limit }})
-                    </span>
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        </FormField>
-
-        <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
-          @file-selected="handleFileSelected" />
-
-        <FormField
-          v-slot="{ componentField }"
-          name="essay"
-        >
-          <FormItem>
-            <FormControl>
-              <Textarea
+  <div class="flex flex-col gap-6 md:flex-row max-w-7xl mx-auto">
+    <Card class="flex-1">
+      <CardHeader>
+        <CardTitle>Evaluate your essay</CardTitle>
+        <CardDescription> Enter your text directly or upload a Word document </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form @submit="handleSubmit" class="space-y-4">
+          <FormField
+            v-slot="{ componentField }"
+            name="model_id"
+          >
+            <FormItem>
+              <Select
                 v-bind="componentField"
-                :rows="20"
-                placeholder="Enter your text here or upload a document..."
                 :disabled="isProcessing || isPending"
-              />
-            </FormControl>
-            <FormMessage />
-            <div class="flex justify-between items-center text-sm">
-              <p class="text-muted-foreground" :class="{ invisible: !currentRequest }">
-                Status:
-                <span :class="{
-                  'text-yellow-500': isPending,
-                  'text-green-500': isCompleted,
-                  'text-red-500': isFailed,
-                }">
-                  {{ currentRequest?.status }}
-                </span>
-              </p>
-              <p class="text-muted-foreground" :class="{ 'text-destructive': isOverLimit }">
-                {{ charCount }}/{{ MAX_CHARS }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem
+                      v-for="model in modelOptions"
+                      :key="model.id"
+                      :value="model.id.toString()"
+                    >
+                      {{ model.display_name }}
+                      <span
+                        v-if="model.daily_limit"
+                        :class="{
+                          'text-red-500': model.used_quota >= model.daily_limit,
+                          'text-muted-foreground': model.used_quota < model.daily_limit
+                        }"
+                        class="ml-2"
+                      >
+                        ({{ model.used_quota }}/{{ model.daily_limit }})
+                      </span>
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
+            @file-selected="handleFileSelected" />
+
+          <FormField
+            v-slot="{ componentField }"
+            name="essay"
+          >
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  v-bind="componentField"
+                  :rows="20"
+                  placeholder="Enter your text here or upload a document..."
+                  :disabled="isProcessing || isPending"
+                />
+              </FormControl>
+              <FormMessage />
+              <div class="flex justify-between items-center text-sm">
+                <p class="text-muted-foreground" :class="{ invisible: !currentRequest }">
+                  Status:
+                  <span :class="{
+                    'text-yellow-500': isPending,
+                    'text-green-500': isCompleted,
+                    'text-red-500': isFailed,
+                  }">
+                    {{ currentRequest?.status }}
+                  </span>
+                </p>
+                <p class="text-muted-foreground" :class="{ 'text-destructive': isOverLimit }">
+                  {{ charCount }}/{{ MAX_CHARS }}
+                </p>
+              </div>
+            </FormItem>
+          </FormField>
+
+          <div v-if="currentRequest">
+            <p v-if="isCompleted" class="mb-2 text-4xl font-semibold text-green-600 mt-2">
+              Score: {{ currentRequest?.score }}
+            </p>
+            <div v-if="isCompleted">
+              <span class="font-semibold">Reasoning:</span>
+              <p class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
+                {{ currentRequest?.reasoning }}
               </p>
             </div>
-          </FormItem>
-        </FormField>
-
-        <div v-if="currentRequest">
-          <p v-if="isCompleted" class="mb-2 text-4xl font-semibold text-green-600 mt-2">
-            Score: {{ currentRequest?.score }}
-          </p>
-          <div v-if="isCompleted">
-            <span class="font-semibold">Reasoning:</span>
-            <p class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
-              {{ currentRequest?.reasoning }}
+            <p v-if="isFailed" class="text-sm text-destructive mt-2">
+              {{ currentRequest?.error }}
             </p>
           </div>
-          <p v-if="isFailed" class="text-sm text-destructive mt-2">
-            {{ currentRequest?.error }}
-          </p>
-        </div>
 
-        <p v-if="generalError" class="text-destructive text-sm">{{ generalError }}</p>
+          <p v-if="generalError" class="text-destructive text-sm">{{ generalError }}</p>
 
-        <Button
-          type="submit"
-          class="w-full"
-          :disabled="isLoading || isProcessing || isPending || !form.meta.value.valid"
-        >
-          <Loader2 v-if="isLoading || isPending" class="mr-2 h-4 w-4 animate-spin" />
-          {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
-        </Button>
+          <Button
+            type="submit"
+            class="w-full"
+            :disabled="isLoading || isProcessing || isPending || !form.meta.value.valid"
+          >
+            <Loader2 v-if="isLoading || isPending" class="mr-2 h-4 w-4 animate-spin" />
+            {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
 
-        <router-link :to="{ name: 'history' }"
-          class="text-sm text-muted-foreground hover:text-primary mt-2 block text-right underline">View
-          History</router-link>
-      </form>
-    </CardContent>
-  </Card>
+    <div class="w-full md:w-60 md:shrink-0">
+      <Card>
+        <CardHeader>
+          <CardTitle class="text-lg">Recent Evaluations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="space-y-2">
+            <div
+              v-for="item in recentHistory"
+              :key="item.id"
+              class="p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+              @click="handleHistoryItemClick(item)"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium">#{{ item.id }}</span>
+                <span
+                  v-if="item.status !== 'COMPLETED'"
+                  :class="{
+                    'text-yellow-500': item.status === 'PENDING',
+                    'text-red-500': item.status === 'FAILED'
+                  }"
+                  class="text-xs"
+                >
+                  {{ item.status }}
+                </span>
+                <span v-else class="text-green-600 font-medium">
+                  Score: {{ item.score }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <router-link
+            :to="{ name: 'history' }"
+            class="flex items-center justify-center w-full mt-4 text-sm text-muted-foreground hover:text-primary"
+          >
+            View all history
+            <ArrowRight class="w-4 h-4 ml-1" />
+          </router-link>
+        </CardContent>
+      </Card>
+    </div>
+
+    <EvaluationDetailsDialog
+      :open="showHistoryDialog"
+      :record="selectedHistoryRecord"
+      @update:open="showHistoryDialog = $event"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -148,6 +195,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { essayFormSchema, MAX_CHARS } from '@/lib/validations'
+import EvaluationDetailsDialog from '@/components/evaluation/EvaluationDetailsDialog.vue'
+import { ArrowRight } from 'lucide-vue-next'
 
 const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
@@ -157,6 +206,7 @@ const form = useForm({
   },
 })
 
+const NUM_HISTORY_ITEMS = 5
 const { toast } = useToast()
 const { processDocument, isProcessing } = useDocumentProcessor()
 
@@ -173,6 +223,10 @@ const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
 const selectedModel = ref('')
 const modelOptions = ref<LLMModel[]>([])
+
+const recentHistory = ref<EssayRequest[]>([])
+const selectedHistoryRecord = ref<EssayRequest | null>(null)
+const showHistoryDialog = ref(false)
 
 const updateModelQuotas = async () => {
   try {
@@ -191,8 +245,20 @@ const updateModelQuotas = async () => {
   }
 }
 
+const loadRecentHistory = async () => {
+  try {
+    const response = await EssayService.getEssayHistory(1, NUM_HISTORY_ITEMS)
+    recentHistory.value = response.results
+  } catch (error) {
+    console.error('Failed to load recent history:', error)
+  }
+}
+
 onMounted(async () => {
-  await updateModelQuotas()
+  await Promise.all([
+    updateModelQuotas(),
+    loadRecentHistory()
+  ])
 })
 
 const handleFileSelected = async (file: File) => {
@@ -235,6 +301,7 @@ const startPolling = (requestId: number) => {
     try {
       const data = await EssayService.getEssay(requestId)
       currentRequest.value = data
+      loadRecentHistory()
 
       if (data.status !== 'PENDING') {
         // Stop polling if we're no longer pending
@@ -245,7 +312,10 @@ const startPolling = (requestId: number) => {
 
         // Show result or error and update quotas when request completes
         if (data.status === 'COMPLETED') {
-          await updateModelQuotas()
+          await Promise.all([
+            updateModelQuotas(),
+            loadRecentHistory()
+          ])
           toast({
             title: 'Evaluation Complete',
             description: `Your essay score: ${data.score}`,
@@ -313,6 +383,11 @@ const handleSubmit = form.handleSubmit(async (values) => {
     isLoading.value = false
   }
 })
+
+const handleHistoryItemClick = (record: EssayRequest) => {
+  selectedHistoryRecord.value = record
+  showHistoryDialog.value = true
+}
 
 // Clean up polling when component is unmounted
 onUnmounted(() => {
