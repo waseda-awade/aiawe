@@ -17,11 +17,15 @@ class CourseLimitingFormMixin:
     """Mixin to limit course choices based on user access."""
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
+        self.staff_user = kwargs.pop("staff_user", None)
         super().__init__(*args, **kwargs)
-        if "course" in self.fields and self.user and self.user.is_authenticated:
+        if (
+            "course" in self.fields
+            and self.staff_user
+            and self.staff_user.is_authenticated
+        ):
             self.fields["course"].queryset = Course.objects.accessible_by_user(
-                self.user,
+                self.staff_user,
             )
 
 

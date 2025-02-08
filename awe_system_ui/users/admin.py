@@ -180,7 +180,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
     def register_user_view(self, request):
         if request.method == "POST":
-            form = AdminUserRegistrationForm(data=request.POST, user=request.user)
+            form = AdminUserRegistrationForm(data=request.POST, staff_user=request.user)
             if form.is_valid():
                 with transaction.atomic():
                     user = form.save(commit=False)
@@ -189,7 +189,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 messages.success(request, "User registered successfully.")
                 return HttpResponseRedirect(reverse("admin:users_user_changelist"))
         else:
-            form = AdminUserRegistrationForm(user=request.user)
+            form = AdminUserRegistrationForm(staff_user=request.user)
 
         context = {
             "form": form,
@@ -277,7 +277,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
         # Handle form submission
         if request.POST.get("post"):
-            form = AssignCourseForm(data=request.POST, user=request.user)
+            form = AssignCourseForm(data=request.POST, staff_user=request.user)
             if form.is_valid():
                 course = form.cleaned_data["course"]
                 updated = 0
@@ -295,7 +295,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 return None
 
         else:
-            form = AssignCourseForm(user=request.user)
+            form = AssignCourseForm(staff_user=request.user)
 
         # If we're allowed to change any of the selected users, show the form
         if not any(self.has_change_permission(request, obj) for obj in queryset):
@@ -316,7 +316,7 @@ class UserAdmin(auth_admin.UserAdmin):
 
     def get_form(self, request, obj=None, change=False, **kwargs):  # noqa: FBT002
         form_class = super().get_form(request, obj, **kwargs)
-        return lambda *args, **k: form_class(*args, **{**k, "user": request.user})
+        return lambda *args, **k: form_class(*args, **{**k, "staff_user": request.user})
 
 
 @admin.register(Course)
