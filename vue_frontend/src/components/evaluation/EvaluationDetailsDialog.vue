@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import type { EssayRequest } from '@/types/essay'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -18,24 +18,26 @@ defineEmits<{
     <DialogContent class="max-w-2xl max-h-[80vh]">
       <div v-if="record" class="space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <h2 class="text-2xl font-bold">Evaluation Details</h2>
-          <!-- Status and date -->
-          <div class="flex flex-col sm:flex-row sm:items-end gap-4 text-sm text-muted-foreground">
-            <div>
-              <span class="font-medium text-foreground">Status: </span>
-              <span :class="{
-                'text-yellow-500': record.status === 'PENDING',
-                'text-green-500': record.status === 'COMPLETED',
-                'text-red-500': record.status === 'FAILED',
-              }">
-                {{ record.status }}
-              </span>
+          <DialogTitle class="text-2xl font-bold">Evaluation Details</DialogTitle>
+          <DialogDescription>
+            <!-- Status and date -->
+            <div class="flex flex-col sm:flex-row sm:items-end gap-4 text-sm text-muted-foreground">
+              <div>
+                <span class="font-medium text-foreground">Status: </span>
+                <span :class="{
+                  'text-yellow-500': record.status === 'PENDING',
+                  'text-green-500': record.status === 'COMPLETED',
+                  'text-red-500': record.status === 'FAILED',
+                }">
+                  {{ record.status }}
+                </span>
+              </div>
+              <div>
+                <span class="font-medium text-foreground">Created: </span>
+                {{ new Date(record.created_at).toLocaleString() }}
+              </div>
             </div>
-            <div>
-              <span class="font-medium text-foreground">Created: </span>
-              {{ new Date(record.created_at).toLocaleString() }}
-            </div>
-          </div>
+          </DialogDescription>
         </div>
 
         <!-- Error message -->
