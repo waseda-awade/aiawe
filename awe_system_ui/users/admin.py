@@ -1,7 +1,9 @@
 import contextlib
 
 import pandas as pd
+from allauth.account.admin import EmailAddressAdmin
 from allauth.account.decorators import secure_admin_login
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
@@ -363,6 +365,19 @@ class CourseAdmin(admin.ModelAdmin):
         return self.has_view_permission(request, obj)
 
     def has_add_permission(self, request):
+        return request.user.is_superuser or request.user.has_perm(
+            "users.can_manage_limited_courses",
+        )
+
+
+admin.site.unregister(EmailAddress)
+
+
+@admin.register(EmailAddress)
+class CustomEmailAddressAdmin(EmailAddressAdmin):
+    """Customize EmailAddressAdmin to allow delete permission for staff users"""
+
+    def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser or request.user.has_perm(
             "users.can_manage_limited_courses",
         )
