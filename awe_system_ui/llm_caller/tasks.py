@@ -96,11 +96,10 @@ def process_openai_request(
         api_request.task_id = self.request.id
 
         if settings.FAKE_LLM_REQUEST:
-            api_request.result = (
-                '{"score": 4.0, "reasoning": "This is a fake response"}'
-            )
+            reasoning = "This is a fake response. " * 40
+            api_request.result = f'{{"score": 4.0, "reasoning": "{reasoning}"}}'
             api_request.score = 4.0
-            api_request.reasoning = "This is a fake response"
+            api_request.reasoning = reasoning
             api_request.status = "COMPLETED"
             api_request.save()
             return True
