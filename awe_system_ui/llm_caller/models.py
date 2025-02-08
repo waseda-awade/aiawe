@@ -9,6 +9,7 @@ from django.core.validators import MinValueValidator
 from django.core.validators import URLValidator
 from django.core.validators import validate_email
 from django.db import models
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.urls import reverse
 
@@ -91,7 +92,7 @@ class LLMModel(models.Model):
         today_start, today_end = get_today_date_range()
 
         return APIRequest.objects.filter(
-            user=user,
+            created_by=user,
             model=self,
             status="COMPLETED",
             created_at__range=(today_start, today_end),
@@ -140,8 +141,15 @@ class QuotaConfig(models.Model):
         return f"QuotaConfig({self.model.display_name}, limit={self.daily_limit})"
 
 
-class APIRequest(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+class APIRequestManager(AccessControlManagerMixin, models.Manager):
+    def extend_manager_query(self, query, user):
+        query |= Q(created_by__course__managers=user) | Q(
+            created_by__course__created_by=user,
+        )
+        return query
+
+
+class APIRequest(AccessControlMixin, models.Model):
     essay = models.TextField()
     model = models.ForeignKey(
         LLMModel,
@@ -170,8 +178,19 @@ class APIRequest(models.Model):
         help_text="Soft delete flag - True means this request is deleted",
     )
 
+    objects = APIRequestManager()
+
+    class Meta:
+        ordering = ["-created_at"]
+        permissions = [
+            (
+                "can_manage_limited_apirequests",
+                "Can manage API requests with limited visibility",
+            ),
+        ]
+
     def __str__(self):
-        return f"APIRequest(user={self.user}, status={self.status}, \
+        return f"APIRequest(created_by={self.created_by}, status={self.status}, \
             model={self.model.display_name}, essay={self.essay[:20]})"
 
 

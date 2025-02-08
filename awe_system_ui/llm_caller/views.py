@@ -32,7 +32,7 @@ class APIRequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = APIRequest.objects.filter(
-            user=self.request.user,
+            created_by=self.request.user,
             is_deleted=False,
         )
         return queryset.order_by("-created_at")
@@ -62,7 +62,7 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             )
 
         # Create and save the request
-        api_request = serializer.save(user=request.user)
+        api_request = serializer.save(created_by=request.user)
 
         llm_config = LLMConfig.get_active_config(model_name=model.name)
         llm_params = LLMRequestParams(
@@ -94,7 +94,7 @@ class APIRequestViewSet(viewsets.ModelViewSet):
         # Update is_deleted flag for user's requests
         updated = APIRequest.objects.filter(
             id__in=ids,
-            user=request.user,
+            created_by=request.user,
             is_deleted=False,
         ).update(is_deleted=True)
 

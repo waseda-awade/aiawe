@@ -66,7 +66,7 @@ class TestActiveModelsView:
 
         # Create some API requests
         APIRequest.objects.create(
-            user=user,
+            created_by=user,
             model=active_model,
             essay="Test essay",
             status="COMPLETED",
@@ -75,7 +75,7 @@ class TestActiveModelsView:
         # Create an old request that shouldn't count towards today's quota
         yesterday = timezone.now() - timedelta(days=1)
         req = APIRequest.objects.create(
-            user=user,
+            created_by=user,
             model=active_model,
             essay="Old essay",
             status="COMPLETED",
@@ -102,11 +102,11 @@ class TestAPIRequestViewSet:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert APIRequest.objects.count() == 1
-        request = APIRequest.objects.first()
-        assert request.user == user
-        assert request.model == active_model
-        assert request.essay == data["essay"]
-        assert request.status == "PENDING"
+        api_request = APIRequest.objects.first()
+        assert api_request.created_by == user
+        assert api_request.model == active_model
+        assert api_request.essay == data["essay"]
+        assert api_request.status == "PENDING"
 
     def test_quota_limit(self, authenticated_client, active_model):
         client, user = authenticated_client
@@ -115,7 +115,7 @@ class TestAPIRequestViewSet:
         # Create requests up to the quota limit
         for _ in range(10):
             APIRequest.objects.create(
-                user=user,
+                created_by=user,
                 model=active_model,
                 essay="Test essay",
                 status="COMPLETED",
@@ -142,13 +142,13 @@ class TestAPIRequestViewSet:
 
         # Create some requests for the user
         APIRequest.objects.create(
-            user=user,
+            created_by=user,
             model=active_model,
             essay="Test essay 1",
             status="COMPLETED",
         )
         APIRequest.objects.create(
-            user=user,
+            created_by=user,
             model=active_model,
             essay="Test essay 2",
             status="PENDING",
@@ -157,7 +157,7 @@ class TestAPIRequestViewSet:
         # Create a request for another user
         other_user = UserFactory()
         APIRequest.objects.create(
-            user=other_user,
+            created_by=other_user,
             model=active_model,
             essay="Other user's essay",
             status="COMPLETED",

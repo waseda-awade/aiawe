@@ -108,7 +108,7 @@ class TestAPIRequest:
             display_name="GPT-4",
         )
         request = APIRequest.objects.create(
-            user=user,
+            created_by=user,
             model=model,
             essay="This is a test essay",
         )

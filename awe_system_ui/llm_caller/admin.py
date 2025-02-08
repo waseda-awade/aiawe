@@ -39,9 +39,9 @@ class QuotaConfigAdmin(admin.ModelAdmin):
 
 
 @admin.register(APIRequest)
-class APIRequestAdmin(admin.ModelAdmin):
+class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     list_display = [
-        "user",
+        "created_by",
         "get_course",
         "status",
         "get_model_name",
@@ -51,8 +51,13 @@ class APIRequestAdmin(admin.ModelAdmin):
         "get_truncated_error",
         "created_at",
     ]
-    list_filter = ["status", "user", "model", "user__course"]
-    search_fields = ["essay", "result", "user__email", "user__course__course_name"]
+    list_filter = ["status", "model", "created_by__course"]
+    search_fields = [
+        "essay",
+        "result",
+        "created_by__email",
+        "created_by__course__course_name",
+    ]
     actions = ["export_as_csv"]
 
     @admin.display(description="Essay")
@@ -67,13 +72,17 @@ class APIRequestAdmin(admin.ModelAdmin):
     def get_truncated_error(self, obj):
         return truncatechars(obj.error, 50)
 
-    @admin.display(description="Course", ordering="user__course")
+    @admin.display(description="Course", ordering="created_by__course")
     def get_course(self, obj):
-        return obj.user.course if obj.user.course else "-"
+        return obj.created_by.course if obj.created_by.course else "-"
 
     @admin.display(description="Model", ordering="model__display_name")
     def get_model_name(self, obj):
         return obj.model.display_name
+
+    def has_add_permission(self, request):
+        """Disable add permission for APIRequestAdmin"""
+        return False
 
     @admin.action(
         description="Export selected requests as Excel",
@@ -82,9 +91,9 @@ class APIRequestAdmin(admin.ModelAdmin):
         field_names = [
             "created_at",
             "status",
-            "user__email",
-            "user__course__course_id",
-            "user__course__course_name",
+            "created_by__email",
+            "created_by__course__course_id",
+            "created_by__course__course_name",
             "model__name",
             "essay",
             "score",
