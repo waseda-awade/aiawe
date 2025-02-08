@@ -64,6 +64,22 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     actions = ["export_as_excel"]
 
+    # Define field mapping for export
+    export_field_mapping = [
+        ("created_at", "Timestamp"),
+        ("status", "Status"),
+        ("created_by__name", "User Name"),
+        ("created_by__email", "User Email"),
+        ("created_by__course__course_id", "Course ID"),
+        ("created_by__course__course_name", "Course Name"),
+        ("model__name", "LLM Model"),
+        ("essay", "Essay"),
+        ("score", "Score"),
+        ("reasoning", "Reasoning"),
+        ("error", "Error"),
+        ("result", "Raw Response"),
+    ]
+
     @admin.display(description="Essay")
     def get_truncated_essay(self, obj):
         return truncatechars(obj.essay, 50)
@@ -90,44 +106,14 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         """Disable add permission for APIRequestAdmin"""
         return False
 
-    @admin.action(
-        description="Export selected requests as Excel",
-    )
+    @admin.action(description="Export selected requests as Excel")
     def export_as_excel(self, request, queryset):
-        field_names = [
-            "created_at",
-            "status",
-            "created_by__name",
-            "created_by__email",
-            "created_by__course__course_id",
-            "created_by__course__course_name",
-            "model__name",
-            "essay",
-            "score",
-            "reasoning",
-            "error",
-            "result",
-        ]
-
         # Create workbook and select active sheet
         workbook = Workbook()
         worksheet = workbook.active
 
         # Write header
-        headers = [
-            "Timestamp",
-            "Status",
-            "User Name",
-            "User Email",
-            "Course ID",
-            "Course Name",
-            "LLM Model",
-            "Essay",
-            "Score",
-            "Reasoning",
-            "Error",
-            "Raw Response",
-        ]
+        field_names, headers = zip(*self.export_field_mapping, strict=False)
         worksheet.append(headers)
 
         # Write data rows
