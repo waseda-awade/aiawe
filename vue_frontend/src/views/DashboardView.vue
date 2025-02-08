@@ -56,7 +56,7 @@
               <FormControl>
                 <Textarea
                   v-bind="componentField"
-                  :rows="20"
+                  :rows="15"
                   placeholder="Enter your text here or upload a document..."
                   :disabled="isProcessing || isPending"
                 />
