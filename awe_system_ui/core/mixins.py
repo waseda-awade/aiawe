@@ -91,6 +91,9 @@ class AccessControlAdminMixin:
             )
         return False
 
+    def has_add_permission(self, request):
+        return self.has_view_permission(request, obj=None)
+
     def has_change_permission(self, request, obj=None):
         return self.has_view_permission(request, obj)
 
