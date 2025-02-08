@@ -104,6 +104,7 @@ class AdminUserRegistrationForm(CourseLimitingFormMixin, forms.ModelForm):
     def save(self, commit=True):  # noqa: FBT002
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
+        user.created_by = self.staff_user
 
         if commit:
             with transaction.atomic():
