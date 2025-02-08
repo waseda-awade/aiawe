@@ -160,7 +160,16 @@ class APIRequest(AccessControlMixin, models.Model):
     result = models.TextField(blank=True, default="")
     score = models.FloatField(null=True, blank=True)
     reasoning = models.TextField(blank=True, default="")
-    error = models.TextField(blank=True, default="")
+    error = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error message that displays to the user.",
+    )
+    error_details = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error details to diagnose the error.",
+    )
     status = models.CharField(
         max_length=20,
         choices=[
@@ -487,10 +496,19 @@ class BatchItem(models.Model):
         related_name="items",
     )
     essay = models.TextField()
-    result = models.TextField(blank=True)
+    result = models.TextField(blank=True, default="")
     score = models.FloatField(null=True, blank=True)
-    reasoning = models.TextField(blank=True)
-    error = models.TextField(blank=True)
+    reasoning = models.TextField(blank=True, default="")
+    error = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error message that displays to the user.",
+    )
+    error_details = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error details to diagnose the error.",
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,

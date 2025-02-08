@@ -140,8 +140,9 @@ def process_openai_request(
         api_request.save()
     except (openai.OpenAIError, KeyError, ValueError) as e:
         api_request.status = "FAILED"
-        masked_error = mask_api_key(str(e))
-        api_request.error = masked_error
+        api_request.error = mask_api_key(str(e))
+        if e.__context__:
+            api_request.error_details = mask_api_key(str(e.__context__))
         api_request.save()
         return False
     else:
@@ -208,7 +209,9 @@ def process_batch(
 
             except (openai.OpenAIError, ValueError, TypeError) as e:
                 item.status = "FAILED"
-                item.error = str(e)
+                item.error = mask_api_key(str(e))
+                if e.__context__:
+                    item.error_details = mask_api_key(str(e.__context__))
 
             item.save()
 
