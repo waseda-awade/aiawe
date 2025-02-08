@@ -96,6 +96,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         field_names = [
             "created_at",
             "status",
+            "created_by__name",
             "created_by__email",
             "created_by__course__course_id",
             "created_by__course__course_name",
@@ -115,6 +116,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         headers = [
             "Timestamp",
             "Status",
+            "User Name",
             "User Email",
             "Course ID",
             "Course Name",
