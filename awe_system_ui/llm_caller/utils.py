@@ -27,3 +27,10 @@ def mask_api_key(content: str) -> str:
     # Match sk- followed by any characters until a space, quote, or end of string
     pattern = r"(sk-[a-zA-Z0-9]+)"
     return re.sub(pattern, "sk-[MASKED]", str(content))
+
+
+def format_datetime(datetime_obj: timezone.datetime) -> str:
+    """
+    Formats a datetime object to a string in the local timezone.
+    """
+    return timezone.localtime(datetime_obj).strftime("%Y-%m-%d %H:%M:%S %Z")

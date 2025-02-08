@@ -23,6 +23,7 @@ from awe_system_ui.core.filters import UserListFilter
 from awe_system_ui.core.mixins import AccessControlAdminMixin
 from awe_system_ui.llm_caller.forms import BatchProcessingForm
 from awe_system_ui.llm_caller.tasks import process_batch
+from awe_system_ui.llm_caller.utils import format_datetime
 
 from .models import APIKey
 from .models import APIRequest
@@ -141,7 +142,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
                 # Format timestamp if it's the created_at field
                 if field == "created_at" and value is not None:
-                    value = timezone.localtime(value).strftime("%Y-%m-%d %H:%M:%S %Z")
+                    value = format_datetime(value)
 
                 row.append(value if value is not None else "")
             worksheet.append(row)

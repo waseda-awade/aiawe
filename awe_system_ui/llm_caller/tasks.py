@@ -19,6 +19,7 @@ from .models import APIKey
 from .models import APIRequest
 from .models import BatchProcessing
 from .models import LLMConfig
+from .utils import format_datetime
 from .utils import mask_api_key
 
 logger = logging.getLogger(__name__)
@@ -238,7 +239,7 @@ def create_output_file(batch):
         row = item.row_data.copy()
         row.update(
             {
-                "Timestamp": item.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "Timestamp": format_datetime(item.created_at),
                 "Status": item.status,
                 "Score": item.score,
                 "Reasoning": item.reasoning,
