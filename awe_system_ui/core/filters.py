@@ -2,9 +2,10 @@ from django.apps import apps
 from django.contrib.admin import SimpleListFilter
 
 
-class CourseListFilter(SimpleListFilter):
+class CourseFilterBase(SimpleListFilter):
+    """Base filter for filtering by course, either directly or through created_by."""
+
     title = "Course"  # Display name of the filter
-    parameter_name = "course__course_name"  # URL parameter
 
     def lookups(self, request, model_admin):
         Course = apps.get_model("users", "Course")
@@ -17,8 +18,21 @@ class CourseListFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(course__course_name=self.value())
+            filter_path = self.parameter_name
+            return queryset.filter(**{filter_path: self.value()})
         return queryset
+
+
+class CreatorCourseListFilter(CourseFilterBase):
+    """Filter that looks up course through the created_by relationship."""
+
+    parameter_name = "created_by__course__course_name"
+
+
+class CourseListFilter(CourseFilterBase):
+    """Filter that looks up course directly."""
+
+    parameter_name = "course__course_name"
 
 
 class UserListFilter(SimpleListFilter):
