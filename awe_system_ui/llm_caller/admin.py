@@ -59,7 +59,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "created_by__email",
         "created_by__course__course_name",
     ]
-    actions = ["export_as_csv"]
+    actions = ["export_as_excel"]
 
     @admin.display(description="Essay")
     def get_truncated_essay(self, obj):
@@ -88,7 +88,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     @admin.action(
         description="Export selected requests as Excel",
     )
-    def export_as_csv(self, request, queryset):
+    def export_as_excel(self, request, queryset):
         field_names = [
             "created_at",
             "status",
