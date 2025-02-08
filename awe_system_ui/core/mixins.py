@@ -86,9 +86,14 @@ class AccessControlAdminMixin:
         if self.model.has_management_permission(request.user):
             if obj is None:
                 return True
-            return obj.created_by == request.user or (
-                hasattr(obj, "managers") and request.user in obj.managers.all()
+            return (
+                self.model.objects.accessible_by_user(request.user)
+                .filter(
+                    id=obj.id,
+                )
+                .exists()
             )
+
         return False
 
     def has_add_permission(self, request):
