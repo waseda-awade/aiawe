@@ -273,6 +273,11 @@ onMounted(async () => {
     updateModelQuotas(),
     loadRecentHistory()
   ])
+
+  // Start polling if there are pending requests
+  if (recentHistory.value.some(r => r.status === 'PENDING')) {
+    startPolling()
+  }
 })
 
 const handleFileSelected = async (file: File) => {
@@ -301,7 +306,7 @@ const handleFileSelected = async (file: File) => {
   }
 }
 
-const startPolling = (requestId: number) => {
+const startPolling = () => {
   // Clear any existing polling
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
@@ -313,33 +318,46 @@ const startPolling = (requestId: number) => {
 
   const poll = async () => {
     try {
-      const data = await EssayService.getEssay(requestId)
-      currentRequest.value = data
-      loadRecentHistory()
+      const response = await EssayService.getEssayHistory(1, NUM_HISTORY_ITEMS)
+      recentHistory.value = response.results
 
-      if (data.status !== 'PENDING') {
-        // Stop polling if we're no longer pending
+      // Update current request if it exists in history
+      if (currentRequest.value) {
+        const updatedRequest = response.results.find(r => r.id === currentRequest.value?.id)
+        if (updatedRequest) {
+          currentRequest.value = updatedRequest
+
+          // Show notifications for status changes
+          if (updatedRequest.status === 'COMPLETED') {
+            toast({
+              title: 'Evaluation Complete',
+              description: `Your essay score: ${updatedRequest.score}`,
+            })
+            await updateModelQuotas()
+          } else if (updatedRequest.status === 'FAILED' && updatedRequest.error) {
+            toast({
+              title: 'Evaluation Failed',
+              description: updatedRequest.error,
+              variant: 'destructive',
+            })
+          }
+        }
+      }
+
+      // Update dialog content if open
+      if (selectedHistoryRecord.value) {
+        const updatedRecord = response.results.find(r => r.id === selectedHistoryRecord.value?.id)
+        if (updatedRecord) {
+          selectedHistoryRecord.value = updatedRecord
+        }
+      }
+
+      // Check if we need to continue polling
+      const hasPendingRequests = response.results.some(r => r.status === 'PENDING')
+      if (!hasPendingRequests) {
         if (pollingInterval.value) {
           clearInterval(pollingInterval.value)
           pollingInterval.value = null
-        }
-
-        // Show result or error and update quotas when request completes
-        if (data.status === 'COMPLETED') {
-          await Promise.all([
-            updateModelQuotas(),
-            loadRecentHistory()
-          ])
-          toast({
-            title: 'Evaluation Complete',
-            description: `Your essay score: ${data.score}`,
-          })
-        } else if (data.error) {
-          toast({
-            title: 'Evaluation Failed',
-            description: data.error,
-            variant: 'destructive',
-          })
         }
         return
       }
@@ -352,7 +370,7 @@ const startPolling = (requestId: number) => {
       // Schedule next poll
       pollingInterval.value = setTimeout(poll, delay)
     } catch (err) {
-      console.error('Error polling status:', err)
+      console.error('Error polling history:', err)
       if (pollingInterval.value) {
         clearTimeout(pollingInterval.value)
         pollingInterval.value = null
@@ -372,7 +390,6 @@ const handleSubmit = form.handleSubmit(async (values) => {
   generalError.value = ''
   isLoading.value = true
 
-  currentRequest.value = null
   try {
     const response = await EssayService.submitEssay({
       essay: values.essay,
@@ -380,8 +397,9 @@ const handleSubmit = form.handleSubmit(async (values) => {
     })
     currentRequest.value = response
 
-    // Start polling for status
-    startPolling(response.id)
+    // Load history and start polling
+    await loadRecentHistory()
+    startPolling()
 
     toast({
       description: 'Essay submitted successfully. Processing...',
@@ -403,13 +421,18 @@ const handleHistoryItemClick = (record: EssayRequest) => {
   showHistoryDialog.value = true
 }
 
-const handleReset = () => {
+const handleReset = async () => {
   form.setFieldValue('essay', '')
   currentRequest.value = null
   generalError.value = ''
-  if (pollingInterval.value) {
-    clearInterval(pollingInterval.value)
-    pollingInterval.value = null
+
+  // Check if we need to continue polling other requests
+  const response = await EssayService.getEssayHistory(1, NUM_HISTORY_ITEMS)
+  recentHistory.value = response.results
+
+  const hasPendingRequests = response.results.some(r => r.status === 'PENDING')
+  if (hasPendingRequests) {
+    startPolling()
   }
 }
 
