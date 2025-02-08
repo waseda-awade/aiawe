@@ -397,6 +397,7 @@ class BatchProcessing(AccessControlMixin, models.Model):
     )
     output_file = models.FileField(
         upload_to="batch_outputs/%Y/%m/%d/",
+        help_text="Excel file containing the results of the batch processing",
         null=True,
         blank=True,
     )
