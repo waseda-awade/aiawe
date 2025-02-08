@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from openpyxl import Workbook
 
+from awe_system_ui.core.filters import CourseListFilter
 from awe_system_ui.core.mixins import AccessControlAdminMixin
 from awe_system_ui.llm_caller.forms import BatchProcessingForm
 from awe_system_ui.llm_caller.tasks import process_batch
@@ -51,7 +52,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "get_truncated_error",
         "created_at",
     ]
-    list_filter = ["status", "model", "created_by__course"]
+    list_filter = ["status", "model", CourseListFilter]
     search_fields = [
         "essay",
         "result",

@@ -7,7 +7,6 @@ from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
-from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import helpers
 from django.contrib.auth import admin as auth_admin
 from django.core.exceptions import PermissionDenied
@@ -19,6 +18,7 @@ from django.urls import path
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from awe_system_ui.core.filters import CourseListFilter
 from awe_system_ui.core.mixins import AccessControlAdminMixin
 
 from .forms import AdminUserRegistrationForm
@@ -34,24 +34,6 @@ if settings.DJANGO_ADMIN_FORCE_ALLAUTH:
     # https://docs.allauth.org/en/latest/common/admin.html#admin
     admin.autodiscover()
     admin.site.login = secure_admin_login(admin.site.login)  # type: ignore[method-assign]
-
-
-class CourseListFilter(SimpleListFilter):
-    title = "Course"  # Display name of the filter
-    parameter_name = "course__course_name"  # URL parameter
-
-    def lookups(self, request, model_admin):
-        if request.user.is_superuser:
-            courses = Course.objects.all()
-        else:
-            # Get courses user has created or manages
-            courses = Course.objects.accessible_by_user(request.user)
-        return [(c.course_name, c.course_name) for c in courses]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(course__course_name=self.value())
-        return queryset
 
 
 @admin.register(User)
