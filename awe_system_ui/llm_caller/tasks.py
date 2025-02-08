@@ -143,17 +143,22 @@ def process_openai_request(
         return True
 
 
-@shared_task
-def process_batch(batch_id: int):
+@shared_task(bind=True)
+def process_batch(
+    self,
+    batch_id: int,
+):
     """Process a batch of essays."""
     try:
         batch = BatchProcessing.objects.get(id=batch_id)
         batch.status = "PROCESSING"
+        batch.task_id = self.request.id
         batch.save()
 
         # Process each item
         for item in batch.items.filter(status="PENDING"):
             item.status = "PROCESSING"
+            item.task_id = self.request.id
             item.save()
 
             try:

@@ -240,6 +240,7 @@ class BatchProcessingAdmin(admin.ModelAdmin):
         "output_file",
         "created_at",
         "updated_at",
+        "task_id",
     ]
 
     def get_list_display(self, request):
@@ -398,4 +399,3 @@ class BatchItemAdmin(admin.ModelAdmin):
     ]
     list_filter = ["status", "batch"]
     search_fields = ["essay", "reasoning", "error"]
-    readonly_fields = ["status", "score", "reasoning", "error", "result"]
