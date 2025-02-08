@@ -320,6 +320,12 @@ class CourseAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     def get_managers(self, obj):
         return ", ".join(user.username for user in obj.managers.all()) or "-"
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # Add creator as manager if this is a new course
+        if not change:  # If creating new object
+            obj.managers.add(request.user)
+
 
 admin.site.unregister(EmailAddress)
 
