@@ -119,7 +119,7 @@
             <div
               v-for="item in recentHistory"
               :key="item.id"
-              class="p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+              class="px-3 py-2 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
               @click="handleHistoryItemClick(item)"
             >
               <div class="flex items-center justify-between">

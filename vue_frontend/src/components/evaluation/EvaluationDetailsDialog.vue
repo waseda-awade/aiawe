@@ -16,31 +16,57 @@ defineEmits<{
 <template>
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="max-w-2xl max-h-[80vh]">
-      <ScrollArea class="h-full max-h-[70vh]">
-        <div v-if="record" class="space-y-4">
-          <h2 class="text-2xl font-bold">Evaluation Details</h2>
+      <div v-if="record" class="space-y-6">
+        <h2 class="text-2xl font-bold">Evaluation Details</h2>
+
+        <!-- Score section -->
+        <div v-if="record.status === 'COMPLETED'" class="mb-2">
+          <p class="text-4xl font-semibold text-green-600">
+            Score: {{ record.score }}
+          </p>
+        </div>
+
+        <!-- Reasoning section -->
+        <div v-if="record.status === 'COMPLETED'">
+          <span class="font-semibold">Reasoning:</span>
+          <p class="mt-2 p-4 rounded-lg border border-gray-200 bg-gray-50/50 shadow-sm">
+            {{ record.reasoning }}
+          </p>
+        </div>
+
+        <!-- Error message -->
+        <p v-if="record.status === 'FAILED'" class="text-sm text-destructive">
+          {{ record.error }}
+        </p>
+
+        <!-- Status and date -->
+        <div class="flex items-center gap-4 text-sm text-muted-foreground">
           <div>
-            <h3 class="font-medium">Essay</h3>
-            <p class="mt-1">{{ record.essay }}</p>
+            <span class="font-medium text-foreground">Status: </span>
+            <span :class="{
+              'text-yellow-500': record.status === 'PENDING',
+              'text-green-500': record.status === 'COMPLETED',
+              'text-red-500': record.status === 'FAILED',
+            }">
+              {{ record.status }}
+            </span>
           </div>
           <div>
-            <h3 class="font-medium">Score</h3>
-            <p class="mt-1">{{ record.score }}</p>
-          </div>
-          <div>
-            <h3 class="font-medium">Reasoning</h3>
-            <p class="mt-1">{{ record.reasoning }}</p>
-          </div>
-          <div>
-            <h3 class="font-medium">Status</h3>
-            <p class="mt-1">{{ record.status }}</p>
-          </div>
-          <div>
-            <h3 class="font-medium">Created At</h3>
-            <p class="mt-1">{{ new Date(record.created_at).toLocaleString() }}</p>
+            <span class="font-medium text-foreground">Created: </span>
+            {{ new Date(record.created_at).toLocaleString() }}
           </div>
         </div>
-      </ScrollArea>
+
+        <!-- Essay section with scroll -->
+        <div>
+          <h3 class="font-medium mb-2">Essay</h3>
+          <ScrollArea class="h-[300px] w-full p-2 border border-gray-200 rounded-lg">
+            <div class="pr-4">
+              {{ record.essay }}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
     </DialogContent>
   </Dialog>
 </template>
