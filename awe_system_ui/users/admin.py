@@ -314,6 +314,10 @@ class UserAdmin(auth_admin.UserAdmin):
             context,
         )
 
+    def get_form(self, request, obj=None, change=False, **kwargs):  # noqa: FBT002
+        form_class = super().get_form(request, obj, **kwargs)
+        return lambda *args, **k: form_class(*args, **{**k, "user": request.user})
+
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):

@@ -13,12 +13,24 @@ from .models import Course
 from .models import User
 
 
-class UserAdminChangeForm(admin_forms.UserChangeForm):
-    class Meta(admin_forms.UserChangeForm.Meta):  # type: ignore[name-defined]
+class CourseLimitingFormMixin:
+    """Mixin to limit course choices based on user access."""
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if "course" in self.fields and self.user and self.user.is_authenticated:
+            self.fields["course"].queryset = Course.objects.accessible_by_user(
+                self.user,
+            )
+
+
+class UserAdminChangeForm(CourseLimitingFormMixin, admin_forms.UserChangeForm):
+    class Meta(admin_forms.UserChangeForm.Meta):
         model = User
 
 
-class UserAdminCreationForm(admin_forms.UserCreationForm):
+class UserAdminCreationForm(CourseLimitingFormMixin, admin_forms.UserCreationForm):
     """
     Form for User Creation in the Admin Area.
     To change user signup, see UserSignupForm and UserSocialSignupForm.
@@ -47,7 +59,7 @@ class UserSocialSignupForm(SocialSignupForm):
     """
 
 
-class AdminUserRegistrationForm(forms.ModelForm):
+class AdminUserRegistrationForm(CourseLimitingFormMixin, forms.ModelForm):
     """Form for registering a new user through admin."""
 
     email = forms.EmailField(required=True)
@@ -62,17 +74,6 @@ class AdminUserRegistrationForm(forms.ModelForm):
         required=False,
         help_text="Optional: select a course for this user",
     )
-
-    def __init__(self, *args, **kwargs):
-        # Extract user from kwargs before calling super()
-        self.user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
-        if self.user and self.user.is_authenticated:
-            self.fields["course"] = forms.ModelChoiceField(
-                queryset=Course.objects.accessible_by_user(self.user),
-                required=False,
-                help_text="Optional: select a course for this user",
-            )
 
     class Meta:
         model = User
@@ -158,13 +159,11 @@ class UserBatchUploadForm(forms.Form):
             return file
 
 
-class AssignCourseForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        # Extract user from kwargs before calling super()
-        self.user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
-        self.fields["course"] = forms.ModelChoiceField(
-            queryset=Course.objects.accessible_by_user(self.user),
-            required=False,
-            help_text="Select a course to assign to the selected users",
-        )
+class AssignCourseForm(CourseLimitingFormMixin, forms.Form):
+    """Form for assigning a course to a user."""
+
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.all(),
+        required=False,
+        help_text="Select a course to assign to the selected users",
+    )
