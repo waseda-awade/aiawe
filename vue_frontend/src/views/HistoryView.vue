@@ -10,6 +10,7 @@ import { Plus } from 'lucide-vue-next'
 import type { EssayRequest } from '@/types/essay'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import EvaluationDetailsDialog from '@/components/evaluation/EvaluationDetailsDialog.vue'
+import { useEssayPolling } from '@/composables/useEssayPolling'
 
 const router = useRouter()
 
@@ -20,11 +21,36 @@ const currentPage = ref(1)
 const selectedRecord = ref<EssayRequest | null>(null)
 const showDialog = ref(false)
 
+const { startPolling } = useEssayPolling()
+
+const startHistoryPolling = () => {
+  startPolling({
+    page: currentPage.value,
+    pageSize: ITEMS_TO_RETRIEVE,
+    onData: (results) => {
+      data.value = results
+
+      // Update dialog content if open
+      if (selectedRecord.value) {
+        const updatedRecord = results.find(r => r.id === selectedRecord.value?.id)
+        if (updatedRecord) {
+          selectedRecord.value = updatedRecord
+        }
+      }
+    }
+  })
+}
+
 async function loadData(page: number) {
   try {
     const response = await EssayService.getEssayHistory(page, ITEMS_TO_RETRIEVE)
     data.value = response.results
     totalItems.value = response.count
+
+    // Start polling if there are pending requests
+    if (response.results.some(r => r.status === 'PENDING')) {
+      startHistoryPolling()
+    }
   } catch (error) {
     console.error('Failed to load history:', error)
   }

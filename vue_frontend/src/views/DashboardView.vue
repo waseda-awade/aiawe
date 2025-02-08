@@ -212,6 +212,8 @@ import { essayFormSchema, MAX_CHARS } from '@/lib/validations'
 import EvaluationDetailsDialog from '@/components/evaluation/EvaluationDetailsDialog.vue'
 import { ArrowRight } from 'lucide-vue-next'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useEssayPolling } from '@/composables/useEssayPolling'
+
 const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
   initialValues: {
@@ -241,6 +243,8 @@ const modelOptions = ref<LLMModel[]>([])
 const recentHistory = ref<EssayRequest[]>([])
 const selectedHistoryRecord = ref<EssayRequest | null>(null)
 const showHistoryDialog = ref(false)
+
+const { startPolling } = useEssayPolling()
 
 const updateModelQuotas = async () => {
   try {
@@ -276,7 +280,7 @@ onMounted(async () => {
 
   // Start polling if there are pending requests
   if (recentHistory.value.some(r => r.status === 'PENDING')) {
-    startPolling()
+    startHistoryPolling()
   }
 })
 
@@ -306,84 +310,47 @@ const handleFileSelected = async (file: File) => {
   }
 }
 
-const startPolling = () => {
-  // Clear any existing polling
-  if (pollingInterval.value) {
-    clearInterval(pollingInterval.value)
-  }
-
-  let attempts = 0
-  const baseDelay = 500 // Start with 0.5 second
-  const maxDelay = 10000 // Max delay of 10 seconds
-
-  const poll = async () => {
-    try {
-      const response = await EssayService.getEssayHistory(1, NUM_HISTORY_ITEMS)
-      recentHistory.value = response.results
+const startHistoryPolling = () => {
+  startPolling({
+    page: 1,
+    pageSize: NUM_HISTORY_ITEMS,
+    onData: (results) => {
+      recentHistory.value = results
 
       // Update current request if it exists in history
       if (currentRequest.value) {
-        const updatedRequest = response.results.find(r => r.id === currentRequest.value?.id)
+        const updatedRequest = results.find(r => r.id === currentRequest.value?.id)
         if (updatedRequest) {
           currentRequest.value = updatedRequest
-
-          // Show notifications for status changes
-          if (updatedRequest.status === 'COMPLETED') {
-            toast({
-              title: 'Evaluation Complete',
-              description: `Your essay score: ${updatedRequest.score}`,
-            })
-            await updateModelQuotas()
-          } else if (updatedRequest.status === 'FAILED' && updatedRequest.error) {
-            toast({
-              title: 'Evaluation Failed',
-              description: updatedRequest.error,
-              variant: 'destructive',
-            })
-          }
         }
       }
 
       // Update dialog content if open
       if (selectedHistoryRecord.value) {
-        const updatedRecord = response.results.find(r => r.id === selectedHistoryRecord.value?.id)
+        const updatedRecord = results.find(r => r.id === selectedHistoryRecord.value?.id)
         if (updatedRecord) {
           selectedHistoryRecord.value = updatedRecord
         }
       }
-
-      // Check if we need to continue polling
-      const hasPendingRequests = response.results.some(r => r.status === 'PENDING')
-      if (!hasPendingRequests) {
-        if (pollingInterval.value) {
-          clearInterval(pollingInterval.value)
-          pollingInterval.value = null
+    },
+    onStatusChange: async (request) => {
+      if (request.id === currentRequest.value?.id) {
+        if (request.status === 'COMPLETED') {
+          toast({
+            title: 'Evaluation Complete',
+            description: `Your essay score: ${request.score}`,
+          })
+          await updateModelQuotas()
+        } else if (request.status === 'FAILED' && request.error) {
+          toast({
+            title: 'Evaluation Failed',
+            description: request.error,
+            variant: 'destructive',
+          })
         }
-        return
       }
-
-      // Calculate next delay with exponential backoff
-      const delay = Math.min(baseDelay * Math.pow(2, attempts), maxDelay)
-      attempts++
-      console.debug('Polling again in', delay, 'ms')
-
-      // Schedule next poll
-      pollingInterval.value = setTimeout(poll, delay)
-    } catch (err) {
-      console.error('Error polling history:', err)
-      if (pollingInterval.value) {
-        clearTimeout(pollingInterval.value)
-        pollingInterval.value = null
-      }
-      toast({
-        description: 'Failed to get evaluation status',
-        variant: 'destructive',
-      })
     }
-  }
-
-  // Start first poll immediately
-  poll()
+  })
 }
 
 const handleSubmit = form.handleSubmit(async (values) => {
@@ -399,7 +366,7 @@ const handleSubmit = form.handleSubmit(async (values) => {
 
     // Load history and start polling
     await loadRecentHistory()
-    startPolling()
+    startHistoryPolling()
 
     toast({
       description: 'Essay submitted successfully. Processing...',
@@ -432,7 +399,7 @@ const handleReset = async () => {
 
   const hasPendingRequests = response.results.some(r => r.status === 'PENDING')
   if (hasPendingRequests) {
-    startPolling()
+    startHistoryPolling()
   }
 }
 
