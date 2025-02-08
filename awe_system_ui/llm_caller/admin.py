@@ -77,7 +77,9 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     @admin.display(description="Course", ordering="created_by__course")
     def get_course(self, obj):
-        return obj.created_by.course if obj.created_by.course else "-"
+        return (
+            obj.created_by.course if obj.created_by and obj.created_by.course else "-"
+        )
 
     @admin.display(description="Model", ordering="model__display_name")
     def get_model_name(self, obj):
