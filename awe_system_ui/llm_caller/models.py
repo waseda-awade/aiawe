@@ -7,9 +7,13 @@ from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.core.validators import URLValidator
+from django.core.validators import validate_email
 from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
+
+from awe_system_ui.core.mixins import AccessControlManagerMixin
+from awe_system_ui.core.mixins import AccessControlMixin
 
 from .utils import get_today_date_range
 
@@ -332,14 +336,18 @@ class BatchProcessingQuota(models.Model):
         """Get remaining quota for the user."""
         today_start, today_end = get_today_date_range()
         used_today = BatchItem.objects.filter(
-            batch__user=user,
+            batch__created_by=user,
             batch__model=self.model,
             batch__created_at__range=(today_start, today_end),
         ).count()
         return max(0, self.daily_limit - used_today)
 
 
-class BatchProcessing(models.Model):
+class BatchProcessingManager(AccessControlManagerMixin, models.Manager):
+    pass
+
+
+class BatchProcessing(AccessControlMixin, models.Model):
     """Model for batch processing requests."""
 
     STATUS_CHOICES = [
@@ -349,11 +357,6 @@ class BatchProcessing(models.Model):
         ("FAILED", "Failed"),
     ]
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="batch_requests",
-    )
     model = models.ForeignKey(
         LLMModel,
         on_delete=models.PROTECT,
@@ -382,13 +385,15 @@ class BatchProcessing(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     task_id = models.CharField(max_length=100, blank=True)
 
+    objects = BatchProcessingManager()
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name_plural = "Batch processing requests"
         permissions = [
             (
-                "can_create_limited_batch_processing",
-                "Can create batch processing requests with limited visibility",
+                "can_manage_limited_batchprocessings",
+                "Can manage batch processing requests with limited visibility",
             ),
         ]
 
@@ -398,6 +403,14 @@ class BatchProcessing(models.Model):
     def notify_completion(self):
         """Send email notification when batch processing is complete."""
         if not self.output_file:
+            return
+
+        if not self.created_by:
+            return
+
+        try:
+            validate_email(self.created_by.email)
+        except ValidationError:
             return
 
         subject = "Batch Processing Complete"
@@ -422,7 +435,7 @@ class BatchProcessing(models.Model):
             subject=subject,
             message=text_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[self.user.email],
+            recipient_list=[self.created_by.email],
         )
 
 

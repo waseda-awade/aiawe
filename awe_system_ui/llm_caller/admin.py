@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from openpyxl import Workbook
 
+from awe_system_ui.core.mixins import AccessControlAdminMixin
 from awe_system_ui.llm_caller.forms import BatchProcessingForm
 from awe_system_ui.llm_caller.tasks import process_batch
 
@@ -229,10 +230,9 @@ class BatchProcessingQuotaAdmin(admin.ModelAdmin):
 
 
 @admin.register(BatchProcessing)
-class BatchProcessingAdmin(admin.ModelAdmin):
+class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     form = BatchProcessingForm
     readonly_fields = [
-        "user",
         "model",
         "essay_field_name",
         "status",
@@ -252,35 +252,8 @@ class BatchProcessingAdmin(admin.ModelAdmin):
             "created_at",
         ]
         if request.user.is_superuser:
-            list_display += ["user"]
+            list_display = ["created_by", *list_display]
         return list_display
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        # Staff with limited permission can see batch processings they created
-        if request.user.has_perm("llm_caller.can_create_limited_batch_processing"):
-            return qs.filter(user=request.user)
-        return qs.none()
-
-    def has_view_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if request.user.has_perm("llm_caller.can_create_limited_batch_processing"):
-            if obj is None:
-                return True
-            return obj.user == request.user
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_view_permission(request, obj)
-
-    def has_add_permission(self, request):
-        return self.has_view_permission(request, obj=None)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -307,7 +280,7 @@ class BatchProcessingAdmin(admin.ModelAdmin):
             form = BatchProcessingForm(request.POST, request.FILES)
             if form.is_valid():
                 batch = form.save(commit=False)
-                batch.user = request.user
+                batch.created_by = request.user
                 df_data = pd.read_excel(batch.input_file, keep_default_na=False)
                 # Check quota
                 quota = BatchProcessingQuota.objects.filter(model=batch.model).first()
