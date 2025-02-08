@@ -1,6 +1,7 @@
+import contextlib
+
 import pandas as pd
 from allauth.account.decorators import secure_admin_login
-from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
@@ -182,10 +183,7 @@ class UserAdmin(auth_admin.UserAdmin):
         if request.method == "POST":
             form = AdminUserRegistrationForm(data=request.POST, staff_user=request.user)
             if form.is_valid():
-                with transaction.atomic():
-                    user = form.save(commit=False)
-                    user.created_by = request.user
-                    user.save()
+                form.save()
                 messages.success(request, "User registered successfully.")
                 return HttpResponseRedirect(reverse("admin:users_user_changelist"))
         else:
@@ -213,35 +211,33 @@ class UserAdmin(auth_admin.UserAdmin):
                             # Convert row to dictionary and handle missing columns
                             row_dict = row.to_dict()
 
-                            # Create user with basic required fields
-                            user = User.objects.create(
-                                email=row_dict["email"],
-                                username=row_dict.get("username") or row_dict["email"],
-                                name=row_dict.get("name") or "",
-                                created_by=request.user,
-                            )
-                            user.set_password(row_dict["password"])
-
                             # Handle course assignment if present
                             if row_dict.get("course_id"):
-                                try:
-                                    course = Course.objects.get(
+                                with contextlib.suppress(Course.DoesNotExist):
+                                    row_dict["course"] = Course.objects.get(
                                         course_id=row_dict["course_id"],
                                     )
-                                    user.course = course
-                                except Course.DoesNotExist:
-                                    pass  # Course validation is done in form clean
 
-                            user.save()
-
-                            # Create verified email address
-                            EmailAddress.objects.create(
-                                user=user,
-                                email=row_dict["email"],
-                                primary=True,
-                                verified=True,
+                            # Create verified email address using form's save method
+                            form_data = {
+                                "email": row_dict["email"],
+                                "password": row_dict["password"],
+                                "name": row_dict.get("name"),
+                                "username": row_dict.get("username")
+                                or row_dict["email"],
+                                "course": row_dict.get("course"),
+                            }
+                            temp_form = AdminUserRegistrationForm(
+                                data=form_data,
+                                staff_user=request.user,
                             )
-                            success_count += 1
+                            if temp_form.is_valid():
+                                temp_form.save()
+                                success_count += 1
+                            else:
+                                errors.append(
+                                    f"Row {idx + 2}: {temp_form.errors.as_text()}",
+                                )
                     except (KeyError, ValueError) as e:
                         msg = f"Row {idx + 2}: {e!s}"
                         errors.append(msg)
@@ -252,7 +248,8 @@ class UserAdmin(auth_admin.UserAdmin):
                         f"Successfully created {success_count} users.",
                     )
                 if errors:
-                    messages.error(request, "Errors occurred: " + "; ".join(errors))
+                    for error in errors:
+                        messages.error(request, error)
                 return HttpResponseRedirect(reverse("admin:users_user_changelist"))
         else:
             form = UserBatchUploadForm()
