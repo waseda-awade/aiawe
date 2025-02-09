@@ -236,7 +236,6 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "ended_at",
         "task_id",
     ]
-    actions = ["generate_output_file"]
 
     def get_list_display(self, request):
         list_display = [
@@ -263,20 +262,6 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             return False
         return super().has_delete_permission(request, obj)
 
-    @admin.action(description="Generate output file for selected batches")
-    def generate_output_file(self, request, queryset):
-        count = 0
-        for batch in queryset:
-            try:
-                batch.create_output_file()
-                count += 1
-            except (ValueError, TypeError, PermissionError) as e:
-                messages.error(
-                    request,
-                    f"Failed to generate output file for Batch {batch.id}: {e!s}",
-                )
-        messages.success(request, f"Output file generated for {count} batch(es).")
-
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -287,11 +272,6 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             ),
         ]
         return custom_urls + urls
-
-    def changelist_view(self, request, extra_context=None):
-        """Add the upload button to the changelist view"""
-        extra_context = extra_context or {}
-        return super().changelist_view(request, extra_context)
 
     def add_view(self, request, form_url="", extra_context=None):
         """Replace the default add view to handle the batch upload form"""
