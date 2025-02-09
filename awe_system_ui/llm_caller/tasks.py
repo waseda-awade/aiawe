@@ -68,6 +68,30 @@ class LLMRequestParams:
     user_prompt_template: str
 
 
+def call_openai_api(
+    client: openai.OpenAI,
+    model_name: str,
+    system_prompt: str,
+    user_prompt: str,
+    temperature: float,
+) -> str:
+    """Helper function to make OpenAI API calls.
+
+    Returns:
+        str: The raw response content from the model
+    """
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=temperature,
+        response_format={"type": "json_object"},
+    )
+    return response.choices[0].message.content
+
+
 @shared_task(bind=True)
 def process_openai_request(
     self,
@@ -118,18 +142,14 @@ def process_openai_request(
             llm_type=api_request.model.llm_type,
             base_url=api_request.model.url,
         )
-        response = client.chat.completions.create(
-            model=request_params.model_name,
-            messages=[
-                {"role": "system", "content": request_params.system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=request_params.temperature,
-            response_format={"type": "json_object"},
-        )
 
-        # Extract and parse response manually
-        result = response.choices[0].message.content
+        result = call_openai_api(
+            client=client,
+            model_name=request_params.model_name,
+            system_prompt=request_params.system_prompt,
+            user_prompt=user_prompt,
+            temperature=request_params.temperature,
+        )
         api_request.result = result
         # Assuming the older models return JSON-like content that can be parsed
         try:
@@ -186,29 +206,21 @@ def process_batch(
                     user_prompt_template=llm_config.user_prompt_template,
                 )
 
-                # Process with OpenAI
                 client = get_openai_client(
                     model_id=batch.model.id,
                     llm_type=batch.model.llm_type,
                     base_url=batch.model.url,
                 )
-                response = client.chat.completions.create(
-                    model=llm_params.model_name,
-                    messages=[
-                        {"role": "system", "content": llm_params.system_prompt},
-                        {
-                            "role": "user",
-                            "content": llm_params.user_prompt_template.format(
-                                essay=item.essay,
-                            ),
-                        },
-                    ],
+                # Process with OpenAI
+                result = call_openai_api(
+                    client=client,
+                    model_name=llm_params.model_name,
+                    system_prompt=llm_params.system_prompt,
+                    user_prompt=llm_params.user_prompt_template.format(
+                        essay=item.essay,
+                    ),
                     temperature=llm_params.temperature,
-                    response_format={"type": "json_object"},
                 )
-
-                # Parse response
-                result = response.choices[0].message.content
                 item.result = result
                 parsed_result = EssayEvaluation.model_validate_json(result)
                 item.score = parsed_result.score
