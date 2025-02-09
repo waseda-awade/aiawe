@@ -1,7 +1,6 @@
 import logging
 import time
 from dataclasses import dataclass
-from datetime import timedelta
 from typing import Literal
 from typing import TypeVar
 
@@ -291,21 +290,3 @@ def process_batch(
     finally:
         if batch:
             batch.notify_completion()
-
-
-@shared_task()
-def delete_old_batch_processing_files(days_ago: int = 30):
-    """Delete files older than the given number of days.
-    Parameters:
-        days_ago: int = 30
-    Returns:
-        int: The number of files deleted.
-    """
-
-    qs = BatchProcessing.objects.filter(
-        created_at__lt=timezone.now() - timedelta(days=days_ago),
-    )
-    count = 0
-    for batch in qs:
-        count += batch.delete_files()
-    return count
