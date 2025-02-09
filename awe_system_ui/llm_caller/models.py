@@ -431,7 +431,7 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         ]
 
     def __str__(self):
-        return f"Batch({self.model.display_name}, {self.status}, {self.created_at})"
+        return f"Batch({self.id}, {self.model.display_name}, {self.status})"
 
     def delete_files(self):
         count = 0

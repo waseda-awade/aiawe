@@ -274,6 +274,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             "get_download_link",
             "get_items_count",
             "status",
+            "get_truncated_error",
             "created_at",
             "started_at",
             "ended_at",
@@ -281,6 +282,10 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         if request.user.is_superuser:
             list_display = ["created_by", *list_display]
         return list_display
+
+    @admin.display(description="Error")
+    def get_truncated_error(self, obj):
+        return truncatechars(obj.error, 50)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -404,6 +409,9 @@ class BatchItemAdmin(admin.ModelAdmin):
     list_display = [
         "batch",
         "status",
+        "get_truncated_essay",
+        "get_truncated_reasoning",
+        "get_truncated_error",
         "score",
         "created_at",
         "started_at",
@@ -420,3 +428,15 @@ class BatchItemAdmin(admin.ModelAdmin):
         "ended_at",
     ]
     ordering = ["-created_at"]
+
+    @admin.display(description="Essay")
+    def get_truncated_essay(self, obj):
+        return truncatechars(obj.essay, 50)
+
+    @admin.display(description="Reasoning")
+    def get_truncated_reasoning(self, obj):
+        return truncatechars(obj.reasoning, 50)
+
+    @admin.display(description="Error")
+    def get_truncated_error(self, obj):
+        return truncatechars(obj.error, 50)
