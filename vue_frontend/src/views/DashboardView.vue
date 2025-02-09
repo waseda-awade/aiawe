@@ -128,13 +128,13 @@
         <CardContent>
           <div class="space-y-2">
             <div
-              v-for="item in recentHistory"
+              v-for="(item, idx) in recentHistory"
               :key="item.id"
               class="px-3 py-2 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
               @click="handleHistoryItemClick(item)"
             >
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium">#{{ item.id }}</span>
+                <span class="text-sm font-medium">#{{ idx + 1 }}</span>
                 <span
                   v-if="item.status !== 'COMPLETED'"
                   :class="{
