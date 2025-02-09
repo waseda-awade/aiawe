@@ -2,13 +2,20 @@ Hello {{ batch.user.name }},
 
 Your batch processing request has been completed.
 
-Details:
-- Model: {{ batch.model.display_name }}
-- Created: {{ batch.created_at }}
-- Status: {{ batch.status }}
-
 You can download the results by clicking this link:
 {{ download_url }}
+
+Details:
+- Model: {{ batch.model.display_name }}
+- Status: [{{ batch.status }}]
+- Total items: {{ total_count }}
+- Success items: {{ success_count }}
+- Failure items: {{ failure_count }}
+
+Time:
+- Created at: {{ batch.created_at }}
+- Started at: {{ batch.started_at }}
+- Ended at: {{ batch.ended_at }}
 
 Best regards,
 AWE System

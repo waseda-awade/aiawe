@@ -2,16 +2,12 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import timedelta
-from io import BytesIO
 from typing import Literal
 
 import openai
-import pandas as pd
 from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.utils import timezone
 from pydantic import BaseModel
 
@@ -20,7 +16,6 @@ from .models import APIRequest
 from .models import BatchItem
 from .models import BatchProcessing
 from .models import LLMConfig
-from .utils import format_datetime
 from .utils import mask_api_key
 
 logger = logging.getLogger(__name__)
@@ -266,47 +261,11 @@ def process_batch(
             _end_task(batch, "FAILED")
         else:
             _end_task(batch, "COMPLETED")
-            create_output_file(batch)
-            batch.notify_completion()
+        batch.create_output_file()
+        batch.notify_completion()
 
     except (ValueError, TypeError):
         _end_task(batch, "FAILED")
-
-
-def create_output_file(batch):
-    """Create output Excel file for completed batch."""
-    # Collect all data
-    rows = []
-    for item in batch.items.all().order_by("created_at"):
-        row = item.row_data.copy()
-        row.update(
-            {
-                "Status": item.status,
-                "Score": item.score,
-                "Reasoning": item.reasoning,
-                "Error": item.error,
-                "Raw Response": item.result,
-                "Created At": format_datetime(item.created_at),
-                "Started At": format_datetime(item.started_at),
-                "Ended At": format_datetime(item.ended_at),
-            },
-        )
-        rows.append(row)
-
-    # Create Excel file
-    df_data = pd.DataFrame(rows)
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df_data.to_excel(writer, index=False)
-
-    # Save to storage
-    filename = (
-        f"batch_output_{batch.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    )
-    path = f"batch_outputs/{timezone.now().strftime('%Y/%m/%d')}/{filename}"
-    default_storage.save(path, ContentFile(output.getvalue()))
-    batch.output_file = path
-    batch.save()
 
 
 @shared_task()

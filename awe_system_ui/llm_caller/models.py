@@ -1,8 +1,12 @@
 import re
+from io import BytesIO
 
+import pandas as pd
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
@@ -12,12 +16,14 @@ from django.db import models
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 
 from awe_system_ui.core.mixins import AccessControlManagerMixin
 from awe_system_ui.core.mixins import AccessControlMixin
 from awe_system_ui.core.models import TaskTimestampedBase
 from awe_system_ui.core.models import TimestampedBase
 
+from .utils import format_datetime
 from .utils import get_today_date_range
 
 User = get_user_model()
@@ -442,6 +448,9 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         except ValidationError:
             return
 
+        success_count = self.items.filter(status="COMPLETED").count()
+        failure_count = self.items.filter(status="FAILED").count()
+
         subject = "Batch Processing Complete"
         relative_url = reverse(
             "admin:llm_caller_batchprocessing_download",
@@ -451,6 +460,9 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         context = {
             "batch": self,
             "download_url": download_url,
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "total_count": self.items.count(),
         }
 
         # Render both text and HTML versions
@@ -466,6 +478,42 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[self.created_by.email],
         )
+
+    def create_output_file(self):
+        """Create output Excel file for completed batch."""
+        rows = []
+        for item in self.items.all().order_by("created_at"):
+            row = item.row_data.copy()
+            row.update(
+                {
+                    "Status": item.status,
+                    "Score": item.score,
+                    "Reasoning": item.reasoning,
+                    "Error": item.error,
+                    "Raw Response": item.result,
+                    "Created At": format_datetime(item.created_at),
+                    "Started At": format_datetime(item.started_at),
+                    "Ended At": format_datetime(item.ended_at),
+                },
+            )
+            rows.append(row)
+
+        # Create Excel file
+        df_data = pd.DataFrame(rows)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_data.to_excel(writer, index=False)
+
+        # Save to storage
+        filename = (
+            f"batch_output_{self.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        )
+        path = f"batch_outputs/{timezone.now().strftime('%Y/%m/%d')}/{filename}"
+        default_storage.save(path, ContentFile(output.getvalue()))
+        if self.output_file:
+            self.output_file.delete()
+        self.output_file = path
+        self.save()
 
 
 class BatchItem(TaskTimestampedBase):
