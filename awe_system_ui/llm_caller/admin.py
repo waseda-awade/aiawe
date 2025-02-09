@@ -359,6 +359,16 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         else:
             form = BatchProcessingForm()
 
+        # Pre-calculate quota info
+        for model in form.fields["model"].queryset:
+            quota = BatchProcessingQuota.objects.filter(model=model).first()
+            if quota:
+                model.remaining_quota = quota.get_remaining_quota(request.user)
+                model.quota_daily_limit = quota.daily_limit
+            else:
+                model.remaining_quota = "unlimited"
+                model.quota_daily_limit = "unlimited"
+
         context = {
             **self.admin_site.each_context(request),
             "title": "Create Batch Processing",
