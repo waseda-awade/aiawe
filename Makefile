@@ -44,7 +44,7 @@ sh-%:
 
 # Enter django shell
 djshell-%:
-	docker compose -f docker-compose.$*.yml run --rm django python manage.py shell
+	docker compose -f docker-compose.$*.yml run --rm django python manage.py shell_plus
 
 # List files in media directory
 list-media-files-%:
