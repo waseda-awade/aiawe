@@ -30,7 +30,7 @@ restart-%:
 	docker compose -f docker-compose.$*.yml restart
 
 # Full restart containers
-f-restart-%:
+frestart-%:
 	$(MAKE) stop-$*
 	$(MAKE) start-$*
 
