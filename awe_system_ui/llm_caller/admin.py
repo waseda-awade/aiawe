@@ -239,15 +239,16 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     def get_list_display(self, request):
         list_display = [
+            "id",
             "model",
             "get_download_link",
-            "get_items_count",
             "status",
+            "get_stop_button",
+            "get_items_count",
             "get_truncated_error",
             "created_at",
             "started_at",
             "ended_at",
-            "get_stop_button",
         ]
         if request.user.is_superuser:
             list_display = ["created_by", *list_display]
@@ -256,6 +257,25 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     @admin.display(description="Error")
     def get_truncated_error(self, obj):
         return truncatechars(obj.error, 50)
+
+    @admin.display(description="Download")
+    def get_download_link(self, obj):
+        url = reverse("admin:llm_caller_batchprocessing_download", args=[obj.pk])
+        return format_html('<a href="{}">Download</a>', url)
+
+    @admin.display(description="Items")
+    def get_items_count(self, obj):
+        return obj.items.count()
+
+    @admin.display(description="Stop")
+    def get_stop_button(self, obj):
+        if obj.status not in ["PENDING", "PROCESSING"]:
+            return ""
+        url = reverse("admin:llm_caller_batchprocessing_stop", args=[obj.pk])
+        return format_html(
+            '<a class="button" href="{}">Stop</a>',
+            url,
+        )
 
     def has_delete_permission(self, request, obj=None):
         """Deny delete permission for non-superusers"""
@@ -377,25 +397,6 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             )
         else:
             return response
-
-    @admin.display(description="Download")
-    def get_download_link(self, obj):
-        url = reverse("admin:llm_caller_batchprocessing_download", args=[obj.pk])
-        return format_html('<a href="{}">Download</a>', url)
-
-    @admin.display(description="Items")
-    def get_items_count(self, obj):
-        return obj.items.count()
-
-    @admin.display(description="Stop")
-    def get_stop_button(self, obj):
-        if obj.status not in ["PENDING", "PROCESSING"]:
-            return ""
-        url = reverse("admin:llm_caller_batchprocessing_stop", args=[obj.pk])
-        return format_html(
-            '<a class="button" href="{}">Stop</a>',
-            url,
-        )
 
     def stop_view(self, request, object_id):
         """Handle the stop action."""
