@@ -7,6 +7,10 @@ The web UI for Automated Writing Evaluation system.
 
 License: MIT
 
+## Get Started
+
+See [how-to-start-the-awe-server.md](documents/manual/how-to-start-the-awe-server.md)
+
 ## Settings
 
 Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).
