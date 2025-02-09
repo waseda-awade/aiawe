@@ -5,14 +5,13 @@ Your batch processing request has been completed.
 You can download the results by clicking this link:
 {{ download_url }}
 
-Details:
+Summary:
 - Model: {{ batch.model.display_name }}
 - Status: [{{ batch.status }}]
 - Total items: {{ total_count }}
 - Success items: {{ success_count }}
 - Failure items: {{ failure_count }}
 {{ error_msg }}
-
 Time:
 - Created at: {{ batch.created_at }}
 - Started at: {{ batch.started_at }}

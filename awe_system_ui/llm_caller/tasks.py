@@ -275,6 +275,8 @@ def process_batch(
         qs = batch.items.exclude(status="COMPLETED")
         if qs.exists():
             _end_task(batch, "FAILED")
+            batch.error = batch.items_failure_error
+            batch.save()
         else:
             _end_task(batch, "COMPLETED")
 

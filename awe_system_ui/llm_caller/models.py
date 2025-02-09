@@ -445,16 +445,15 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         success_count = self.items.filter(status="COMPLETED").count()
         failure_count = self.items.filter(status="FAILED").count()
 
+        subject = "[AWE] Batch Processing "
         if self.status == "FAILED":
-            subject = "Batch Processing Failed"
-            if not self.error and failure_count > 0:
-                self.error = self.items_failure_error
-
+            subject += "Failed"
             error_msg = f"\nError:\n{self.error}"
             if self.error_details:
                 error_msg += f"\n\nError Details:\n{self.error_details}"
+            error_msg += "\n"
         else:
-            subject = "Batch Processing Completed"
+            subject += "Completed"
             error_msg = ""
 
         relative_url = reverse(
