@@ -55,7 +55,7 @@ defineEmits<{
         <!-- Reasoning section -->
         <div v-if="record.status === 'COMPLETED'">
           <span class="font-semibold">Reasoning:</span>
-          <ScrollArea class="text-sm flex max-h-[150px] flex-col overflow-y-auto mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-100/50">
+          <ScrollArea class="text-sm flex max-h-40 flex-col overflow-y-auto mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-100/50">
             <div class="pr-4">
               {{ record.reasoning }}
             </div>
@@ -64,7 +64,7 @@ defineEmits<{
         <!-- Essay section with scroll -->
         <div>
           <h3 class="font-medium mb-2">Essay</h3>
-          <ScrollArea class="text-sm flex max-h-[150px] flex-col overflow-y-auto mt-2 px-4 py-2 border border-gray-200 rounded-lg">
+          <ScrollArea class="text-sm flex max-h-40 flex-col overflow-y-auto mt-2 px-4 py-2 border border-gray-200 rounded-lg">
             <div class="pr-4">
               {{ record.essay }}
             </div>
