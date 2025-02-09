@@ -409,10 +409,6 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         default="",
         help_text="Error details to diagnose the error.",
     )
-    input_file = models.FileField(
-        upload_to="batch_inputs/%Y/%m/%d/",
-        help_text="Excel file containing essays to process",
-    )
     output_file = models.FileField(
         upload_to="batch_outputs/%Y/%m/%d/",
         help_text="Excel file containing the results of the batch processing",
@@ -447,16 +443,11 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         return msg
 
     def delete_files(self):
-        count = 0
-        if self.input_file:
-            self.input_file.delete()
-            self.input_file = None
-            count += 1
         if self.output_file:
             self.output_file.delete()
             self.output_file = None
-            count += 1
-        return count
+            return 1
+        return 0
 
     def notify_completion(self):
         """Send email notification when batch processing is complete."""

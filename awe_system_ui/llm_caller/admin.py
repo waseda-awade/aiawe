@@ -1,6 +1,5 @@
 from io import BytesIO
 
-import pandas as pd
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
@@ -259,7 +258,6 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "status",
         "error",
         "error_details",
-        "input_file",
         "output_file",
         "created_at",
         "updated_at",
@@ -328,7 +326,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             if form.is_valid():
                 batch = form.save(commit=False)
                 batch.created_by = request.user
-                df_data = pd.read_excel(batch.input_file, keep_default_na=False)
+                df_data = form.cleaned_data["df_data"]
                 # Check quota
                 quota = BatchProcessingQuota.objects.filter(model=batch.model).first()
                 if not quota:

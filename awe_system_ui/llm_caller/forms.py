@@ -21,7 +21,7 @@ class BatchProcessingForm(forms.ModelForm):
 
     class Meta:
         model = BatchProcessing
-        fields = ["model", "essay_field_name", "input_file"]
+        fields = ["model", "essay_field_name"]
 
     def clean_input_file(self):
         file = self.cleaned_data["input_file"]
@@ -38,9 +38,11 @@ class BatchProcessingForm(forms.ModelForm):
                     f"Available columns: {', '.join(df_data.columns)}",
                 )
                 raise ValidationError(msg)
+
+            # Store the DataFrame in the form for later use
+            self.cleaned_data["df_data"] = df_data
         except (ValueError, TypeError) as e:
             msg = f"Error reading Excel file: {e!s}"
             raise ValidationError(msg) from e
 
-        file.seek(0)  # Reset file pointer
         return file
