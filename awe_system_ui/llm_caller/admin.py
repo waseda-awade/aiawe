@@ -1,30 +1,22 @@
-from io import BytesIO
-
-import pandas as pd
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import truncatechars
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.html import format_html
-from openpyxl import Workbook
 
 from awe_system_ui.core.filters import CreatorCourseListFilter
 from awe_system_ui.core.filters import UserListFilter
 from awe_system_ui.core.mixins import AccessControlAdminMixin
-from awe_system_ui.llm_caller.forms import BatchProcessingForm
-from awe_system_ui.llm_caller.tasks import process_batch
-from awe_system_ui.llm_caller.utils import format_datetime
 
+from .forms import BatchProcessingForm
 from .models import APIKey
 from .models import APIRequest
 from .models import BatchItem
@@ -33,6 +25,9 @@ from .models import BatchProcessingQuota
 from .models import LLMConfig
 from .models import LLMModel
 from .models import QuotaConfig
+from .tasks import process_batch
+from .utils import format_datetime
+from .utils import generate_excel_response
 
 
 @admin.register(QuotaConfig)
@@ -111,18 +106,11 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     @admin.action(description="Export selected requests as Excel")
     def export_as_excel(self, request, queryset):
-        # Create workbook and select active sheet
-        workbook = Workbook()
-        worksheet = workbook.active
-
-        # Write header
-        field_names, headers = zip(*self.export_field_mapping, strict=False)
-        worksheet.append(headers)
-
+        rows = []
         # Write data rows
         for obj in queryset:
-            row = []
-            for field in field_names:
+            row = {}
+            for field, header in self.export_field_mapping:
                 value = obj
                 for attr in field.split("__"):
                     value = getattr(value, attr, None)
@@ -136,25 +124,9 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
                 ):
                     value = format_datetime(value)
 
-                row.append(value if value is not None else "")
-            worksheet.append(row)
-
-        # Save to buffer
-        excel_file = BytesIO()
-        workbook.save(excel_file)
-        excel_file.seek(0)
-
-        # Create the HttpResponse
-        now = timezone.localtime().strftime("%Y%m%d_%H%M%S")
-        filename = f"Requests_{now}.xlsx"
-
-        response = HttpResponse(
-            excel_file.read(),
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-
-        return response
+                row.update({header: value})
+            rows.append(row)
+        return generate_excel_response(rows, "Evaluations")
 
 
 @admin.register(LLMModel)
@@ -404,19 +376,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
         try:
             rows = batch.get_batch_items_as_rows()
-            df_data = pd.DataFrame(rows)
-            output = BytesIO()
-            with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                df_data.to_excel(writer, index=False)
-
-            now = timezone.localtime().strftime("%Y%m%d_%H%M%S")
-            filename = f"batch_results_{batch.id}_{now}.xlsx"
-
-            response = HttpResponse(
-                output.getvalue(),
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
-            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            response = generate_excel_response(rows, "Batch_Evaluations")
 
         except (ValueError, TypeError) as e:
             messages.error(request, f"Error generating output file: {e!s}")

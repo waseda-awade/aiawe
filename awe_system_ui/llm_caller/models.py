@@ -484,7 +484,7 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         )
 
     def get_batch_items_as_rows(self):
-        """Get the batch items as a list of rows."""
+        """Get the batch items as a list of dict data."""
         rows = []
         for item in self.items.all().order_by("created_at"):
             row = item.row_data.copy()
