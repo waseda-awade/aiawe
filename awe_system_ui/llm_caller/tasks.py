@@ -196,6 +196,7 @@ def _end_task(
 def process_batch(
     self,
     batch_id: int,
+    delay_seconds=0,
 ):
     """Process a batch of essays."""
     try:
@@ -205,6 +206,19 @@ def process_batch(
         # Process each item
         for item in batch.items.filter(status="PENDING"):
             _start_task(item, self.request.id)
+
+            if delay_seconds > 0:
+                msg = f"Delaying LLM request by {delay_seconds} seconds"
+                logger.info(msg)
+                time.sleep(delay_seconds)
+
+            if settings.FAKE_LLM_REQUEST:
+                item.score = 4.0
+                item.reasoning = "This is a fake response. " * 40
+                _end_task(item, "COMPLETED")
+                batch.updated_at = timezone.now()
+                batch.save()
+                continue
 
             try:
                 # Get LLM config

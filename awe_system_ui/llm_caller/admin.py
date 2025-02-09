@@ -1,6 +1,7 @@
 from io import BytesIO
 
 import pandas as pd
+from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -331,7 +332,12 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
                         BatchItem.objects.bulk_create(items)
 
                         # Start processing
-                        transaction.on_commit(lambda: process_batch.delay(batch.id))
+                        transaction.on_commit(
+                            lambda: process_batch.delay(
+                                batch.id,
+                                delay_seconds=getattr(settings, "TASK_DELAY", 0),
+                            ),
+                        )
                         messages.success(request, "Batch processing started")
                         return HttpResponseRedirect(
                             reverse("admin:llm_caller_batchprocessing_changelist"),
