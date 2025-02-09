@@ -433,6 +433,16 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
     def __str__(self):
         return f"Batch({self.id}, {self.model.display_name}, {self.status})"
 
+    @property
+    def items_failure_error(self):
+        if self.items.filter(status="FAILED").count() == 0:
+            return ""
+        msg = "These items failed to process:"
+        for idx, item in enumerate(self.items.all().order_by("created_at")):
+            if item.status == "FAILED":
+                msg += f"\n- Item #{idx+1}: {item.error or 'Unknown error'}"
+        return msg
+
     def delete_files(self):
         count = 0
         if self.input_file:
@@ -461,14 +471,10 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         success_count = self.items.filter(status="COMPLETED").count()
         failure_count = self.items.filter(status="FAILED").count()
 
-        if failure_count > 0:
+        if self.status == "FAILED":
             subject = "Batch Processing Failed"
-            if not self.error:
-                msg = "These items failed to process:"
-                for idx, item in enumerate(self.items.all().order_by("created_at")):
-                    if item.status == "FAILED":
-                        msg += f"\n- Item #{idx+1}: {item.error or 'Unknown error'}"
-                self.error = msg
+            if not self.error and failure_count > 0:
+                self.error = self.items_failure_error
 
             error_msg = f"\nError:\n{self.error}"
             if self.error_details:

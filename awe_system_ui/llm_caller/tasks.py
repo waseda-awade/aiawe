@@ -3,10 +3,12 @@ import time
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Literal
+from typing import TypeVar
 
 import openai
 from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
+from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
 from django.utils import timezone
 from pydantic import BaseModel
@@ -19,6 +21,8 @@ from .models import LLMConfig
 from .utils import mask_api_key
 
 logger = logging.getLogger(__name__)
+
+MyTaskModel = TypeVar("MyTaskModel", bound=BatchItem | BatchProcessing | APIRequest)
 
 
 def get_openai_client(
@@ -117,15 +121,7 @@ def process_openai_request(
 
         api_request.task_id = self.request.id
 
-        if settings.FAKE_LLM_REQUEST:
-            reasoning = "This is a fake response. " * 40
-            api_request.result = f'{{"score": 4.0, "reasoning": "{reasoning}"}}'
-            api_request.score = 4.0
-            api_request.reasoning = reasoning
-            api_request.status = "COMPLETED"
-            api_request.save()
-            api_request.ended_at = timezone.now()
-            api_request.save()
+        if _handle_debug_delay_and_fake(api_request, delay_seconds):
             return True
 
         # Format prompt using the provided template
@@ -171,7 +167,7 @@ def process_openai_request(
         return True
 
 
-def _start_task(item: BatchItem | BatchProcessing, task_id: str):
+def _start_task(item: MyTaskModel, task_id: str):
     item.started_at = timezone.now()
     item.status = "PROCESSING"
     item.task_id = task_id
@@ -179,12 +175,41 @@ def _start_task(item: BatchItem | BatchProcessing, task_id: str):
 
 
 def _end_task(
-    item: BatchItem | BatchProcessing,
+    item: MyTaskModel,
     status: Literal["COMPLETED", "FAILED"],
 ):
     item.ended_at = timezone.now()
     item.status = status
     item.save()
+
+
+def _handle_debug_delay_and_fake(
+    item: MyTaskModel,
+    delay_seconds: int,
+):
+    """Handle debug delay and fake requests.
+    Args:
+        item: The item to handle
+        delay_seconds: The delay in seconds
+    Returns:
+        bool: True if the item was handled, False otherwise
+    """
+    if delay_seconds > 0:
+        msg = f"Delaying LLM request by {delay_seconds} seconds"
+        logger.info(msg)
+        time.sleep(delay_seconds)
+
+    if settings.FAKE_LLM_REQUEST:
+        if "fail" in item.essay.lower():
+            item.error = "This item is a fake failure."
+            item.error_details = "This is a fake error details."
+            _end_task(item, "FAILED")
+        else:
+            item.score = 4.0
+            item.reasoning = "This is a fake response. " * 40
+            _end_task(item, "COMPLETED")
+        return True
+    return False
 
 
 @shared_task(bind=True)
@@ -202,22 +227,7 @@ def process_batch(
         for item in batch.items.filter(status="PENDING").order_by("created_at"):
             _start_task(item, self.request.id)
 
-            if delay_seconds > 0:
-                msg = f"Delaying LLM request by {delay_seconds} seconds"
-                logger.info(msg)
-                time.sleep(delay_seconds)
-
-            if settings.FAKE_LLM_REQUEST:
-                if "fail" in item.essay.lower():
-                    item.error = "This item is a fake failure."
-                    item.error_details = "This is a fake error details."
-                    _end_task(item, "FAILED")
-                else:
-                    item.score = 4.0
-                    item.reasoning = "This is a fake response. " * 40
-                    _end_task(item, "COMPLETED")
-                batch.updated_at = timezone.now()
-                batch.save()
+            if _handle_debug_delay_and_fake(item, delay_seconds):
                 continue
 
             try:
@@ -267,16 +277,20 @@ def process_batch(
             _end_task(batch, "FAILED")
         else:
             _end_task(batch, "COMPLETED")
-        # Create output file
-        batch.create_output_file()
-        # Notify user
-        batch.notify_completion()
 
+    except SoftTimeLimitExceeded:
+        batch.error = "The batch processing timed out."
+        _end_task(batch, "FAILED")
     except (ValueError, TypeError) as e:
         batch.error = mask_api_key(str(e))
         if e.__context__:
             batch.error_details = mask_api_key(str(e.__context__))
         _end_task(batch, "FAILED")
+    finally:
+        # Create output file
+        batch.create_output_file()
+        # Notify user
+        batch.notify_completion()
 
 
 @shared_task()
