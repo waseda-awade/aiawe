@@ -4,6 +4,10 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
+# Ensure the media folder exists and is writable
+mkdir -p /app/awe_system_ui/media
+chown -R django:django /app/awe_system_ui/media
+
 # Create staticfiles directory if it doesn't exist and ensure proper permissions
 mkdir -p /app/staticfiles
 python /app/manage.py collectstatic --noinput

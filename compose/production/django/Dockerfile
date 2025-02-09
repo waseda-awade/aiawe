@@ -93,6 +93,11 @@ RUN mkdir -p /app/staticfiles && \
     chown -R django:django /app/staticfiles && \
     chmod 755 /app/staticfiles
 
+# Ensure the media folder exists and is writable
+RUN mkdir -p /app/awe_system_ui/media && \
+    chown -R django:django /app/awe_system_ui/media && \
+    chmod 755 /app/awe_system_ui/media
+
 USER django
 
 RUN DATABASE_URL="" \
