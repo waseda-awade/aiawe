@@ -97,10 +97,12 @@ class LLMModel(TimestampedBase):
         """Get the number of completed requests for today for this model and user."""
         today_start, today_end = get_today_date_range()
 
+        # Calculate the number of completed requests for today
+        # status is either PENDING or COMPLETED
         return APIRequest.objects.filter(
             created_by=user,
             model=self,
-            status="COMPLETED",
+            status__in=["PENDING", "COMPLETED"],
             created_at__range=(today_start, today_end),
         ).count()
 
@@ -363,6 +365,7 @@ class BatchProcessingQuota(TimestampedBase):
             batch__created_by=user,
             batch__model=self.model,
             batch__created_at__range=(today_start, today_end),
+            status__in=["PENDING", "COMPLETED"],
         ).count()
         return max(0, self.daily_limit - used_today)
 
