@@ -1,5 +1,6 @@
 import re
 
+from celery.app import app_or_default
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -10,8 +11,11 @@ from django.core.validators import URLValidator
 from django.core.validators import validate_email
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 
 from awe_system_ui.core.mixins import AccessControlManagerMixin
 from awe_system_ui.core.mixins import AccessControlMixin
@@ -22,6 +26,9 @@ from .utils import format_datetime
 from .utils import get_today_date_range
 
 User = get_user_model()
+
+
+QUOTA_USAGE_STATUS = ["PENDING", "PROCESSING", "COMPLETED"]
 
 
 class LLMModel(TimestampedBase):
@@ -97,7 +104,7 @@ class LLMModel(TimestampedBase):
         return APIRequest.objects.filter(
             created_by=user,
             model=self,
-            status__in=["PENDING", "COMPLETED"],
+            status__in=QUOTA_USAGE_STATUS,
             created_at__range=(today_start, today_end),
         ).count()
 
@@ -360,7 +367,7 @@ class BatchProcessingQuota(TimestampedBase):
             batch__created_by=user,
             batch__model=self.model,
             batch__created_at__range=(today_start, today_end),
-            status__in=["PENDING", "COMPLETED"],
+            status__in=QUOTA_USAGE_STATUS,
         ).count()
         return max(0, self.daily_limit - used_today)
 
@@ -377,6 +384,7 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         ("PROCESSING", "Processing"),
         ("COMPLETED", "Completed"),
         ("FAILED", "Failed"),
+        ("ABORTED", "Aborted"),
     ]
 
     model = models.ForeignKey(
@@ -504,6 +512,29 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
             rows.append(row)
         return rows
 
+    def stop_processing(self):
+        """Stop the batch processing and all its item tasks."""
+        if self.status not in ["PENDING", "PROCESSING"]:
+            return False
+
+        app = app_or_default()
+
+        # Revoke the main batch task
+        if self.task_id:
+            app.control.revoke(self.task_id, terminate=True)
+
+        for item in self.items.filter(status__in=["PENDING", "PROCESSING"]):
+            item.status = "ABORTED"
+            item.error = "Processing was stopped by user"
+            item.ended_at = timezone.now()
+            item.save()
+
+        self.status = "ABORTED"
+        self.error = "Processing was stopped by user"
+        self.ended_at = timezone.now()
+        self.save()
+        return True
+
 
 class BatchItem(TaskTimestampedBase):
     """Individual items in a batch processing request."""
@@ -513,6 +544,7 @@ class BatchItem(TaskTimestampedBase):
         ("PROCESSING", "Processing"),
         ("COMPLETED", "Completed"),
         ("FAILED", "Failed"),
+        ("ABORTED", "Aborted"),
     ]
 
     batch = models.ForeignKey(
@@ -549,3 +581,9 @@ class BatchItem(TaskTimestampedBase):
 
     def __str__(self):
         return f"BatchItem({self.batch.id}, {self.status})"
+
+
+@receiver(pre_delete, sender=BatchProcessing)
+def stop_batch_on_delete(sender, instance, **kwargs):
+    """Stop batch processing when the batch is deleted."""
+    instance.stop_processing()

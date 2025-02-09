@@ -283,7 +283,7 @@ def process_batch(
     except SoftTimeLimitExceeded:
         batch.error = "The batch processing timed out."
         _end_task(batch, "FAILED")
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError, AttributeError) as e:
         batch.error = mask_api_key(str(e))
         if e.__context__:
             batch.error_details = mask_api_key(str(e.__context__))

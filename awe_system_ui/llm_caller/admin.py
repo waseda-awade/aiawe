@@ -247,6 +247,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             "created_at",
             "started_at",
             "ended_at",
+            "get_stop_button",
         ]
         if request.user.is_superuser:
             list_display = ["created_by", *list_display]
@@ -269,6 +270,11 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
                 "<path:object_id>/download/",
                 self.admin_site.admin_view(self.download_view),
                 name="llm_caller_batchprocessing_download",
+            ),
+            path(
+                "<path:object_id>/stop/",
+                self.admin_site.admin_view(self.stop_view),
+                name="llm_caller_batchprocessing_stop",
             ),
         ]
         return custom_urls + urls
@@ -380,6 +386,37 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     @admin.display(description="Items")
     def get_items_count(self, obj):
         return obj.items.count()
+
+    @admin.display(description="Stop")
+    def get_stop_button(self, obj):
+        if obj.status not in ["PENDING", "PROCESSING"]:
+            return ""
+        url = reverse("admin:llm_caller_batchprocessing_stop", args=[obj.pk])
+        return format_html(
+            '<a class="button" href="{}">Stop</a>',
+            url,
+        )
+
+    def stop_view(self, request, object_id):
+        """Handle the stop action."""
+        batch = get_object_or_404(BatchProcessing, pk=object_id)
+
+        # Check permissions
+        if not (request.user.is_superuser or batch.created_by == request.user):
+            msg = "You don't have permission to stop this batch."
+            raise PermissionDenied(msg)
+
+        if batch.stop_processing():
+            messages.success(request, "Batch processing has been stopped.")
+        else:
+            messages.warning(
+                request,
+                "Batch processing could not be stopped (already completed/failed).",
+            )
+
+        return HttpResponseRedirect(
+            reverse("admin:llm_caller_batchprocessing_changelist"),
+        )
 
 
 @admin.register(BatchItem)
