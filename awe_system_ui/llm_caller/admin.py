@@ -257,6 +257,12 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     def get_truncated_error(self, obj):
         return truncatechars(obj.error, 50)
 
+    def has_delete_permission(self, request, obj=None):
+        """Deny delete permission for non-superusers"""
+        if not request.user.is_superuser:
+            return False
+        return super().has_delete_permission(request, obj)
+
     @admin.action(description="Generate output file for selected batches")
     def generate_output_file(self, request, queryset):
         count = 0
