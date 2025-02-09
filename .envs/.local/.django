@@ -18,3 +18,7 @@ REDIS_URL=redis://redis:6379/0
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_DB=awe_system_ui
+
+# Email
+# ------------------------------------------------------------------------------
+NOTIFY_BATCH_COMPLETION=True

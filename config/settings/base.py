@@ -238,6 +238,8 @@ EMAIL_BACKEND = env(
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
 
+NOTIFY_BATCH_COMPLETION = env.bool("NOTIFY_BATCH_COMPLETION", default=True)
+
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL.

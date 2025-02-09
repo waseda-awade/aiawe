@@ -433,6 +433,8 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
 
     def notify_completion(self):
         """Send email notification when batch processing is complete."""
+        if not getattr(settings, "NOTIFY_BATCH_COMPLETION", True):
+            return
 
         if not self.created_by:
             return
