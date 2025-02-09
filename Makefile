@@ -39,7 +39,11 @@ rm-vol-%:
 	docker compose -f docker-compose.$*.yml down -v
 
 # Enter shell
-shell-%:
+sh-%:
+	docker compose -f docker-compose.$*.yml exec -it django /bin/bash
+
+# Enter django shell
+djshell-%:
 	docker compose -f docker-compose.$*.yml run --rm django python manage.py shell
 
 # List files in media directory
