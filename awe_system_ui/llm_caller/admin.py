@@ -68,7 +68,6 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     # Define field mapping for export
     export_field_mapping = [
-        ("created_at", "Timestamp"),
         ("status", "Status"),
         ("created_by__name", "User Name"),
         ("created_by__email", "User Email"),
@@ -80,6 +79,9 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         ("reasoning", "Reasoning"),
         ("error", "Error"),
         ("result", "Raw Response"),
+        ("created_at", "Created At"),
+        ("started_at", "Started At"),
+        ("ended_at", "Ended At"),
     ]
 
     @admin.display(description="Essay")
@@ -128,8 +130,11 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
                     if value is None:
                         break
 
-                # Format timestamp if it's the created_at field
-                if field == "created_at" and value is not None:
+                # Format the value if it's a datetime field
+                if (
+                    field in ["created_at", "started_at", "ended_at"]
+                    and value is not None
+                ):
                     value = format_datetime(value)
 
                 row.append(value if value is not None else "")

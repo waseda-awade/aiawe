@@ -281,12 +281,14 @@ def create_output_file(batch):
         row = item.row_data.copy()
         row.update(
             {
-                "Timestamp": format_datetime(item.created_at),
                 "Status": item.status,
                 "Score": item.score,
                 "Reasoning": item.reasoning,
                 "Error": item.error,
                 "Raw Response": item.result,
+                "Created At": format_datetime(item.created_at),
+                "Started At": format_datetime(item.started_at),
+                "Ended At": format_datetime(item.ended_at),
             },
         )
         rows.append(row)
