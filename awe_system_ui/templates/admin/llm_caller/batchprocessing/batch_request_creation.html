@@ -5,6 +5,12 @@
 {% block extrahead %}
   {{ block.super }}
   <style>
+    .instructions {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+
     .batch-upload-form {
       max-width: 800px;
       margin: 20px auto;
@@ -51,7 +57,7 @@
 {% endblock extrahead %}
 {% block content %}
   <div class="batch-upload-form">
-    <div class="help-text">
+    <div class="instructions">
       <h3>Instructions:</h3>
       <p>Upload an Excel file (.xlsx) containing essays to process. The file should have:</p>
       <ul>
@@ -61,12 +67,14 @@
       <p>The output file will include these columns:</p>
       <ul>
         <li>All original columns from the input file</li>
-        <li>Timestamp - date and time of creation</li>
         <li>Status - processing status</li>
         <li>Score - evaluation score for each essay</li>
         <li>Reasoning - explanation for the score</li>
         <li>Error - any error messages (if applicable)</li>
         <li>Raw Response - raw response from the LLM</li>
+        <li>Created At - date and time of creation</li>
+        <li>Started At - date and time of start</li>
+        <li>Ended At - date and time of end</li>
       </ul>
     </div>
     <form method="post" enctype="multipart/form-data">
