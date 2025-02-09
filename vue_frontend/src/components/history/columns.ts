@@ -22,8 +22,11 @@ export const columns: ColumnDef<EssayRequest>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'id',
-    header: 'ID',
+    id: 'sequence',
+    header: '#',
+    cell: ({ row }) => {
+      return row.index + 1
+    },
   },
   {
     accessorKey: 'essay',

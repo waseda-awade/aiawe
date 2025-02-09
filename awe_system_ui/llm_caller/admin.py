@@ -39,6 +39,7 @@ class QuotaConfigAdmin(admin.ModelAdmin):
 @admin.register(APIRequest)
 class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     list_display = [
+        "id",
         "created_by",
         "get_course",
         "status",
@@ -62,6 +63,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
 
     # Define field mapping for export
     export_field_mapping = [
+        ("id", "ID"),
         ("status", "Status"),
         ("created_by__name", "User Name"),
         ("created_by__email", "User Email"),

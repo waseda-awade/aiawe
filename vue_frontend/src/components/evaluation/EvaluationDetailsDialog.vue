@@ -15,13 +15,18 @@ defineEmits<{
 
 <template>
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
-    <DialogContent class="max-w-2xl max-h-[80vh]">
-      <div v-if="record" class="space-y-6">
+    <DialogContent v-if="record" class="max-w-2xl max-h-[80vh]">
+      <DialogHeader>
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <DialogTitle class="text-2xl font-bold">Evaluation Details</DialogTitle>
+          <DialogTitle>
+            <span class="text-2xl font-bold">Evaluation Details</span>
+          </DialogTitle>
           <DialogDescription>
-            <!-- Status and date -->
-            <div class="flex flex-col sm:flex-row sm:items-end gap-4 text-sm text-muted-foreground">
+            <!-- ID, status and date -->
+            <div class="flex flex-col sm:flex-row gap-4 text-sm text-muted-foreground">
+              <div>
+                <span class="font-medium text-foreground">ID: </span> {{ record.id }}
+              </div>
               <div>
                 <span class="font-medium text-foreground">Status: </span>
                 <span :class="{
@@ -39,6 +44,7 @@ defineEmits<{
             </div>
           </DialogDescription>
         </div>
+      </DialogHeader>
 
         <!-- Error message -->
         <p v-if="record.status === 'FAILED'" class="text-sm text-destructive">
@@ -70,7 +76,6 @@ defineEmits<{
             </div>
           </ScrollArea>
         </div>
-      </div>
     </DialogContent>
   </Dialog>
 </template>
