@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from .models import APIKey
 from .models import APIRequest
+from .models import BatchItem
 from .models import BatchProcessing
 from .models import LLMConfig
 from .utils import format_datetime
@@ -175,6 +176,22 @@ def process_openai_request(
         return True
 
 
+def _start_task(item: BatchItem | BatchProcessing, task_id: str):
+    item.started_at = timezone.now()
+    item.status = "PROCESSING"
+    item.task_id = task_id
+    item.save()
+
+
+def _end_task(
+    item: BatchItem | BatchProcessing,
+    status: Literal["COMPLETED", "FAILED"],
+):
+    item.ended_at = timezone.now()
+    item.status = status
+    item.save()
+
+
 @shared_task(bind=True)
 def process_batch(
     self,
@@ -183,17 +200,11 @@ def process_batch(
     """Process a batch of essays."""
     try:
         batch = BatchProcessing.objects.get(id=batch_id)
-        batch.started_at = timezone.now()
-        batch.status = "PROCESSING"
-        batch.task_id = self.request.id
-        batch.save()
+        _start_task(batch, self.request.id)
 
         # Process each item
         for item in batch.items.filter(status="PENDING"):
-            item.started_at = timezone.now()
-            item.status = "PROCESSING"
-            item.task_id = self.request.id
-            item.save()
+            _start_task(item, self.request.id)
 
             try:
                 # Get LLM config
@@ -225,34 +236,27 @@ def process_batch(
                 parsed_result = EssayEvaluation.model_validate_json(result)
                 item.score = parsed_result.score
                 item.reasoning = parsed_result.reasoning
-                item.status = "COMPLETED"
+                _end_task(item, "COMPLETED")
 
             except (openai.OpenAIError, ValueError, TypeError) as e:
-                item.status = "FAILED"
                 item.error = mask_api_key(str(e))
                 if e.__context__:
                     item.error_details = mask_api_key(str(e.__context__))
+                _end_task(item, "FAILED")
 
-            item.ended_at = timezone.now()
-            item.save()
             batch.updated_at = timezone.now()
             batch.save()
 
         # Create output file
         if batch.items.exclude(status="COMPLETED").exists():
-            batch.status = "FAILED"
+            _end_task(batch, "FAILED")
         else:
-            batch.status = "COMPLETED"
+            _end_task(batch, "COMPLETED")
             create_output_file(batch)
             batch.notify_completion()
 
-        batch.ended_at = timezone.now()
-        batch.save()
-
     except (ValueError, TypeError):
-        batch.status = "FAILED"
-        batch.ended_at = timezone.now()
-        batch.save()
+        _end_task(batch, "FAILED")
 
 
 def create_output_file(batch):
