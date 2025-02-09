@@ -204,7 +204,7 @@ def process_batch(
         _start_task(batch, self.request.id)
 
         # Process each item
-        for item in batch.items.filter(status="PENDING"):
+        for item in batch.items.filter(status="PENDING").order_by("created_at"):
             _start_task(item, self.request.id)
 
             if delay_seconds > 0:
@@ -277,7 +277,7 @@ def create_output_file(batch):
     """Create output Excel file for completed batch."""
     # Collect all data
     rows = []
-    for item in batch.items.all():
+    for item in batch.items.all().order_by("created_at"):
         row = item.row_data.copy()
         row.update(
             {

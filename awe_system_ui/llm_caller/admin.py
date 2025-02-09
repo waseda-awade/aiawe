@@ -417,3 +417,4 @@ class BatchItemAdmin(admin.ModelAdmin):
         "started_at",
         "ended_at",
     ]
+    ordering = ["-created_at"]
