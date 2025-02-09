@@ -406,16 +406,37 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             msg = "You don't have permission to stop this batch."
             raise PermissionDenied(msg)
 
-        if batch.stop_processing():
-            messages.success(request, "Batch processing has been stopped.")
-        else:
+        # Check if batch can be stopped
+        if batch.status not in ["PENDING", "PROCESSING"]:
             messages.warning(
                 request,
                 "Batch processing could not be stopped (already completed/failed).",
             )
+            return HttpResponseRedirect(
+                reverse("admin:llm_caller_batchprocessing_changelist"),
+            )
 
-        return HttpResponseRedirect(
-            reverse("admin:llm_caller_batchprocessing_changelist"),
+        if request.method == "POST":
+            if batch.stop_processing():
+                messages.success(request, "Batch processing has been stopped.")
+            else:
+                messages.warning(
+                    request,
+                    "Batch processing could not be stopped (already completed/failed).",
+                )
+            return HttpResponseRedirect(
+                reverse("admin:llm_caller_batchprocessing_changelist"),
+            )
+
+        context = {
+            **self.admin_site.each_context(request),
+            "batch": batch,
+            "title": "Stop Batch Processing",
+        }
+        return TemplateResponse(
+            request,
+            "admin/llm_caller/batchprocessing/stop_confirmation.html",
+            context,
         )
 
 

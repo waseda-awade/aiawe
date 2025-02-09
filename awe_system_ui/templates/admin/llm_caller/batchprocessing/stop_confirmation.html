@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n admin_urls %}
+
+{% block content %}
+  <div class="delete-confirmation">
+    <h2>{% translate "Are you sure?" %}</h2>
+    <p>{% translate "Are you sure you want to stop this batch processing?" %}</p>
+    <h3>{% translate "Summary" %}</h3>
+    <ul>
+      <li>{% translate "Model" %}: {{ batch.model.display_name }}</li>
+      <li>{% translate "Status" %}: {{ batch.status }}</li>
+      <li>{% translate "Items" %}: {{ batch.items.count }}</li>
+      <li>{% translate "Created at" %}: {{ batch.created_at }}</li>
+    </ul>
+    <form method="post">
+      {% csrf_token %}
+      <div class="submit-row">
+        <input type="submit" value="{% translate 'Yes, stop it' %}" class="default" />
+        <a href="{% url 'admin:llm_caller_batchprocessing_changelist' %}"
+           class="button cancel-link">{% translate "No, take me back" %}</a>
+      </div>
+    </form>
+  </div>
+{% endblock content %}
