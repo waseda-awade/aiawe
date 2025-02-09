@@ -11,6 +11,7 @@ Details:
 - Total items: {{ total_count }}
 - Success items: {{ success_count }}
 - Failure items: {{ failure_count }}
+{{ error_msg }}
 
 Time:
 - Created at: {{ batch.created_at }}

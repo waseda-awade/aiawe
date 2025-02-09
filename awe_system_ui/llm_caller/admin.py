@@ -257,6 +257,8 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "model",
         "essay_field_name",
         "status",
+        "error",
+        "error_details",
         "input_file",
         "output_file",
         "created_at",

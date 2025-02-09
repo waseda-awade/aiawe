@@ -396,6 +396,16 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         choices=STATUS_CHOICES,
         default="PENDING",
     )
+    error = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error message that displays to the user.",
+    )
+    error_details = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error details to diagnose the error.",
+    )
     input_file = models.FileField(
         upload_to="batch_inputs/%Y/%m/%d/",
         help_text="Excel file containing essays to process",
@@ -451,7 +461,22 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         success_count = self.items.filter(status="COMPLETED").count()
         failure_count = self.items.filter(status="FAILED").count()
 
-        subject = "Batch Processing Complete"
+        if failure_count > 0:
+            subject = "Batch Processing Failed"
+            if not self.error:
+                msg = "These items failed to process:"
+                for idx, item in enumerate(self.items.all().order_by("created_at")):
+                    if item.status == "FAILED":
+                        msg += f"\n- Item #{idx+1}: {item.error or 'Unknown error'}"
+                self.error = msg
+
+            error_msg = f"\nError:\n{self.error}"
+            if self.error_details:
+                error_msg += f"\n\nError Details:\n{self.error_details}"
+        else:
+            subject = "Batch Processing Completed"
+            error_msg = ""
+
         relative_url = reverse(
             "admin:llm_caller_batchprocessing_download",
             args=[self.pk],
@@ -463,15 +488,14 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
             "success_count": success_count,
             "failure_count": failure_count,
             "total_count": self.items.count(),
+            "error_msg": error_msg,
         }
 
-        # Render both text and HTML versions
         text_message = render_to_string(
             "admin/llm_caller/batch_completion_email.txt",
             context,
         )
 
-        # Send the email with both text and HTML versions
         send_mail(
             subject=subject,
             message=text_message,

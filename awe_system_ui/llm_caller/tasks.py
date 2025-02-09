@@ -208,9 +208,14 @@ def process_batch(
                 time.sleep(delay_seconds)
 
             if settings.FAKE_LLM_REQUEST:
-                item.score = 4.0
-                item.reasoning = "This is a fake response. " * 40
-                _end_task(item, "COMPLETED")
+                if "fail" in item.essay.lower():
+                    item.error = "This item is a fake failure."
+                    item.error_details = "This is a fake error details."
+                    _end_task(item, "FAILED")
+                else:
+                    item.score = 4.0
+                    item.reasoning = "This is a fake response. " * 40
+                    _end_task(item, "COMPLETED")
                 batch.updated_at = timezone.now()
                 batch.save()
                 continue
@@ -256,15 +261,21 @@ def process_batch(
             batch.updated_at = timezone.now()
             batch.save()
 
-        # Create output file
-        if batch.items.exclude(status="COMPLETED").exists():
+        # If there are any items that are not completed, set the batch status to failed
+        qs = batch.items.exclude(status="COMPLETED")
+        if qs.exists():
             _end_task(batch, "FAILED")
         else:
             _end_task(batch, "COMPLETED")
+        # Create output file
         batch.create_output_file()
+        # Notify user
         batch.notify_completion()
 
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as e:
+        batch.error = mask_api_key(str(e))
+        if e.__context__:
+            batch.error_details = mask_api_key(str(e.__context__))
         _end_task(batch, "FAILED")
 
 
