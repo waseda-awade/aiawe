@@ -287,8 +287,6 @@ def process_batch(
             batch.error_details = mask_api_key(str(e.__context__))
         _end_task(batch, "FAILED")
     finally:
-        # Create output file
-        batch.create_output_file()
         # Notify user
         batch.notify_completion()
 

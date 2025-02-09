@@ -1,12 +1,12 @@
 from io import BytesIO
 
+import pandas as pd
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.http import FileResponse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -258,7 +258,6 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "status",
         "error",
         "error_details",
-        "output_file",
         "created_at",
         "updated_at",
         "started_at",
@@ -403,24 +402,34 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             msg = "You don't have permission to download this file."
             raise PermissionDenied(msg)
 
-        if not batch.output_file:
-            messages.error(request, "Output file not available")
+        try:
+            rows = batch.get_batch_items_as_rows()
+            df_data = pd.DataFrame(rows)
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                df_data.to_excel(writer, index=False)
+
+            now = timezone.localtime().strftime("%Y%m%d_%H%M%S")
+            filename = f"batch_results_{batch.id}_{now}.xlsx"
+
+            response = HttpResponse(
+                output.getvalue(),
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        except (ValueError, TypeError) as e:
+            messages.error(request, f"Error generating output file: {e!s}")
             return HttpResponseRedirect(
                 reverse("admin:llm_caller_batchprocessing_changelist"),
             )
-
-        return FileResponse(
-            batch.output_file.open("rb"),
-            as_attachment=True,
-            filename=batch.output_file.name.split("/")[-1],
-        )
+        else:
+            return response
 
     @admin.display(description="Download")
     def get_download_link(self, obj):
-        if obj.output_file:
-            url = reverse("admin:llm_caller_batchprocessing_download", args=[obj.pk])
-            return format_html('<a href="{}">Download</a>', url)
-        return "-"
+        url = reverse("admin:llm_caller_batchprocessing_download", args=[obj.pk])
+        return format_html('<a href="{}">Download</a>', url)
 
     @admin.display(description="Items")
     def get_items_count(self, obj):
