@@ -267,6 +267,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "ended_at",
         "task_id",
     ]
+    actions = ["generate_output_file"]
 
     def get_list_display(self, request):
         list_display = [
@@ -286,6 +287,20 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     @admin.display(description="Error")
     def get_truncated_error(self, obj):
         return truncatechars(obj.error, 50)
+
+    @admin.action(description="Generate output file for selected batches")
+    def generate_output_file(self, request, queryset):
+        count = 0
+        for batch in queryset:
+            try:
+                batch.create_output_file()
+                count += 1
+            except (ValueError, TypeError, PermissionError) as e:
+                messages.error(
+                    request,
+                    f"Failed to generate output file for Batch {batch.id}: {e!s}",
+                )
+        messages.success(request, f"Output file generated for {count} batch(es).")
 
     def get_urls(self):
         urls = super().get_urls()
