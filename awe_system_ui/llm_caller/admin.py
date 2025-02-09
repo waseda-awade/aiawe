@@ -354,8 +354,8 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
                         return HttpResponseRedirect(
                             reverse("admin:llm_caller_batchprocessing_changelist"),
                         )
-                    except (ValueError, TypeError) as e:
-                        messages.error(request, f"Error processing file: {e}")
+                    except (ValueError, TypeError, PermissionError) as e:
+                        messages.error(request, f"Error processing file: {e!s}")
         else:
             form = BatchProcessingForm()
 
