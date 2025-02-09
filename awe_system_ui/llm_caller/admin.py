@@ -244,7 +244,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             "get_download_link",
             "status",
             "get_stop_button",
-            "get_items_count",
+            "get_progress",
             "get_truncated_error",
             "created_at",
             "started_at",
@@ -263,9 +263,11 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         url = reverse("admin:llm_caller_batchprocessing_download", args=[obj.pk])
         return format_html('<a href="{}">Download</a>', url)
 
-    @admin.display(description="Items")
-    def get_items_count(self, obj):
-        return obj.items.count()
+    @admin.display(description="Progress")
+    def get_progress(self, obj):
+        ended = obj.items.filter(status__in=["COMPLETED", "FAILED"]).count()
+        total = obj.items.count()
+        return f"{ended} / {total}"
 
     @admin.display(description="Stop")
     def get_stop_button(self, obj):
