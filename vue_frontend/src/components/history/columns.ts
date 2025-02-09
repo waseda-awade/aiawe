@@ -3,8 +3,6 @@ import { h } from 'vue'
 import type { EssayRequest } from '@/types/essay'
 import { Checkbox } from '@/components/ui/checkbox'
 
-const MAX_CHARS = 50
-
 export const columns: ColumnDef<EssayRequest>[] = [
   {
     id: 'select',
@@ -35,8 +33,20 @@ export const columns: ColumnDef<EssayRequest>[] = [
       const essay = row.getValue('essay') as string
       return h(
         'div',
-        { class: 'max-w-[300px] truncate' },
-        essay.substring(0, MAX_CHARS) + (essay.length > MAX_CHARS ? '...' : ''),
+        { class: 'max-w-80 truncate' },
+        essay,
+      )
+    },
+  },
+  {
+    accessorKey: 'reasoning',
+    header: 'Reasoning',
+    cell: ({ row }) => {
+      const reasoning = row.getValue('reasoning') as string
+      return h(
+        'div',
+        { class: 'max-w-80 truncate' },
+        reasoning,
       )
     },
   },
