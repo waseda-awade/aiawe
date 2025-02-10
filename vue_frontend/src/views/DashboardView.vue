@@ -25,7 +25,7 @@
             name="model_id"
           >
             <FormItem>
-              <FormLabel class="text-muted-foreground font-normal">1. Please choose the LLM that will access your writing from the drop down menu.</FormLabel>
+              <div class="text-muted-foreground">1. Please choose the LLM that will access your writing from the drop down menu.</div>
               <Select
                 v-bind="componentField"
                 :disabled="isProcessing || isPending"
