@@ -12,10 +12,10 @@ NOTIFY_BATCH_COMPLETION=True
 NOTIFY_BATCH_COMPLETION=False
 ```
 
-Then restart the server.
+Then full restart the server.
 
 ```bash
-make restart-production
+make frestart-production
 ```
 
 ## How to change the port number of the Django server
@@ -29,4 +29,10 @@ services:
     ...
     ports:
       - '8001:80'
+```
+
+Then full restart the server.
+
+```bash
+make frestart-production
 ```
