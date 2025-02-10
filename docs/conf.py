@@ -28,7 +28,7 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = "AWE"
-copyright = """2024, John M. Gayed"""
+copyright = """2025, John M. Gayed"""
 author = "John M. Gayed"
 
 
