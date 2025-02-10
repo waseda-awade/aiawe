@@ -18,17 +18,20 @@ nano ./envs/.production/.secrets
 nano ./envs/.production/.env.production
 ```
 
-Some important notes:
+Some important notes for the `.env.secrets` file:
 
-- `YOUR_DOMAIN_NAME`: Replace with your own domain name.
-- `DJANGO_DOMAIN_NAME`: The domain name of the server.
+- `DJANGO_DOMAIN_NAME`: The domain name of the server. (e.g., `app.awade.gec.waseda.ac.jp`)
 - `DJANGO_SECRET_KEY`: The secret key for the Django server, replace it with a random string.
-- `DJANGO_ALLOWED_HOSTS`: The allowed hosts for the Django server.
-- `DJANGO_SUPERUSER_EMAIL`: The email for the default superuser.
-- `DJANGO_SUPERUSER_PASSWORD`: The password for the default superuser.
+- `DJANGO_ALLOWED_HOSTS`: The allowed hosts for the Django server, change it to your own domain name.
+- `DJANGO_SUPERUSER_EMAIL`: The email for the default superuser to be created the first time.
+- `DJANGO_SUPERUSER_PASSWORD`: The password for the default superuser to be created the first time.
 - `DJANGO_DEFAULT_FROM_EMAIL`: The default address to send emails from.
 - `MAILJET_API_KEY`: The API key for the Mailjet service.
 - `MAILJET_SECRET_KEY`: The secret key for the Mailjet service.
+
+Some important notes for the `.env.production` file:
+
+- `VITE_API_BASE_URL`: Set it to the API endpoint of the server, this will be used by the frontend to send requests to the server. (e.g., `https://app.awade.gec.waseda.ac.jp/api`)
 
 ## 1. Build the images
 

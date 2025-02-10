@@ -1,5 +1,7 @@
 # Commands used to setup the server
 
+> This is our current setup.
+
 ## Install Docker
 
 ``` sh
