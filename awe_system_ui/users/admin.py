@@ -64,6 +64,7 @@ class UserAdmin(AccessControlAdminMixin, auth_admin.UserAdmin):
         return ["username", "email", "name", "course", "date_joined"]
 
     def get_fieldsets(self, request, obj=None):
+        fieldsets = []
         if request.user.is_superuser:
             fieldsets = (
                 (None, {"fields": ("username", "password")}),
@@ -96,7 +97,7 @@ class UserAdmin(AccessControlAdminMixin, auth_admin.UserAdmin):
                     {"fields": ("created_by", "last_login", "date_joined")},
                 ),
             )
-        elif request.user.has_perm("users.can_add_limited_users"):
+        elif request.user.has_perm("users.can_manage_limited_users"):
             fieldsets = (
                 (None, {"fields": ("username", "password")}),
                 (_("Personal info"), {"fields": ("name", "email", "course")}),
