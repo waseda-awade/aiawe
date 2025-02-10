@@ -34,13 +34,6 @@ Project documentation:
 - `manual/` - User and developer guides
 - `reverse-proxy/` - Server setup instructions
 
-### `docs/`
-
-> [!WARNING] This folder is not used. It is only for reference.
-
-Technical documentation:
-
-- API documentation
 
 ### `envs/`
 
@@ -51,6 +44,15 @@ Environment configurations:
 - `.production/` - Production settings
 
 ## Other Important Directories
+
+### `requirements/`
+
+Python dependencies for the project:
+
+- `base.txt` - Base requirements
+- `local.txt` - Local development requirements
+- `production.txt` - Production requirements
+- `envs.txt` - For development environments
 
 ### `compose/`
 
