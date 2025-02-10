@@ -6,7 +6,7 @@ const currentYear = new Date().getFullYear()
   <footer class="py-6 border-t">
     <div class="container mx-auto px-4">
       <div class="text-center text-sm text-muted-foreground">
-        <p>&copy; {{ currentYear }} Waseda University. All rights reserved.</p>
+        <p>&copy; {{ currentYear }} Waseda University - John M. Gayed. All rights reserved.</p>
         <div class="mt-2 space-x-4">
           <router-link :to="{ name: 'terms' }" class="hover:text-primary transition-colors">
             Terms of Service & Privacy Policy
