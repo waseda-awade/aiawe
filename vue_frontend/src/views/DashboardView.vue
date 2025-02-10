@@ -12,6 +12,7 @@
             name="model_id"
           >
             <FormItem>
+              <FormLabel>Please choose the LLM that will access your writing from the drop down menu.</FormLabel>
               <Select
                 v-bind="componentField"
                 :disabled="isProcessing || isPending"
