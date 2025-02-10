@@ -29,7 +29,7 @@ const menuItems = [
   },
   {
     label: 'About',
-    route: 'about',
+    name: 'about',
   },
 ]
 const isSheetOpen = ref(false)
