@@ -1,4 +1,4 @@
-# Translations for the AWE project
+# Translations for the AiAWE project
 # Copyright (C) 2024 John M. Gayed
 # John M. Gayed <gayed@waseda.jp>, 2024.
 #

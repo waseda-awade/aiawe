@@ -27,7 +27,7 @@ django.setup()
 
 # -- Project information -----------------------------------------------------
 
-project = "AWE"
+project = "AiAWE"
 copyright = """2025, John M. Gayed"""
 author = "John M. Gayed"
 

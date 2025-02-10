@@ -7,7 +7,7 @@
 
     <div class="prose dark:prose-invert max-w-none">
       <div class="bg-muted/50 rounded-lg p-4 mb-8 text-muted-foreground">
-        <p class="!mt-0">By accessing or using the AIAWE application ("App"), you agree to the following Terms of
+        <p class="!mt-0">By accessing or using the AiAWE application ("App"), you agree to the following Terms of
           Service and Privacy Policy.</p>
       </div>
 
@@ -26,8 +26,8 @@
           <ul>
             <li>User submissions, including but not limited to text and other content, are private and will not be
               shared publicly within the App.</li>
-            <li>AIAWE may use user submissions to improve the quality of the App.</li>
-            <li>Users retain ownership of their submissions but grant AIAWE a non-exclusive right to use them for
+            <li>AiAWE may use user submissions to improve the quality of the App.</li>
+            <li>Users retain ownership of their submissions but grant AiAWE a non-exclusive right to use them for
               research and development purposes.</li>
           </ul>
         </section>
@@ -39,7 +39,7 @@
               university.</li>
             <li>Users can request to delete all their data by contacting <a
                 href="mailto:admin@aiawe.app">admin@aiawe.app</a></li>
-            <li>AIAWE does not sell or distribute personal data to third parties.</li>
+            <li>AiAWE does not sell or distribute personal data to third parties.</li>
           </ul>
         </section>
 
@@ -57,7 +57,7 @@
                 </svg>
               </a>
             </li>
-            <li>AIAWE does not control the data processing performed by OpenAI and encourages users to review their
+            <li>AiAWE does not control the data processing performed by OpenAI and encourages users to review their
               privacy policies for further details.</li>
           </ul>
         </section>
@@ -66,7 +66,7 @@
           <h2>5. External Services</h2>
           <ul>
             <li>Some features of the App require external API access.</li>
-            <li>AIAWE is not responsible for any third-party services used within the App.</li>
+            <li>AiAWE is not responsible for any third-party services used within the App.</li>
           </ul>
         </section>
 
@@ -85,7 +85,7 @@
           <h2>7. Limitation of Liability</h2>
           <ul>
             <li>The App is provided "as is" without any warranties.</li>
-            <li>AIAWE is not liable for any direct or indirect damages resulting from the use of the App.</li>
+            <li>AiAWE is not liable for any direct or indirect damages resulting from the use of the App.</li>
             <li>Users assume all risks associated with the use of the App.</li>
           </ul>
         </section>
@@ -93,7 +93,7 @@
         <section>
           <h2>8. Termination</h2>
           <ul>
-            <li>AIAWE reserves the right to suspend or terminate user access at its discretion, particularly in cases
+            <li>AiAWE reserves the right to suspend or terminate user access at its discretion, particularly in cases
               of misuse or violation of these Terms.</li>
             <li>Users may discontinue use of the App at any time.</li>
           </ul>
@@ -102,7 +102,7 @@
         <section>
           <h2>9. Changes to This Agreement</h2>
           <ul>
-            <li>AIAWE may update these Terms and Privacy Policy from time to time.</li>
+            <li>AiAWE may update these Terms and Privacy Policy from time to time.</li>
             <li>Continued use of the App constitutes acceptance of any modified terms.</li>
           </ul>
         </section>

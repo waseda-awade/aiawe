@@ -1,4 +1,4 @@
-# How to start the AWE server
+# How to start the AiAWE server
 
 ## 0. Go to the `awe-system-ui` directory
 

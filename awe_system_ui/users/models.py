@@ -47,7 +47,7 @@ class CustomUserManager(AccessControlManagerMixin, UserManager):
 
 class User(AccessControlMixin, AbstractUser):
     """
-    Default custom user model for AWE.
+    Default custom user model for AiAWE.
     If adding fields that need to be filled at user signup,
     check forms.SignupForm and forms.SocialSignupForms accordingly.
     """

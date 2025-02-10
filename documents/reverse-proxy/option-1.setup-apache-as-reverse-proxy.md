@@ -22,7 +22,7 @@ sudo usermod -aG docker $USER
 
 ## Change Apache configuration
 
-Add new configuration for AWE reverse proxy
+Add new configuration for AiAWE reverse proxy
 
 Create `awe-proxy.conf` in `/etc/apache2/sites-available/`
 

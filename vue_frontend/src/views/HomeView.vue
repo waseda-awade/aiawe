@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto text-center mt-20">
-    <h1 class="text-4xl font-bold mb-4">Welcome to AWE</h1>
-    <p class="text-lg mb-6">This is a description of the AWE app.</p>
+    <h1 class="text-4xl font-bold mb-4">Welcome to AiAWE</h1>
+    <p class="text-lg mb-6">This is a description of the AiAWE app.</p>
     <router-link :to="{name: 'login'}"><Button>Get Started</Button></router-link>
   </div>
 </template>

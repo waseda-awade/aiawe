@@ -1,4 +1,4 @@
-# AWE System UI
+# AiAWE System UI
 
 The web UI for Automated Writing Evaluation system.
 

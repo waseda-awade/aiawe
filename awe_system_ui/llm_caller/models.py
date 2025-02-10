@@ -455,7 +455,7 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         success_count = self.items.filter(status="COMPLETED").count()
         failure_count = self.items.filter(status="FAILED").count()
 
-        subject = "[AWE] Batch Processing "
+        subject = "[AiAWE] Batch Processing "
         if self.status == "FAILED":
             subject += "Failed"
             error_msg = f"\nError:\n{self.error}"

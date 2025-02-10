@@ -18,4 +18,4 @@ Time:
 - Ended at: {{ batch.ended_at }}
 
 Best regards,
-AWE Team
+AiAWE Team
