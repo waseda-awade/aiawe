@@ -41,11 +41,6 @@ const routes = [
         name: 'terms',
         component: () => import('@/views/TermsView.vue'),
       },
-      {
-        path: 'privacy',
-        name: 'privacy',
-        component: () => import('@/views/PrivacyView.vue'),
-      },
     ],
   },
   {

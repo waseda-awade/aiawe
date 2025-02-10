@@ -165,16 +165,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                   class="underline"
                   @click.stop
                 >
-                  Terms of Service
-                </a>
-                and
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  class="underline"
-                  @click.stop
-                >
-                  Privacy Policy
+                  Terms of Service and Privacy Policy
                 </a>
               </FormLabel>
               <FormMessage />

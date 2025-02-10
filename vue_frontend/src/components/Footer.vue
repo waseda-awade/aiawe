@@ -9,12 +9,9 @@ const currentYear = new Date().getFullYear()
         <p>&copy; {{ currentYear }} Waseda University. All rights reserved.</p>
         <div class="mt-2 space-x-4">
           <router-link :to="{ name: 'terms' }" class="hover:text-primary transition-colors">
-            Terms of Service
+            Terms of Service & Privacy Policy
           </router-link>
-          <router-link :to="{ name: 'privacy' }" class="hover:text-primary transition-colors">
-            Privacy Policy
-          </router-link>
-          <a href="mailto:gayed@waseda.jp" class="hover:text-primary transition-colors">
+          <a href="mailto:admin@aiawe.app" class="hover:text-primary transition-colors">
             Contact Us
           </a>
         </div>
