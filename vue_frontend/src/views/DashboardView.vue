@@ -2,8 +2,21 @@
   <div class="flex flex-col gap-6 md:flex-row max-w-7xl mx-auto">
     <Card class="flex-1">
       <CardHeader>
-        <CardTitle>Evaluate your essay</CardTitle>
-        <CardDescription> Enter your text directly or upload a Word document </CardDescription>
+        <CardTitle class="mb-4">Evaluate your essay</CardTitle>
+        <CardDescription>
+          <p>AiAWE works best assessing argumentative writing that is under 1,000 words.</p>
+          <p>The score produced by AiAWE is based on the
+            <a class="text-blue-500 inline-flex items-center hover:underline"
+              href="https://www-vantage-qa-publish.ets.org/pdfs/toefl/toefl-ibt-writing-rubrics.pdf"
+              target="_blank">
+              ETS TOEFL Independent Writing Rubric
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>.
+          </p>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form @submit="handleSubmit" class="space-y-4">
@@ -12,7 +25,7 @@
             name="model_id"
           >
             <FormItem>
-              <FormLabel>Please choose the LLM that will access your writing from the drop down menu.</FormLabel>
+              <FormLabel class="text-muted-foreground font-normal">1. Please choose the LLM that will access your writing from the drop down menu.</FormLabel>
               <Select
                 v-bind="componentField"
                 :disabled="isProcessing || isPending"
@@ -46,6 +59,7 @@
             </FormItem>
           </FormField>
 
+          <div class="text-muted-foreground">2. Upload a Word document or enter your text directly.</div>
           <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
             @file-selected="handleFileSelected" />
 
