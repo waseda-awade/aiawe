@@ -290,3 +290,5 @@ awe_system_ui/media/
 vue_frontend/.env.production
 vue_frontend/dist/
 awe_system_ui/static/vue/
+
+*.pdf
