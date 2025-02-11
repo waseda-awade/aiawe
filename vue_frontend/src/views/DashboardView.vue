@@ -124,7 +124,8 @@
           </Button>
 
           <Button
-            v-if="isLoading || isPending"
+            v-if="isLoading || isPending || isCompleted"
+            variant="outline"
             type="button"
             class="w-full mt-2"
             @click="handleReset"
