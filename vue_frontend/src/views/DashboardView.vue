@@ -70,6 +70,7 @@
             <FormItem>
               <FormControl>
                 <Textarea
+                  ref="essayTextarea"
                   v-bind="componentField"
                   :rows="15"
                   placeholder="Enter your text here or upload a document..."
@@ -242,6 +243,7 @@ const NUM_HISTORY_ITEMS = 5
 const { toast } = useToast()
 const { processDocument, isProcessing } = useDocumentProcessor()
 
+const essayTextarea = ref<typeof Textarea | null>(null)
 const generalError = ref('')
 const charCount = computed(() => form.values.essay?.length || 0)
 const isOverLimit = computed(() => charCount.value > MAX_CHARS)
@@ -417,6 +419,14 @@ const handleReset = async () => {
   if (hasPendingRequests) {
     startHistoryPolling()
   }
+
+
+  // Focus the textarea after a short delay to ensure the DOM has updated
+  setTimeout(() => {
+    // const textarea = document.querySelector('textarea[name="essay"]') as HTMLTextAreaElement
+    // textarea?.focus()
+    essayTextarea.value?.focus()
+  }, 0)
 }
 
 // Clean up polling when component is unmounted
