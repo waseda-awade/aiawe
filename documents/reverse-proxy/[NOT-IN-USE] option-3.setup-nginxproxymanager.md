@@ -1,5 +1,8 @@
 # Commands used to setup the server
 
+> [!WARNING] This is an alternative setup.
+> We are currently using the Apache setup.
+
 ## Install Docker
 
 ``` sh

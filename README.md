@@ -9,7 +9,7 @@ License: MIT
 
 ## Get Started
 
-See [how-to-start-the-awe-server.md](documents/manual/how-to-start-the-awe-server.md)
+See [how-to-start-the-awe-server.md](documents/user-manual/01-how-to-start-the-awe-server.md)
 
 ## Settings
 
