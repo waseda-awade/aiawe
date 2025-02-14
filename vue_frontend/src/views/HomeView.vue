@@ -8,12 +8,11 @@
     <router-link :to="{name: 'login'}"><Button>Get Started</Button></router-link>
 
     <!-- Dashboard Image Section -->
-    <div class="mt-8 max-w-6xl mx-auto">
+    <div class="mt-8 max-w-3xl mx-auto">
       <img
         src="@/assets/imgs/aiawe-dashboard.png"
         alt="Dashboard Preview"
-        class="w-full cursor-pointer hover:opacity-90 transition-opacity"
-        @click="showModal = true"
+        class="w-full hover:opacity-90 transition-opacity"
       />
     </div>
 
