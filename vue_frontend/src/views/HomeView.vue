@@ -3,17 +3,16 @@
     <h1 class="text-4xl font-bold mb-4">Welcome to AiAWE</h1>
     <div class="text-lg mb-6">
       <p>AiAWE is a project led by John M. Gayed and Judy Wang at Waseda University that evaluates student writing using Large Language Models (LLMs).</p>
-      <p>Please go to the <router-link class="text-primary hover:underline" :to="{name: 'about'}">About</router-link> page to learn more about our research.</p>
+      <p>Please go to the <router-link class="text-primary hover:underline" :to="{name: 'about'}">About</router-link> page to learn more about our research.<br /> Click the "Get Started" button below to register and use the app. Just below is an image of what the app looks like. Enjoy!</p>
     </div>
     <router-link :to="{name: 'login'}"><Button>Get Started</Button></router-link>
 
     <!-- Dashboard Image Section -->
-    <div class="mt-8 max-w-6xl mx-auto">
+    <div class="mt-8 max-w-3xl mx-auto">
       <img
         src="@/assets/imgs/aiawe-dashboard.png"
         alt="Dashboard Preview"
-        class="w-full cursor-pointer hover:opacity-90 transition-opacity"
-        @click="showModal = true"
+        class="w-full hover:opacity-90 transition-opacity"
       />
     </div>
 
