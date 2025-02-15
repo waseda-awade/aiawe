@@ -71,6 +71,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         ("created_by__course__course_id", "Course ID"),
         ("created_by__course__course_name", "Course Name"),
         ("model__name", "LLM Model"),
+        ("essay_topic", "Essay Topic"),
         ("essay", "Essay"),
         ("score", "Score"),
         ("reasoning", "Reasoning"),
