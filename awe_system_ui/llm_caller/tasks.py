@@ -120,26 +120,30 @@ def process_openai_request(
 
         api_request.task_id = self.request.id
 
-        # Format prompt using the provided template
+        # Format and save the user prompt
         user_prompt = request_params.user_prompt_template.format(
             essay=api_request.essay,
             essay_topic=api_request.essay_topic,
         )
+        api_request.user_prompt = user_prompt
+        api_request.save()
 
         if _handle_debug_delay_and_fake(api_request, delay_seconds):
-            return True
+            return None
 
+        # Get OpenAI client
         client = get_openai_client(
             model_id=api_request.model.id,
             llm_type=api_request.model.llm_type,
             base_url=api_request.model.url,
         )
 
+        # Call OpenAI API
         result = call_openai_api(
             client=client,
             model_name=request_params.model_name,
             system_prompt=request_params.system_prompt,
-            user_prompt=user_prompt,
+            user_prompt=user_prompt,  # Use the formatted prompt
             temperature=request_params.temperature,
         )
         api_request.result = result
@@ -227,9 +231,6 @@ def process_batch(
         for item in batch.items.filter(status="PENDING").order_by("created_at"):
             _start_task(item, self.request.id)
 
-            if _handle_debug_delay_and_fake(item, delay_seconds):
-                continue
-
             try:
                 # Get LLM config
                 llm_config = LLMConfig.get_active_config(model_name=batch.model.name)
@@ -241,21 +242,28 @@ def process_batch(
                     user_prompt_template=llm_config.user_prompt_template,
                 )
 
+                # Format and save the user prompt
+                user_prompt = llm_params.user_prompt_template.format(
+                    essay=item.essay,
+                    essay_topic=item.essay_topic,
+                )
+                item.user_prompt = user_prompt
+                item.save()
+
+                if _handle_debug_delay_and_fake(item, delay_seconds):
+                    continue
+
                 client = get_openai_client(
                     model_id=batch.model.id,
                     llm_type=batch.model.llm_type,
                     base_url=batch.model.url,
                 )
-                # Process with OpenAI
-                user_prompt = llm_params.user_prompt_template.format(
-                    essay=item.essay,
-                    essay_topic=item.essay_topic,
-                )
+
                 result = call_openai_api(
                     client=client,
                     model_name=llm_params.model_name,
                     system_prompt=llm_params.system_prompt,
-                    user_prompt=user_prompt,
+                    user_prompt=user_prompt,  # Use the formatted prompt
                     temperature=llm_params.temperature,
                 )
                 item.result = result

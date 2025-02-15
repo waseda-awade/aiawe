@@ -165,6 +165,11 @@ class LLMRequestBase(TaskTimestampedBase):
     result = models.TextField(blank=True, default="")
     score = models.FloatField(null=True, blank=True)
     reasoning = models.TextField(blank=True, default="")
+    user_prompt = models.TextField(
+        blank=True,
+        default="",
+        help_text="The actual prompt sent to the LLM",
+    )
 
     class Meta:
         abstract = True
@@ -472,6 +477,7 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
                     "Reasoning": item.reasoning,
                     "Error": item.error,
                     "Raw Response": item.result,
+                    "User Prompt": item.user_prompt,
                     "Created At": format_datetime(item.created_at),
                     "Started At": format_datetime(item.started_at),
                     "Ended At": format_datetime(item.ended_at),

@@ -76,6 +76,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         ("reasoning", "Reasoning"),
         ("error", "Error"),
         ("result", "Raw Response"),
+        ("user_prompt", "User Prompt"),
         ("created_at", "Created At"),
         ("started_at", "Started At"),
         ("ended_at", "Ended At"),
