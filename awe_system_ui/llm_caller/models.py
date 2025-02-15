@@ -157,38 +157,28 @@ class APIRequestManager(AccessControlManagerMixin, models.Manager):
         return query
 
 
-class APIRequest(AccessControlMixin, TaskTimestampedBase):
+class LLMRequestBase(TaskTimestampedBase):
+    """Base class for LLM API requests."""
+
     essay_topic = models.TextField(blank=True, default="")
     essay = models.TextField()
+    result = models.TextField(blank=True, default="")
+    score = models.FloatField(null=True, blank=True)
+    reasoning = models.TextField(blank=True, default="")
+
+    class Meta:
+        abstract = True
+
+
+class APIRequest(AccessControlMixin, LLMRequestBase):
+    """Individual API requests."""
+
     model = models.ForeignKey(
         LLMModel,
         on_delete=models.PROTECT,
         related_name="requests",
         help_text="The LLM model used for this request",
     )
-    result = models.TextField(blank=True, default="")
-    score = models.FloatField(null=True, blank=True)
-    reasoning = models.TextField(blank=True, default="")
-    error = models.TextField(
-        blank=True,
-        default="",
-        help_text="Error message that displays to the user.",
-    )
-    error_details = models.TextField(
-        blank=True,
-        default="",
-        help_text="Error details to diagnose the error.",
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ("PENDING", "Pending"),
-            ("COMPLETED", "Completed"),
-            ("FAILED", "Failed"),
-        ],
-        default="PENDING",
-    )
-    task_id = models.CharField(max_length=100, blank=True, default="")
     is_deleted = models.BooleanField(
         default=False,
         help_text="Soft delete flag - True means this request is deleted",
@@ -377,14 +367,6 @@ class BatchProcessingManager(AccessControlManagerMixin, models.Manager):
 class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
     """Model for batch processing requests."""
 
-    STATUS_CHOICES = [
-        ("PENDING", "Pending"),
-        ("PROCESSING", "Processing"),
-        ("COMPLETED", "Completed"),
-        ("FAILED", "Failed"),
-        ("ABORTED", "Aborted"),
-    ]
-
     model = models.ForeignKey(
         LLMModel,
         on_delete=models.PROTECT,
@@ -400,23 +382,6 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         default="Essay",
         help_text="Column name containing the essays in the Excel file",
     )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default="PENDING",
-    )
-    error = models.TextField(
-        blank=True,
-        default="",
-        help_text="Error message that displays to the user.",
-    )
-    error_details = models.TextField(
-        blank=True,
-        default="",
-        help_text="Error details to diagnose the error.",
-    )
-    task_id = models.CharField(max_length=100, blank=True)
-
     objects = BatchProcessingManager()
 
     class Meta:
@@ -539,46 +504,17 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         return True
 
 
-class BatchItem(TaskTimestampedBase):
+class BatchItem(LLMRequestBase):
     """Individual items in a batch processing request."""
-
-    STATUS_CHOICES = [
-        ("PENDING", "Pending"),
-        ("PROCESSING", "Processing"),
-        ("COMPLETED", "Completed"),
-        ("FAILED", "Failed"),
-        ("ABORTED", "Aborted"),
-    ]
 
     batch = models.ForeignKey(
         BatchProcessing,
         on_delete=models.CASCADE,
         related_name="items",
     )
-    essay_topic = models.TextField(blank=True, default="")
-    essay = models.TextField()
-    result = models.TextField(blank=True, default="")
-    score = models.FloatField(null=True, blank=True)
-    reasoning = models.TextField(blank=True, default="")
-    error = models.TextField(
-        blank=True,
-        default="",
-        help_text="Error message that displays to the user.",
-    )
-    error_details = models.TextField(
-        blank=True,
-        default="",
-        help_text="Error details to diagnose the error.",
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default="PENDING",
-    )
     row_data = models.JSONField(
         help_text="Original row data from input file",
     )
-    task_id = models.CharField(max_length=100, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
