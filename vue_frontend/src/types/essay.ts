@@ -7,6 +7,7 @@ export interface EssayHistoryResponse {
 
 export interface EssayRequest {
   id: number
+  essay_topic: string
   essay: string
   score: number | null
   reasoning: string | null

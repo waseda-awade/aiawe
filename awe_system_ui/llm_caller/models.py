@@ -158,6 +158,7 @@ class APIRequestManager(AccessControlManagerMixin, models.Manager):
 
 
 class APIRequest(AccessControlMixin, TaskTimestampedBase):
+    essay_topic = models.TextField(blank=True, default="")
     essay = models.TextField()
     model = models.ForeignKey(
         LLMModel,
@@ -210,25 +211,19 @@ class APIRequest(AccessControlMixin, TaskTimestampedBase):
 
 
 def validate_user_prompt_template(value):
-    # Count occurrences of {essay}
-    essay_count = value.count("{essay}")
-    if essay_count < 1:
-        msg = "Did you forget to include a '{essay}' placeholder?"
-        raise ValidationError(
-            msg,
-        )
-
-    # Check for any other placeholders using regex
-    # This will find anything like {word} or {word_word} except {essay}
-    other_placeholders = re.findall(r"(?<!{){(?!essay})[^{}]+}(?!})", value)
-    if other_placeholders:
+    """Validate that the template contains only the allowed placeholders."""
+    allowed_placeholders = {"{essay}", "{essay_topic}"}
+    placeholders = {m.group() for m in re.finditer(r"{[^}]+}", value)}
+    invalid_placeholders = placeholders - allowed_placeholders
+    if invalid_placeholders:
         msg = (
-            f"Template contains invalid placeholders: {', '.join(other_placeholders)}. "
-            "Only '{essay}' is allowed."
+            f"Invalid placeholders: {invalid_placeholders}. "
+            f"Only {allowed_placeholders} are allowed."
         )
-        raise ValidationError(
-            msg,
-        )
+        raise ValidationError(msg)
+    if "{essay}" not in placeholders:
+        msg = "Template must contain {essay} placeholder"
+        raise ValidationError(msg)
 
 
 class LLMConfig(TimestampedBase):
@@ -247,7 +242,10 @@ class LLMConfig(TimestampedBase):
         default=settings.DEFAULT_SYSTEM_PROMPT,
     )
     user_prompt_template = models.TextField(
-        help_text="Use '{essay}' (without the quote) as placeholder for user input",
+        help_text=(
+            "Use '{essay}' (without the quote) as placeholder for user input<br>"
+            "Use '{essay_topic}' (without the quote) as placeholder for the essay topic"
+        ),
         default=settings.DEFAULT_USER_PROMPT_TEMPLATE,
         validators=[validate_user_prompt_template],
     )
@@ -391,6 +389,11 @@ class BatchProcessing(AccessControlMixin, TaskTimestampedBase):
         LLMModel,
         on_delete=models.PROTECT,
         related_name="batch_requests",
+    )
+    essay_topic_field_name = models.CharField(
+        max_length=50,
+        default="Essay Topic",
+        help_text="Column name containing the essay topics in the Excel file",
     )
     essay_field_name = models.CharField(
         max_length=50,
@@ -552,6 +555,7 @@ class BatchItem(TaskTimestampedBase):
         on_delete=models.CASCADE,
         related_name="items",
     )
+    essay_topic = models.TextField(blank=True, default="")
     essay = models.TextField()
     result = models.TextField(blank=True, default="")
     score = models.FloatField(null=True, blank=True)

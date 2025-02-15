@@ -44,6 +44,7 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         "get_course",
         "status",
         "get_model_name",
+        "get_truncated_essay_topic",
         "get_truncated_essay",
         "score",
         "get_truncated_reasoning",
@@ -79,6 +80,10 @@ class APIRequestAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         ("started_at", "Started At"),
         ("ended_at", "Ended At"),
     ]
+
+    @admin.display(description="Essay Topic")
+    def get_truncated_essay_topic(self, obj):
+        return truncatechars(obj.essay_topic, 50)
 
     @admin.display(description="Essay")
     def get_truncated_essay(self, obj):
@@ -228,6 +233,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
     form = BatchProcessingForm
     readonly_fields = [
         "model",
+        "essay_topic_field_name",
         "essay_field_name",
         "status",
         "error",
@@ -338,6 +344,7 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
                                 BatchItem(
                                     batch=batch,
                                     essay=row[batch.essay_field_name],
+                                    essay_topic=row[batch.essay_topic_field_name],
                                     row_data=row.to_dict(),
                                 ),
                             )
@@ -450,6 +457,7 @@ class BatchItemAdmin(admin.ModelAdmin):
     list_display = [
         "batch",
         "status",
+        "get_truncated_essay_topic",
         "get_truncated_essay",
         "get_truncated_reasoning",
         "get_truncated_error",
@@ -469,6 +477,10 @@ class BatchItemAdmin(admin.ModelAdmin):
         "ended_at",
     ]
     ordering = ["-created_at"]
+
+    @admin.display(description="Essay Topic")
+    def get_truncated_essay_topic(self, obj):
+        return truncatechars(obj.essay_topic, 50)
 
     @admin.display(description="Essay")
     def get_truncated_essay(self, obj):

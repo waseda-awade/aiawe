@@ -39,6 +39,7 @@ class APIRequestSerializer(serializers.ModelSerializer):
         model = APIRequest
         fields = [
             "id",
+            "essay_topic",
             "essay",
             "score",
             "reasoning",

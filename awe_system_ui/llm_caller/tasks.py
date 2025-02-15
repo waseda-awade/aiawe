@@ -120,13 +120,14 @@ def process_openai_request(
 
         api_request.task_id = self.request.id
 
-        if _handle_debug_delay_and_fake(api_request, delay_seconds):
-            return True
-
         # Format prompt using the provided template
         user_prompt = request_params.user_prompt_template.format(
             essay=api_request.essay,
+            essay_topic=api_request.essay_topic,
         )
+
+        if _handle_debug_delay_and_fake(api_request, delay_seconds):
+            return True
 
         client = get_openai_client(
             model_id=api_request.model.id,
@@ -246,13 +247,15 @@ def process_batch(
                     base_url=batch.model.url,
                 )
                 # Process with OpenAI
+                user_prompt = llm_params.user_prompt_template.format(
+                    essay=item.essay,
+                    essay_topic=item.essay_topic,
+                )
                 result = call_openai_api(
                     client=client,
                     model_name=llm_params.model_name,
                     system_prompt=llm_params.system_prompt,
-                    user_prompt=llm_params.user_prompt_template.format(
-                        essay=item.essay,
-                    ),
+                    user_prompt=user_prompt,
                     temperature=llm_params.temperature,
                 )
                 item.result = result

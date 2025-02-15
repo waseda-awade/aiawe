@@ -59,7 +59,24 @@
             </FormItem>
           </FormField>
 
-          <div class="text-muted-foreground">2. Upload a Word document or enter your text directly.</div>
+          <FormField
+            v-slot="{ componentField }"
+            name="essay_topic"
+          >
+            <FormItem>
+              <div class="text-muted-foreground">2. Enter the topic of your essay.</div>
+              <FormControl>
+                <Input
+                  v-bind="componentField"
+                  placeholder="e.g., 'Do you agree or disagree with the following statement? ...'"
+                  :disabled="isProcessing || isPending"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <div class="text-muted-foreground">3. Upload a Word document or enter your text directly.</div>
           <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
             @file-selected="handleFileSelected" />
 
@@ -230,11 +247,13 @@ import EvaluationDetailsDialog from '@/components/evaluation/EvaluationDetailsDi
 import { ArrowRight } from 'lucide-vue-next'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useEssayPolling } from '@/composables/useEssayPolling'
+import { Input } from '@/components/ui/input'
 
 const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
   initialValues: {
     essay: '',
+    essay_topic: '',
     model_id: '',
   },
 })
@@ -378,6 +397,7 @@ const handleSubmit = form.handleSubmit(async (values) => {
   try {
     const response = await EssayService.submitEssay({
       essay: values.essay,
+      essay_topic: values.essay_topic,
       model_id: Number(values.model_id)
     })
     currentRequest.value = response
@@ -408,6 +428,7 @@ const handleHistoryItemClick = (record: EssayRequest) => {
 
 const handleReset = async () => {
   form.setFieldValue('essay', '')
+  form.setFieldValue('essay_topic', '')
   currentRequest.value = null
   generalError.value = ''
 
