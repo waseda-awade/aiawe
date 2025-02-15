@@ -16,9 +16,10 @@ If you want to change the image size, you can change the `max-w-6xl` to `max-w-4
 <div class="mt-8 max-w-6xl mx-auto">
 ```
 
-After making the changes, you need to restart the server.
+After making the changes, you need to rebuild the images and restart the server.
 
 ```bash
+make build-production
 make frestart-production
 ```
 
@@ -37,6 +38,7 @@ NOTIFY_BATCH_COMPLETION=False
 Then full restart the server.
 
 ```bash
+# Note: no need to rebuild the images if you only changed the environment files
 make frestart-production
 ```
 
@@ -56,5 +58,6 @@ services:
 Then full restart the server.
 
 ```bash
+# Note: no need to rebuild the images if you only changed the docker compose file
 make frestart-production
 ```
