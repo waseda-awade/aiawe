@@ -319,64 +319,10 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
         if request.method == "POST":
             form = BatchProcessingForm(request.POST, request.FILES)
             if form.is_valid():
-                batch = form.save(commit=False)
-                batch.created_by = request.user
-                df_data = form.cleaned_data["df_data"]
-                # Check quota
-                quota = BatchProcessingQuota.objects.filter(model=batch.model).first()
-                if not quota:
-                    # Create a default quota for this model if none exists
-                    quota = BatchProcessingQuota.objects.create(
-                        model=batch.model,
-                    )
-                remaining = quota.get_remaining_quota(request.user) if quota else 0
-                if remaining < df_data.shape[0]:
-                    msg = (
-                        f"Daily batch processing quota exceeded. Remaining: {remaining}"
-                    )
-                    messages.error(request, msg)
-                else:
-                    try:
-                        batch.save()
-
-                        # Create batch items
-                        items = []
-                        for _, row in df_data.iterrows():
-                            items.append(
-                                BatchItem(
-                                    batch=batch,
-                                    essay=row[batch.essay_field_name],
-                                    essay_topic=row[batch.essay_topic_field_name],
-                                    row_data=row.to_dict(),
-                                ),
-                            )
-                        BatchItem.objects.bulk_create(items)
-
-                        # Start processing
-                        transaction.on_commit(
-                            lambda: process_batch.delay(
-                                batch.id,
-                                delay_seconds=getattr(settings, "TASK_DELAY", 0),
-                            ),
-                        )
-                        messages.success(request, "Batch processing started")
-                        return HttpResponseRedirect(
-                            reverse("admin:llm_caller_batchprocessing_changelist"),
-                        )
-                    except (ValueError, TypeError, PermissionError) as e:
-                        messages.error(request, f"Error processing file: {e!s}")
+                return self._process_valid_form(request, form)
         else:
             form = BatchProcessingForm()
-
-        # Pre-calculate quota info
-        for model in form.fields["model"].queryset:
-            quota = BatchProcessingQuota.objects.filter(model=model).first()
-            if quota:
-                model.remaining_quota = quota.get_remaining_quota(request.user)
-                model.quota_daily_limit = quota.daily_limit
-            else:
-                model.remaining_quota = "unlimited"
-                model.quota_daily_limit = "unlimited"
+            self._add_quota_info_to_models(request, form)
 
         context = {
             **self.admin_site.each_context(request),
@@ -390,6 +336,85 @@ class BatchProcessingAdmin(AccessControlAdminMixin, admin.ModelAdmin):
             "admin/llm_caller/batchprocessing/batch_request_creation.html",
             context,
         )
+
+    def _process_valid_form(self, request, form):
+        """Process a valid form submission"""
+        batch = form.save(commit=False)
+        batch.created_by = request.user
+        df_data = form.cleaned_data["df_data"]
+        df_data = df_data.fillna("")
+
+        # Check quota
+        if not self._check_quota(request, batch, df_data):
+            return None
+
+        try:
+            batch.save()
+            self._create_batch_items(request, batch, df_data)
+
+            # Start processing
+            transaction.on_commit(
+                lambda: process_batch.delay(
+                    batch.id,
+                    delay_seconds=getattr(settings, "TASK_DELAY", 0),
+                ),
+            )
+            messages.success(request, "Batch processing started")
+            return HttpResponseRedirect(
+                reverse("admin:llm_caller_batchprocessing_changelist"),
+            )
+        except (ValueError, TypeError, PermissionError) as e:
+            messages.error(request, f"Error processing file: {e!s}")
+            return None
+
+    def _check_quota(self, request, batch, df_data):
+        """Check if the user has enough quota for the batch processing"""
+        quota = BatchProcessingQuota.objects.filter(model=batch.model).first()
+        if not quota:
+            # Create a default quota for this model if none exists
+            quota = BatchProcessingQuota.objects.create(
+                model=batch.model,
+            )
+
+        remaining = quota.get_remaining_quota(request.user) if quota else 0
+        if remaining < df_data.shape[0]:
+            msg = f"Daily batch processing quota exceeded. Remaining: {remaining}"
+            messages.error(request, msg)
+            return False
+        return True
+
+    def _create_batch_items(self, request, batch, df_data):
+        """Create batch items from the dataframe"""
+        items = []
+        for _, row in df_data.iterrows():
+            essay = row[batch.essay_field_name]
+            essay_topic = row[batch.essay_topic_field_name]
+            if not essay or not essay_topic:
+                messages.error(
+                    request,
+                    f"Missing essay or essay topic for row {row}",
+                )
+                continue
+            items.append(
+                BatchItem(
+                    batch=batch,
+                    essay=essay,
+                    essay_topic=essay_topic,
+                    row_data=row.to_dict(),
+                ),
+            )
+        BatchItem.objects.bulk_create(items)
+
+    def _add_quota_info_to_models(self, request, form):
+        """Add quota information to each model in the form"""
+        for model in form.fields["model"].queryset:
+            quota = BatchProcessingQuota.objects.filter(model=model).first()
+            if quota:
+                model.remaining_quota = quota.get_remaining_quota(request.user)
+                model.quota_daily_limit = quota.daily_limit
+            else:
+                model.remaining_quota = "unlimited"
+                model.quota_daily_limit = "unlimited"
 
     def download_view(self, request, object_id):
         batch = get_object_or_404(BatchProcessing, pk=object_id)
