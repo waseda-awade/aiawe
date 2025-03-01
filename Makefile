@@ -29,6 +29,10 @@ stop-%:
 restart-%:
 	docker compose -f docker-compose.$*.yml restart
 
+# Restart django container
+rd:
+	docker compose -f docker-compose.local.yml restart django
+
 # Full restart containers
 frestart-%:
 	$(MAKE) stop-$*
