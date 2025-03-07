@@ -6,7 +6,7 @@
       <section>
         <h2 class="text-2xl font-semibold mb-3">Our Mission</h2>
         <p>
-          AiAWE (Artificial Intelligence Automated Writing Evaluation) is a cutting-edge research project at Waseda University
+          AiAWE (Artificial Intelligence Automated Writing Evaluation) is a research project at Waseda University
           that aims to ...
         </p>
       </section>
