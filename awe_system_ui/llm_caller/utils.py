@@ -4,6 +4,7 @@ from io import BytesIO
 import pandas as pd
 from django.http import HttpResponse
 from django.utils import timezone
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 
 
 def get_today_date_range():
@@ -39,11 +40,19 @@ def format_datetime(datetime_obj: timezone.datetime) -> str:
     return timezone.localtime(datetime_obj).strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
+def illegal_char_remover(data):
+    """Remove ILLEGAL CHARACTER."""
+    if isinstance(data, str):
+        return ILLEGAL_CHARACTERS_RE.sub("", data)
+    return data
+
+
 def generate_excel_response(rows, filename):
     """
     Generate an Excel response from a list of rows.
     """
     df_data = pd.DataFrame(rows)
+    df_data = df_data.applymap(illegal_char_remover)
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df_data.to_excel(writer, index=False)
