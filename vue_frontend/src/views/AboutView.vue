@@ -6,7 +6,7 @@
       <section>
         <h2 class="text-2xl font-semibold mb-3">Our Mission</h2>
         <p>
-          AiAWE (Artificial Intelligence Automated Writing Evaluation) is a research project at Waseda University
+          AiAWE (AI - Automated Writing Evaluation) is a research project at Waseda University
           that aims to ...
         </p>
       </section>
@@ -17,7 +17,10 @@
           <div>
             <h3 class="text-xl font-medium">John M. Gayed</h3>
             <p class="text-muted-foreground">Principal Investigator</p>
-            <p>Research focus on ...</p>
+            <p>Received his Ph.D from the Tokyo Institute of Technology researching AI writing aids and their impact on L2 learners. 
+              He is currently an Associate Professor and Program Coordinator at the Global Education Center, Waseda University. 
+              His research in CALL primarily focuses on L2 writing assessment, in addition to researching how digital aids impact cognitive load and writing fluency.
+              <a href="https://scholar.google.com/citations?user=0wxpbbYAAAAJ&hl=en&oi=ao" class="text-primary hover:underline">John’s Google Scholar page</a></p>
           </div>
           <div>
             <h3 class="text-xl font-medium">Judy Wang</h3>
@@ -39,7 +42,12 @@
           <li>...</li>
         </ul>
       </section>
-
+      
+      <section id="rubric">
+        <h2 class="text-2xl font-semibold mb-3">ETS Rubric Used by AiAWE</h2>
+        <embed :src="require('@/assets/toeflIbtRubric.pdf')" type="application/pdf" width="100%" height="600px">
+      </section>
+      
       <section>
         <h2 class="text-2xl font-semibold mb-3">Contact</h2>
         <p>
