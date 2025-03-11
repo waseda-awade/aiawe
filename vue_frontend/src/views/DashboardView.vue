@@ -7,7 +7,7 @@
           <p>AiAWE works best assessing argumentative writing that is under 1,000 words.</p>
           <p>The score produced by AiAWE is based on the
             <a class="text-blue-500 inline-flex items-center hover:underline"
-              href="https://www-vantage-qa-publish.ets.org/pdfs/toefl/toefl-ibt-writing-rubrics.pdf"
+              href="https://app.awade.gec.waseda.ac.jp/about#rubric"
               target="_blank">
               ETS TOEFL Independent Writing Rubric
               <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
