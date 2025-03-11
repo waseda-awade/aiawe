@@ -1,3 +1,8 @@
+<script setup>
+import pdfFile from '@/assets/toeflIbtRubric.pdf';
+
+const pdfUrl = pdfFile;
+</script>
 <template>
   <div class="container mx-auto px-4 md:py-8 max-w-4xl">
     <h1 class="text-4xl font-bold mb-6">About AiAWE</h1>
@@ -45,7 +50,7 @@
       
       <section id="rubric">
         <h2 class="text-2xl font-semibold mb-3">ETS Rubric Used by AiAWE</h2>
-        <embed :src="require('@/assets/toeflIbtRubric.pdf')" type="application/pdf" width="100%" height="600px">
+      <iframe :src="pdfUrl" width="100%" height="600px"></iframe>
       </section>
       
       <section>
