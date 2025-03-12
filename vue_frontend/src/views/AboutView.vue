@@ -45,7 +45,7 @@
       
       <section id="rubric">
         <h2 class="text-2xl font-semibold mb-3">ETS Rubric Used by AiAWE</h2>
-        <div class="mt-8 max-w-3xl mx-auto">
+    <div class="mt-8 max-w-3xl mx-auto">
       <img
         src="@/assets/imgs/toeflrubric.png"
         alt="ETS TOEFL RUBRIC"
