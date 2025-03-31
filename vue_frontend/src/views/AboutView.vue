@@ -44,17 +44,19 @@
           <a href="https://doi.org/10.1080/09588221.2024.2371395" style="color: red" class="text-primary hover:underline">LINK TO ARTICLE</a><br><br>
           This dataset was chosen as TOEFL is an internationally acknowledged test of English proficiency, and the Independent Writing Task on the TOEFL exam is a typical example of argumentative writing that L2 students often encounter.
           All of the models used in AiAWE are finetuned on the TOEFL iBT Public Use Dataset.<br><br>
-          AiAWE can be used individually for student practice, giving them low-risk formative assessment as they practice writing. In addition, educators can also use AiAWE in more formal summative assessment in their classrooms. 
-          <br><br>AiAWE works best assessing argumentative writing that is around 1,000 words.<br><br> AiAWE can also be used by teachers with special features such as bulk grading, class creation, and bulk user creation. 
-          <br>If you are interesting in receiving such access, please contact admin@aiawe.app <br><br>
+          <ul class="list-disc list-inside mt-2 space-y-2">
+             <li>AiAWE can be used individually for student practice, giving them low-risk formative assessment as they practice writing. In addition, educators can also use AiAWE in more formal summative assessment in their classrooms. </li>
+             <li>AiAWE works best assessing argumentative writing that is around 1,000 words.</li>
+             <li>AiAWE can also be used by teachers with special features such as bulk grading, class creation, and bulk user creation. If you are interesting in receiving such access, please contact one of the researchers or admin [at mark] aiawe.app</li>
+          </ul><br>
           Currently AiAWE support three LLMs:<br>
         <ul class="list-disc list-inside mt-2 space-y-2">
-          <li>Gemma 3 27B is an open access LLM that is being hosted on the researcher’s server. Since it is a locally hosted LLM, student submissions are not sent to a third party via API, but instead are processed locally. 
+          <li>Gemma 3 27B - is an open access LLM that is being hosted on the researcher’s server. Since it is a locally hosted LLM, student submissions are not sent to a third party via API, but instead are processed locally. 
             Depending on how many users are using the system, it may take some time to return a result. As the local LLM doesn't cost us any API fees, the usage quota per user is set very high. The model achieves a 
             Quadratic Weighted Kappa (QWK) of 0.83 against ground truth scores from ETS, surpassing ETS’s own internal e-rater engine.</li>
-          <li>GPT 3.5 Turbo. The submission will be sent to OpenAI’s servers for assessment. This was our first attempt at finetuning an advanced LLM for AWE. This is the model that was used in the above mentioned Wang, Q., & Gayed, J. M. (2024) paper. 
+          <li>OpenAI's GPT 3.5 Turbo. The submission will be sent to OpenAI’s servers for assessment. This was our first attempt at finetuning an advanced LLM for AWE. This is the model that was used in the above mentioned Wang, Q., & Gayed, J. M. (2024) paper. 
             The model achieves a QWK of 0.78 and a Root Mean Square Error (RMSE) of 0.57 against ground truth scores from ETS, rivaling ETS’s e-rater engine.</li>
-          <li>GPT 4o. The submission will be sent to OpenAI’s servers for assessment. The more advanced OpenAI model achieves even better results with a QWK nearing 0.9 against ground truth scores from ETS, a substantial improvement over ETS’s own system.</li>
+          <li>OpenAI's GPT 4o. The submission will be sent to OpenAI’s servers for assessment. The more advanced OpenAI model achieves even better results with a QWK nearing 0.9 against ground truth scores from ETS, a substantial improvement over ETS’s own system.</li>
         </ul>
         </p>
       </section>
@@ -62,7 +64,7 @@
       <section>
         <h2 class="text-2xl font-semibold mb-3">Funding, Citation</h2>
         <ul class="list-disc list-inside mt-2 space-y-2">
-          <li>If you would like to cite AiAWE in your research, please use the following citation: Gayed, J. M., Wang, Q. (2025). AI-AWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp </li>
+          <li>If you would like to cite AiAWE in your research, please use the following citation: Gayed, J. M., Wang, Q. (2025). AiAWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp </li>
           <li>AiAWE is funded by the Japan Society for the Promotion of Science (JSPS) via the Grants-in-Aid for Scientific Research (KAKENHI) Grant Number 22K00718 and the Telecommunications Advancement Foundation in Japan.</li>
         </ul>
       </section>
@@ -82,7 +84,7 @@
         <h2 class="text-2xl font-semibold mb-3">Contact</h2>
         <p>
           For research collaboration or general inquiries, please contact us at:
-          <a href="mailto:admin@aiawe.app" class="text-primary hover:underline">admin@aiawe.app</a>
+          <a href="mailto:admin@aiawe.app" class="text-primary hover:underline">admin [at mark]aiawe.app</a>
         </p>
       </section>
     </div>
