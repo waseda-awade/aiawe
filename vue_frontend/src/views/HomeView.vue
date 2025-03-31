@@ -30,10 +30,10 @@
         >
           ×
         </button>
-        <p>If you would like to cite this application in your research, please use: [Gayed, J. M., Wang, Q. (2025). AiAWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp]</p>
       </div>
     </div>
   </div>
+  <p>If you would like to cite this application in your research, please use: [Gayed, J. M., Wang, Q. (2025). AiAWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp]</p>
 </template>
 
 <script setup lang="ts">
