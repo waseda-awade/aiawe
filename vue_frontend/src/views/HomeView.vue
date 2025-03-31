@@ -3,7 +3,7 @@
     <h1 class="text-4xl font-bold mb-4">Welcome to AiAWE</h1>
     <div class="text-lg mb-6">
       <p>AiAWE is a project led by John M. Gayed and Judy Wang at Waseda University that evaluates student writing using Large Language Models (LLMs).</p>
-      <p>Please go to the <router-link class="text-primary hover:underline" :to="{name: 'about'}">About</router-link> page to learn more about our research.<br /> Click the "Get Started" button below to register and use the app. Just below is an image of what the app looks like. Enjoy!</p>
+      <p>Please go to the <router-link class="text-primary hover:underline" :to="{name: 'about'}">About</router-link> page to learn more about our research.<br /> Click the "Get Started" button below to register and use the app. Below is a screenshot of the app's output. Enjoy!</p>
     </div>
     <router-link :to="{name: 'login'}"><Button>Get Started</Button></router-link>
 
@@ -30,6 +30,7 @@
         >
           ×
         </button>
+        <p>If you would like to cite this application in your research, please use: [Gayed, J. M., Wang, Q. (2025). AiAWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp]</p>
       </div>
     </div>
   </div>
