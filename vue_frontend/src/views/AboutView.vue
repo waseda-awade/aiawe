@@ -4,10 +4,10 @@
 
     <div class="space-y-6 text-lg">
       <section>
-        <h2 class="text-2xl font-semibold mb-3">Our Mission</h2>
+        <h2 class="text-2xl font-semibold mb-3">Purpose</h2>
         <p>
           AiAWE (AI - Automated Writing Evaluation) is a research project at Waseda University
-          that aims to ...
+          that aims to use the advancements of Large Language Models (LLMs) in automating the resource intensive task of writing assessment. 
         </p>
       </section>
 
@@ -36,7 +36,7 @@
       <section>
         <h2 class="text-2xl font-semibold mb-3">The Project</h2>
         <p>
-          AiAWE is a research project that aims to apply Large Language Models (LLMs) to Automated Writing Evaluation (AWE). While there will always be a place for human assessment in student learning, LLMs, unlike human graders, 
+          AiAWE is a research project that aims to apply LLMs to Automated Writing Evaluation (AWE). While there will always be a place for human assessment in student learning, LLMs, unlike human graders, 
           can evaluate a high volume of essays while maintaining consistency across assessments. With our research we found that LLMs can provide reliable and scalable quantitative evaluation, in addition to qualitative feedback to writers.
           In our research, we finetune and adjust LLM parameters to produce highly accurate and reliable assessment compared to gold-standard ETS professional essay graders. <br>
           The finetuning dataset used in this research is based on the TOEFL iBT Public Use Dataset provided to us via grant application to ETS. More information about the dataset can be found in our publication: 
