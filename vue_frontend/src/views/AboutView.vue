@@ -40,22 +40,21 @@
           can evaluate a high volume of essays while maintaining consistency across assessments. With our research we found that LLMs can provide reliable and scalable quantitative evaluation, in addition to qualitative feedback to writers.
           In our research, we finetune and adjust LLM parameters to produce highly accurate and reliable assessment compared to gold-standard ETS professional essay graders. <br>
           The finetuning dataset used in this research is based on the TOEFL iBT Public Use Dataset provided to us via grant application to ETS. More information about the dataset can be found in our publication: 
-          <br>Wang, Q., & Gayed, J. M. (2024). Effectiveness of large language models in automated evaluation of argumentative essays: finetuning vs. zero-shot prompting. Computer Assisted Language Learning, 1–29. 
-          <a href="https://doi.org/10.1080/09588221.2024.2371395" class="text-primary hover:underline">LINK TO ARTICLE</a><br>
-          This dataset was chosen because TOEFL is an internationally acknowledged test, and the Independent Writing Task is a typical example of argumentative writing that L2 students often encounter.
+          <br><br>Wang, Q., & Gayed, J. M. (2024). Effectiveness of large language models in automated evaluation of argumentative essays: finetuning vs. zero-shot prompting. Computer Assisted Language Learning, 1–29. 
+          <a href="https://doi.org/10.1080/09588221.2024.2371395" style="color: red" class="text-primary hover:underline">LINK TO ARTICLE</a><br><br>
+          This dataset was chosen as TOEFL is an internationally acknowledged test of English proficiency, and the Independent Writing Task on the TOEFL exam is a typical example of argumentative writing that L2 students often encounter.
           All of the models used in AiAWE are finetuned on the TOEFL iBT Public Use Dataset.<br><br>
-          AiAWE can be used individually for student practice, giving them low-risk formative assessment as they practice writing.
-          In addition, educators can also use AiAWE in more formal summative assessment in their classrooms. 
-          <br><br>AiAWE works best assessing argumentative writing that is around 1,000 words. <br> AiAWE can also be used by teachers with special features such as bulk grading, class creation, and bulk user creation. 
-          <br>If you are interesting in receiving such access, please contact admin@aiawe.app <br>
+          AiAWE can be used individually for student practice, giving them low-risk formative assessment as they practice writing. In addition, educators can also use AiAWE in more formal summative assessment in their classrooms. 
+          <br><br>AiAWE works best assessing argumentative writing that is around 1,000 words.<br><br> AiAWE can also be used by teachers with special features such as bulk grading, class creation, and bulk user creation. 
+          <br>If you are interesting in receiving such access, please contact admin@aiawe.app <br><br>
           Currently AiAWE support three LLMs:<br>
         <ul class="list-disc list-inside mt-2 space-y-2">
-          <li>Llama 3.3 70B is an open access LLM that is being hosted on the researcher’s server. Since it is a locally hosted LLM, student submissions are not sent to a third party via API, but instead are processed locally. 
+          <li>Gemma 3 27B is an open access LLM that is being hosted on the researcher’s server. Since it is a locally hosted LLM, student submissions are not sent to a third party via API, but instead are processed locally. 
             Depending on how many users are using the system, it may take some time to return a result. As the local LLM doesn't cost us any API fees, the usage quota per user is set very high. The model achieves a 
-            Quadratic Weighted Kappa (QWK) of 0.77 against ground truth scores from ETS, rivaling ETS’s own internal e-rater engine.</li>
+            Quadratic Weighted Kappa (QWK) of 0.83 against ground truth scores from ETS, surpassing ETS’s own internal e-rater engine.</li>
           <li>GPT 3.5 Turbo. The submission will be sent to OpenAI’s servers for assessment. This was our first attempt at finetuning an advanced LLM for AWE. This is the model that was used in the above mentioned Wang, Q., & Gayed, J. M. (2024) paper. 
             The model achieves a QWK of 0.78 and a Root Mean Square Error (RMSE) of 0.57 against ground truth scores from ETS, rivaling ETS’s e-rater engine.</li>
-          <li>GPT 4o. The submission will be sent to OpenAI’s servers for assessment. The more advanced model achieves even better results with a QWK nearing 0.9 against ground truth scores from ETS, a substantial improvement over ETS’s own system.</li>
+          <li>GPT 4o. The submission will be sent to OpenAI’s servers for assessment. The more advanced OpenAI model achieves even better results with a QWK nearing 0.9 against ground truth scores from ETS, a substantial improvement over ETS’s own system.</li>
         </ul>
         </p>
       </section>
