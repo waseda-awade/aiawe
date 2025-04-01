@@ -119,7 +119,7 @@
             </p>
             <div v-if="isCompleted">
               <span class="font-semibold">Reasoning:</span>
-              <ScrollArea class="text-sm flex max-h-40 flex-col overflow-y-auto mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-100/50">
+              <ScrollArea class="text-sm flex max-h-80 flex-col overflow-y-auto mt-2 px-4 py-2 rounded-lg border border-gray-200 bg-gray-100/50">
                 <div class="pr-4">
                   {{ currentRequest?.reasoning }}
                 </div>
