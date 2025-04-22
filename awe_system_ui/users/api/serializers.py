@@ -50,7 +50,19 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class CustomRegisterSerializer(RegisterSerializer):
+    name = serializers.CharField(required=True)
     course_id = serializers.CharField(required=False, allow_null=True, max_length=10)
+
+    def get_cleaned_data(self):
+        data = super().get_cleaned_data()
+        data["name"] = self.validated_data.get("name", "")
+        return data
+
+    def save(self, request):
+        user = super().save(request)
+        user.name = self.cleaned_data.get("name")
+        user.save()
+        return user
 
     def custom_signup(self, request, user):
         course_id = self.validated_data.get("course_id")
