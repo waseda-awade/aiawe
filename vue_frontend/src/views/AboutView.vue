@@ -64,8 +64,8 @@
       <section>
         <h2 class="text-2xl font-semibold mb-3">Funding, Citation</h2>
         <ul class="list-disc list-inside mt-2 space-y-2">
-          <li>If you would like to cite AiAWE in your research, please use the following citation: Gayed, J. M., Wang, Q. (2025). AiAWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp </li>
-          <li>AiAWE is funded by the Japan Society for the Promotion of Science (JSPS) via the Grants-in-Aid for Scientific Research (KAKENHI) Grant Number 22K00718 and the Telecommunications Advancement Foundation in Japan.</li>
+          <li>If you would like to cite AiAWE in your research, please use the following citation: Gayed, J. M., Wang, Q. (March, 2025). AiAWE (Version 1.0) [Web application]. https://app.awade.gec.waseda.ac.jp </li>
+          <li>AiAWE is funded by the Japan Society for the Promotion of Science (JSPS) via the Grants-in-Aid for Scientific Research (KAKENHI) Grant Number 22K00718.</li>
         </ul>
       </section>
 
