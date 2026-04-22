@@ -4,6 +4,8 @@ export interface User {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 }
 
 export interface AuthState {
