@@ -22,14 +22,6 @@
               His research in CALL primarily focuses on L2 writing assessment, in addition to researching how digital aids impact cognitive load and writing fluency.
               <a href="https://scholar.google.com/citations?user=0wxpbbYAAAAJ&hl=en&oi=ao" class="text-primary hover:underline">John’s Google Scholar page</a></p>
           </div>
-          <div>
-            <h3 class="text-xl font-medium">Judy Wang</h3>
-            <p class="text-muted-foreground">Co-Investigator</p>
-            <p>Research interests include second language acquisition (SLA), natural language processing (NLP), and artificial intelligence (AI), focusing on the evolving role of digital technology in language education.
-              Recently, Judy's, work has focused on Computer-Assisted Language Learning (CALL), covering areas like Game-Based Language Learning (GBLL), 
-              corpus studies, automated essay evaluation, and computer-based testing.
-              <a href="https://scholar.google.com/citations?user=Ftb5Q3EAAAAJ" class="text-primary hover:underline">Judy’s Google Scholar page</a></p>
-          </div>
         </div>
       </section>
 

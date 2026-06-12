@@ -36,9 +36,14 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
             extra_fields.append("first_name")
         if hasattr(UserModel, "last_name"):
             extra_fields.append("last_name")
+        # Expose staff and superuser flags so clients can adjust UI for admins.
+        if hasattr(UserModel, "is_staff"):
+            extra_fields.append("is_staff")
+        if hasattr(UserModel, "is_superuser"):
+            extra_fields.append("is_superuser")
         model = UserModel
         fields = ("pk", *extra_fields)
-        read_only_fields = ("email",)
+        read_only_fields = ("email", "is_staff", "is_superuser")
 
 
 class TokenSerializer(serializers.ModelSerializer):

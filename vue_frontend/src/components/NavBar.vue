@@ -19,6 +19,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const username = computed(() => authStore.user?.username || '')
+const isAdmin = computed(() => Boolean(authStore.user?.is_staff || authStore.user?.is_superuser))
+const goToAdmin = () => {
+  window.location.href = '/admin/'
+}
 const logout = () => {
   authStore.logout(router)
 }
@@ -52,6 +56,13 @@ const isSheetOpen = ref(false)
       >
         <span>{{ item.label }}</span>
       </router-link>
+      <a
+        v-if="isAdmin"
+        href="/admin/"
+        class="text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <span>Admin Panel</span>
+      </a>
     </nav>
     <Sheet v-model:open="isSheetOpen">
       <SheetTrigger as-child>
@@ -78,6 +89,14 @@ const isSheetOpen = ref(false)
           >
             <span>{{ item.label }}</span>
           </router-link>
+          <a
+            v-if="isAdmin"
+            href="/admin/"
+            class="text-muted-foreground hover:text-foreground"
+            @click="isSheetOpen = false"
+          >
+            <span>Admin Panel</span>
+          </a>
         </nav>
       </SheetContent>
     </Sheet>
@@ -98,6 +117,7 @@ const isSheetOpen = ref(false)
             <DropdownMenuItem @click="router.push({ name: 'change-password' })">
               Change Password
             </DropdownMenuItem>
+            <DropdownMenuItem v-if="isAdmin" @click="goToAdmin">Admin Panel</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </template>
