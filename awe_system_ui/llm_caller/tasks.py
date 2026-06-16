@@ -73,6 +73,7 @@ def call_openai_api(
     system_prompt: str,
     user_prompt: str,
     temperature: float,
+    lora: list[dict] | None = None,
 ) -> str:
     """Helper function to make OpenAI API calls.
 
@@ -87,6 +88,7 @@ def call_openai_api(
         ],
         temperature=temperature,
         response_format={"type": "json_object"},
+        extra_body={"lora": lora} if lora else None,
     )
     return response.choices[0].message.content
 
@@ -145,6 +147,7 @@ def process_openai_request(
             system_prompt=request_params.system_prompt,
             user_prompt=user_prompt,  # Use the formatted prompt
             temperature=request_params.temperature,
+            lora=api_request.model.get_lora_param(),
         )
         api_request.result = result
         # Assuming the older models return JSON-like content that can be parsed
@@ -265,6 +268,7 @@ def process_batch(
                     system_prompt=llm_params.system_prompt,
                     user_prompt=user_prompt,  # Use the formatted prompt
                     temperature=llm_params.temperature,
+                    lora=batch.model.get_lora_param(),
                 )
                 item.result = result
                 parsed_result = EssayEvaluation.model_validate_json(result)

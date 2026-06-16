@@ -145,6 +145,7 @@ class LLMModelAdmin(admin.ModelAdmin):
         "name",
         "url",
         "llm_type",
+        "use_lora",
         "order",
         "is_default",
         "is_active",
@@ -163,6 +164,16 @@ class LLMModelAdmin(admin.ModelAdmin):
                     "name",
                     "llm_type",
                     "url",
+                ),
+            },
+        ),
+        (
+            "LoRA",
+            {
+                "fields": (
+                    "use_lora",
+                    "lora_id",
+                    "lora_scale",
                 ),
             },
         ),
