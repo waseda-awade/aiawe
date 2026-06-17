@@ -141,10 +141,11 @@ class LLMModel(TimestampedBase):
         return used_quota < quota_config.daily_limit
 
     def get_lora_param(self):
-        """llama.cpp per-request 'lora' payload, or None to leave the adapter off."""
-        if not self.use_lora:
-            return None
-        return [{"id": self.lora_id, "scale": self.lora_scale}]
+        """Always pin the LoRA scale explicitly. Omitting the field would make the server
+        inherit its configured default (scale 1.0 = LoRA on), so 'off' must send scale 0.0
+        to genuinely select the base model."""
+        scale = self.lora_scale if self.use_lora else 0.0
+        return [{"id": self.lora_id, "scale": scale}]
 
     def clean(self):
         super().clean()
