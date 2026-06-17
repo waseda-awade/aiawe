@@ -77,6 +77,24 @@ class LLMModel(TimestampedBase):
         ),
         validators=[URLValidator()],
     )
+    use_lora = models.BooleanField(
+        default=False,
+        help_text=(
+            "Activates the LoRA adapter for requests to this model on a shared "
+            "llama.cpp instance."
+        ),
+    )
+    lora_id = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Adapter index from GET /lora-adapters on the server. "
+            "Usually 0 with one adapter."
+        ),
+    )
+    lora_scale = models.FloatField(
+        default=1.0,
+        help_text="Scale applied when use_lora is on (1.0 = full).",
+    )
 
     class Meta:
         ordering = ["order"]
@@ -121,6 +139,13 @@ class LLMModel(TimestampedBase):
 
         used_quota = self.get_used_quota(user)
         return used_quota < quota_config.daily_limit
+
+    def get_lora_param(self):
+        """Always pin the LoRA scale explicitly. Omitting the field would make the server
+        inherit its configured default (scale 1.0 = LoRA on), so 'off' must send scale 0.0
+        to genuinely select the base model."""
+        scale = self.lora_scale if self.use_lora else 0.0
+        return [{"id": self.lora_id, "scale": scale}]
 
     def clean(self):
         super().clean()
