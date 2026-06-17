@@ -70,8 +70,8 @@ defineEmits<{
         <!-- Essay section with scroll -->
         <div>
           <h3 class="font-medium mb-2">Essay</h3>
-          <ScrollArea class="text-sm flex max-h-40 flex-col overflow-y-auto mt-2 px-4 py-2 border border-gray-200 rounded-lg">
-            <div class="pr-4">
+          <ScrollArea class="text-sm flex max-h-96 flex-col overflow-y-auto mt-2 px-4 py-2 border border-gray-200 rounded-lg">
+            <div class="pr-4 whitespace-pre-wrap">
               {{ record.essay }}
             </div>
           </ScrollArea>
