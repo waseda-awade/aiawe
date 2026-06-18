@@ -33,6 +33,13 @@ class APIRequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
+            # Allow anonymous users to poll their own submitted request by ID;
+            # list/other actions still return empty via the standard pagination.
+            if self.action == "retrieve":
+                return APIRequest.objects.filter(
+                    created_by__isnull=True,
+                    is_deleted=False,
+                )
             return APIRequest.objects.none()
         queryset = APIRequest.objects.filter(
             created_by=self.request.user,

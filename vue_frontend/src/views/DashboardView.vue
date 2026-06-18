@@ -14,7 +14,9 @@
       </CardHeader>
       <CardContent>
         <form @submit="handleSubmit" class="space-y-4">
+          <!-- Model selector: authenticated users only -->
           <FormField
+            v-if="isAuthenticated"
             v-slot="{ componentField }"
             name="model_id"
           >
@@ -58,7 +60,9 @@
             name="essay_topic"
           >
             <FormItem>
-              <div class="text-muted-foreground">2. Enter the topic of your essay.</div>
+              <div class="text-muted-foreground">
+                {{ isAuthenticated ? '2.' : '1.' }} Enter the topic of your essay.
+              </div>
               <FormControl>
                 <Input
                   v-bind="componentField"
@@ -70,7 +74,9 @@
             </FormItem>
           </FormField>
 
-          <div class="text-muted-foreground">3. Upload a Word document or enter your text directly.</div>
+          <div class="text-muted-foreground">
+            {{ isAuthenticated ? '3.' : '2.' }} Upload a Word document or enter your text directly.
+          </div>
           <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
             @file-selected="handleFileSelected" />
 
@@ -124,12 +130,26 @@
             </p>
           </div>
 
+          <!-- Anonymous post-result CTA -->
+          <div
+            v-if="isCompleted && !isAuthenticated"
+            class="rounded-lg border border-brand/30 bg-brand/5 p-4 text-sm text-center"
+          >
+            <router-link :to="{ name: 'signup' }" class="font-semibold text-brand hover:underline">
+              Create a free account
+            </router-link>
+            to save this evaluation and access additional models.
+          </div>
+
           <p v-if="generalError" class="text-destructive text-sm">{{ generalError }}</p>
+
+          <!-- Turnstile widget: anonymous users only -->
+          <div v-if="!isAuthenticated" ref="turnstileContainer" class="flex justify-center py-1" />
 
           <Button
             type="submit"
             class="w-full"
-            :disabled="isLoading || isProcessing || isPending || !form.meta.value.valid"
+            :disabled="isLoading || isProcessing || isPending || !form.meta.value.valid || (!isAuthenticated && !turnstileToken)"
           >
             <Loader2 v-if="isLoading || isPending" class="mr-2 h-4 w-4 animate-spin" />
             {{ isLoading ? 'Submitting...' : isPending ? 'Processing...' : 'Submit' }}
@@ -148,7 +168,8 @@
       </CardContent>
     </Card>
 
-    <div class="w-full md:w-60 md:shrink-0">
+    <!-- Recent evaluations: authenticated users only -->
+    <div v-if="isAuthenticated" class="w-full md:w-60 md:shrink-0">
       <Card>
         <CardHeader>
           <CardTitle class="text-lg">Recent Evaluations</CardTitle>
@@ -203,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -242,6 +263,51 @@ import { ArrowRight } from 'lucide-vue-next'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useEssayPolling } from '@/composables/useEssayPolling'
 import { Input } from '@/components/ui/input'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+// Cloudflare Turnstile (anonymous users only)
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string
+const turnstileContainer = ref<HTMLElement | null>(null)
+const turnstileToken = ref('')
+const turnstileWidgetId = ref<string | number | null>(null)
+
+const loadTurnstileScript = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if ((window as any).turnstile) { resolve(); return }
+    let script = document.getElementById('cf-turnstile-script') as HTMLScriptElement | null
+    if (!script) {
+      script = document.createElement('script')
+      script.id = 'cf-turnstile-script'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+    script.addEventListener('load', () => resolve(), { once: true })
+  })
+}
+
+const initTurnstile = async () => {
+  await loadTurnstileScript()
+  await nextTick()
+  if (!turnstileContainer.value || !(window as any).turnstile) return
+  turnstileWidgetId.value = (window as any).turnstile.render(turnstileContainer.value, {
+    sitekey: TURNSTILE_SITE_KEY,
+    callback: (token: string) => { turnstileToken.value = token },
+    'expired-callback': () => { turnstileToken.value = '' },
+    'error-callback': () => { turnstileToken.value = '' },
+  })
+}
+
+const resetTurnstile = () => {
+  if (turnstileWidgetId.value !== null && (window as any).turnstile) {
+    (window as any).turnstile.reset(turnstileWidgetId.value)
+  }
+  turnstileToken.value = ''
+}
 
 const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
@@ -267,6 +333,7 @@ const isFailed = computed(() => currentRequest.value?.status === 'FAILED')
 
 const currentRequest = ref<EssayRequest | null>(null)
 const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null)
+const anonymousPollingTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const selectedModel = ref('')
 const modelOptions = ref<LLMModel[]>([])
@@ -281,10 +348,15 @@ const updateModelQuotas = async () => {
   try {
     const models = await LLMModelService.getActiveModels()
     modelOptions.value = models
-    // Keep the same selected model but with updated quota
+    if (!isAuthenticated.value) {
+      // Anonymous: auto-select the single available public model
+      if (models.length > 0) {
+        form.setFieldValue('model_id', models[0].id.toString())
+      }
+      return
+    }
     const updatedSelectedModel = models.find(model => model.id.toString() === selectedModel.value)
     if (!updatedSelectedModel) {
-      // If current selected model is no longer available, select default or first
       const defaultModel = models.find(model => model.is_default)
       selectedModel.value = (defaultModel?.id || models[0]?.id || 0).toString()
       form.setFieldValue('model_id', selectedModel.value)
@@ -304,12 +376,17 @@ const loadRecentHistory = async () => {
 }
 
 onMounted(async () => {
+  if (!isAuthenticated.value) {
+    await updateModelQuotas()
+    await initTurnstile()
+    return
+  }
+
   await Promise.all([
     updateModelQuotas(),
     loadRecentHistory()
   ])
 
-  // Start polling if there are pending requests
   if (recentHistory.value.some(r => r.status === 'PENDING')) {
     startHistoryPolling()
   }
@@ -348,7 +425,6 @@ const startHistoryPolling = () => {
     onData: (results) => {
       recentHistory.value = results
 
-      // Update current request if it exists in history
       if (currentRequest.value) {
         const updatedRequest = results.find(r => r.id === currentRequest.value?.id)
         if (updatedRequest) {
@@ -356,7 +432,6 @@ const startHistoryPolling = () => {
         }
       }
 
-      // Update dialog content if open
       if (selectedHistoryRecord.value) {
         const updatedRecord = results.find(r => r.id === selectedHistoryRecord.value?.id)
         if (updatedRecord) {
@@ -384,6 +459,37 @@ const startHistoryPolling = () => {
   })
 }
 
+const startAnonymousPolling = (requestId: number) => {
+  let attempts = 0
+  const poll = async () => {
+    try {
+      const request = await EssayService.getEssay(requestId)
+      currentRequest.value = request
+      if (request.status === 'COMPLETED') {
+        toast({
+          title: 'Evaluation Complete',
+          description: `Your essay score: ${request.score}`,
+        })
+        return
+      }
+      if (request.status === 'FAILED') {
+        toast({
+          title: 'Evaluation Failed',
+          description: request.error || 'Unknown error',
+          variant: 'destructive',
+        })
+        return
+      }
+      const delay = Math.min(500 * Math.pow(2, attempts), 10000)
+      attempts++
+      anonymousPollingTimer.value = setTimeout(poll, delay)
+    } catch (err) {
+      console.error('Error polling anonymous request:', err)
+    }
+  }
+  poll()
+}
+
 const handleSubmit = form.handleSubmit(async (values) => {
   generalError.value = ''
   isLoading.value = true
@@ -392,13 +498,17 @@ const handleSubmit = form.handleSubmit(async (values) => {
     const response = await EssayService.submitEssay({
       essay: values.essay,
       essay_topic: values.essay_topic,
-      model_id: Number(values.model_id)
+      model_id: Number(values.model_id),
+      ...(!isAuthenticated.value ? { turnstile_token: turnstileToken.value } : {}),
     })
     currentRequest.value = response
 
-    // Load history and start polling
-    await loadRecentHistory()
-    startHistoryPolling()
+    if (isAuthenticated.value) {
+      await loadRecentHistory()
+      startHistoryPolling()
+    } else {
+      startAnonymousPolling(response.id)
+    }
 
     toast({
       description: 'Essay submitted successfully. Processing...',
@@ -409,6 +519,9 @@ const handleSubmit = form.handleSubmit(async (values) => {
     }
     if (err.nonFieldError) {
       generalError.value = err.nonFieldError
+    }
+    if (!isAuthenticated.value) {
+      resetTurnstile()
     }
   } finally {
     isLoading.value = false
@@ -426,28 +539,29 @@ const handleReset = async () => {
   currentRequest.value = null
   generalError.value = ''
 
-  // Check if we need to continue polling other requests
-  const response = await EssayService.getEssayHistory(1, NUM_HISTORY_ITEMS)
-  recentHistory.value = response.results
+  if (isAuthenticated.value) {
+    const response = await EssayService.getEssayHistory(1, NUM_HISTORY_ITEMS)
+    recentHistory.value = response.results
 
-  const hasPendingRequests = response.results.some(r => r.status === 'PENDING')
-  if (hasPendingRequests) {
-    startHistoryPolling()
+    const hasPendingRequests = response.results.some(r => r.status === 'PENDING')
+    if (hasPendingRequests) {
+      startHistoryPolling()
+    }
+  } else {
+    resetTurnstile()
   }
 
-
-  // Focus the textarea after a short delay to ensure the DOM has updated
   setTimeout(() => {
-    // const textarea = document.querySelector('textarea[name="essay"]') as HTMLTextAreaElement
-    // textarea?.focus()
     essayTextarea.value?.focus()
   }, 0)
 }
 
-// Clean up polling when component is unmounted
 onUnmounted(() => {
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
+  }
+  if (anonymousPollingTimer.value) {
+    clearTimeout(anonymousPollingTimer.value)
   }
 })
 </script>
