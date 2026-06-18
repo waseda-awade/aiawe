@@ -423,3 +423,6 @@ DEFAULT_USER_PROMPT_TEMPLATE = """Please evaluate the following essay on the top
 
 # Site URL for building absolute URLs (e.g., 'https://example.com')
 SITE_URL = env("SITE_URL", default="http://localhost:8000")
+
+# Cloudflare Turnstile
+TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
