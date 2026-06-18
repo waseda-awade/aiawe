@@ -44,21 +44,10 @@
         </section>
 
         <section>
-          <h2>4. Use of OpenAI Models</h2>
+          <h2>4. Data Processing</h2>
           <ul>
-            <li>The App provides access to OpenAI models, such as GPT-3.5 and GPT-4o.</li>
-            <li>Users who engage with these models must follow OpenAI's privacy policy, which can be reviewed at:
-              <a href="https://openai.com/enterprise-privacy" target="_blank" rel="noopener noreferrer"
-                class="inline-flex items-center">
-                OpenAI Enterprise Privacy
-                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </li>
-            <li>AiAWE does not control the data processing performed by OpenAI and encourages users to review their
-              privacy policies for further details.</li>
+            <li>All submissions are processed locally on Waseda University's servers and are not sent to any
+              third-party API.</li>
           </ul>
         </section>
 

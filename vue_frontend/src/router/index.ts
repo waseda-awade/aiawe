@@ -47,6 +47,11 @@ const routes = [
         name: 'terms',
         component: () => import('@/views/TermsView.vue'),
       },
+      {
+        path: 'rubric',
+        name: 'rubric',
+        component: () => import('@/views/RubricView.vue'),
+      },
     ],
   },
   {

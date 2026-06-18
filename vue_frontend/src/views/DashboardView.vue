@@ -6,15 +6,9 @@
         <CardDescription>
           <p>AiAWE works best assessing argumentative writing that is under 1,000 words.</p>
           <p>The score produced by AiAWE is based on the
-            <a class="text-blue-500 inline-flex items-center hover:underline"
-              href="https://app.awade.gec.waseda.ac.jp/about#rubric"
-              target="_blank">
+            <router-link to="/rubric" class="text-blue-500 hover:underline">
               ETS TOEFL Independent Writing Rubric
-              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>.
+            </router-link>.
           </p>
         </CardDescription>
       </CardHeader>
