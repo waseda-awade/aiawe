@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 import time
 from dataclasses import dataclass
 from typing import Literal
@@ -56,6 +58,44 @@ def get_openai_client(
 class EssayEvaluation(BaseModel):
     score: float
     reasoning: str
+
+
+def _clean_json(raw: str) -> str:
+    """Strip markdown fences and extract the outermost JSON object substring."""
+    text = raw.strip()
+    # Remove ```json ... ``` or ``` ... ``` wrappers
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\s*```$", "", text, flags=re.MULTILINE)
+    text = text.strip()
+    # Extract from first { to last }
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start : end + 1]
+    return text
+
+
+def _repair_json(text: str) -> str:
+    """Remove trailing commas before } or ] — the most common LLM JSON defect."""
+    return re.sub(r",\s*([}\]])", r"\1", text)
+
+
+def parse_essay_evaluation(raw: str) -> EssayEvaluation:
+    """Parse LLM output tolerantly: strip fences → extract object → repair → fail."""
+    text = _clean_json(raw)
+
+    # Attempt 1: parse cleaned text directly
+    try:
+        return EssayEvaluation.model_validate_json(text)
+    except Exception:
+        pass
+
+    # Attempt 2: repair trailing commas then parse
+    try:
+        return EssayEvaluation.model_validate_json(_repair_json(text))
+    except Exception as e:
+        msg = "Failed to parse response from model"
+        raise ValueError(msg) from e
 
 
 @dataclass
@@ -162,14 +202,31 @@ def process_openai_request(
             lora=api_request.model.get_lora_param(),
         )
         api_request.result = result
-        # Assuming the older models return JSON-like content that can be parsed
         try:
-            parsed_result = EssayEvaluation.model_validate_json(result)
-            api_request.score = parsed_result.score
-            api_request.reasoning = parsed_result.reasoning
-        except ValueError as e:
-            msg = "Failed to parse response from model"
-            raise ValueError(msg) from e
+            parsed_result = parse_essay_evaluation(result)
+        except ValueError:
+            # Retry the LLM call once — a second generation often returns valid JSON
+            logger.warning(
+                "Parse failed for request %s, retrying LLM call once",
+                request_params.request_id,
+            )
+            result = call_openai_api(
+                client=client,
+                model_name=request_params.model_name,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=request_params.temperature,
+                lora=api_request.model.get_lora_param(),
+            )
+            api_request.result = result
+            try:
+                parsed_result = parse_essay_evaluation(result)
+            except ValueError as e:
+                msg = "Failed to parse response from model after retry"
+                raise ValueError(msg) from e
+
+        api_request.score = parsed_result.score
+        api_request.reasoning = parsed_result.reasoning
 
         api_request.status = "COMPLETED"
         api_request.ended_at = timezone.now()
@@ -283,7 +340,7 @@ def process_batch(
                     lora=batch.model.get_lora_param(),
                 )
                 item.result = result
-                parsed_result = EssayEvaluation.model_validate_json(result)
+                parsed_result = parse_essay_evaluation(result)
                 item.score = parsed_result.score
                 item.reasoning = parsed_result.reasoning
                 _end_task(item, "COMPLETED")
