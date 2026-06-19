@@ -149,6 +149,7 @@ class LLMModelAdmin(admin.ModelAdmin):
         "order",
         "is_default",
         "is_active",
+        "available_to_anonymous",
         "created_at",
         "updated_at",
     ]
@@ -184,6 +185,7 @@ class LLMModelAdmin(admin.ModelAdmin):
                     "order",
                     "is_default",
                     "is_active",
+                    "available_to_anonymous",
                 ),
             },
         ),
