@@ -95,6 +95,13 @@ class LLMModel(TimestampedBase):
         default=1.0,
         help_text="Scale applied when use_lora is on (1.0 = full).",
     )
+    available_to_anonymous = models.BooleanField(
+        default=False,
+        help_text=(
+            "Allow logged-out users to use this model "
+            "(e.g. the public TOEFL model)."
+        ),
+    )
 
     class Meta:
         ordering = ["order"]

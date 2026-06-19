@@ -1,49 +1,62 @@
 <template>
-  <div class="container mx-auto text-center md:mt-20">
-    <h1 class="text-4xl font-bold mb-4">Welcome to AiAWE</h1>
-    <div class="text-lg mb-6">
-      <p>AiAWE is a project led by John M. Gayed at Waseda University that evaluates student writing using Large Language Models (LLMs).</p>
-      <p>Please go to the <router-link class="text-primary hover:underline" :to="{name: 'about'}">About</router-link> page to learn more about our research.<br /> Click the "Get Started" button below to register and use the app. Below is a screenshot of the app's output. Enjoy!</p>
-    </div>
-    <router-link :to="{name: 'login'}"><Button>Get Started</Button></router-link>
-
-    <!-- Dashboard Image Section -->
-    <div class="mt-8 max-w-3xl mx-auto">
-      <img
-        src="@/assets/imgs/aiawe-dashboard.png"
-        alt="Dashboard Preview"
-        class="w-full hover:opacity-90 transition-opacity"
-      />
-    </div>
-
-    <!-- Modal for image preview -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" @click="showModal = false">
-      <div class="relative max-h-[90vh] max-w-[90vw]">
-        <img
-          src="@/assets/imgs/aiawe-dashboard.png"
-          alt="Dashboard Preview"
-          class="max-h-[90vh] max-w-[90vw] object-contain"
-        />
-        <button
-          class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center"
-          @click="showModal = false"
-        >
-          ×
-        </button>
+  <!-- Hero -->
+  <div class="bg-muted/40 border-b border-border">
+    <div class="container mx-auto max-w-4xl px-4 py-16 md:py-24 text-center">
+      <p class="text-sm text-muted-foreground">Waseda University · automated writing evaluation</p>
+      <h1 class="text-4xl md:text-5xl font-semibold tracking-tight mt-3">
+        Reliable essay scoring, built on open research
+      </h1>
+      <p class="max-w-xl mx-auto text-muted-foreground mt-4">
+        AiAWE evaluates argumentative essays against the ETS TOEFL rubric, giving a
+        transparent score with paragraph-level feedback — processed locally, never sent to a
+        third party.
+      </p>
+      <div class="mt-8 flex gap-3 justify-center">
+        <router-link :to="{ name: 'dashboard' }">
+          <Button class="bg-brand text-brand-foreground hover:bg-brand/90">
+            Try it now <ArrowRight class="ml-2 h-4 w-4" />
+          </Button>
+        </router-link>
+        <router-link :to="{ name: 'about' }">
+          <Button variant="outline">How it works</Button>
+        </router-link>
       </div>
+      <p class="mt-4 text-sm text-muted-foreground">
+        No account needed to try · create a free account to access additional models.
+      </p>
+    </div>
+  </div>
+
+  <!-- Feature cards -->
+  <div class="container mx-auto max-w-4xl px-4 py-12">
+    <div class="grid gap-4 sm:grid-cols-3">
+      <Card>
+        <CardContent class="pt-6">
+          <Zap class="h-6 w-6 mb-3 text-brand" />
+          <p class="font-medium">Instant scoring</p>
+          <p class="text-sm text-muted-foreground mt-1">A score and reasoning in seconds, not days.</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent class="pt-6">
+          <Lock class="h-6 w-6 mb-3 text-brand" />
+          <p class="font-medium">Private by design</p>
+          <p class="text-sm text-muted-foreground mt-1">Submissions processed on Waseda's own servers.</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent class="pt-6">
+          <GraduationCap class="h-6 w-6 mb-3 text-brand" />
+          <p class="font-medium">Research-backed</p>
+          <p class="text-sm text-muted-foreground mt-1">Gemma 3, finetuned on the ETS TOEFL dataset.</p>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import Button from '@/components/ui/button/Button.vue';
-
-const showModal = ref(false);
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { ArrowRight, Zap, Lock, GraduationCap } from 'lucide-vue-next'
 </script>
-
-<style scoped>
-.max-w-400 {
-  max-width: 400px;
-}
-</style>

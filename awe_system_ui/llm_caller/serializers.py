@@ -25,6 +25,9 @@ class LLMModelSerializer(serializers.ModelSerializer):
         except (KeyError, AttributeError):
             return 0
 
+        if not user.is_authenticated:
+            return 0
+
         return obj.get_used_quota(user)
 
 

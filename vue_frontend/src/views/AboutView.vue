@@ -41,14 +41,11 @@
              <li>AiAWE works best assessing argumentative writing that is around 1,000 words.</li>
              <li>AiAWE can also be used by teachers with special features such as bulk grading, class creation, and bulk user creation. If you are interesting in receiving such access, please contact one of the researchers or admin [at mark] aiawe.app</li>
           </ul><br>
-          Currently AiAWE support three LLMs:<br>
+          AiAWE is powered by Gemma 3 27B, an open-access large language model:<br>
         <ul class="list-disc list-inside mt-2 space-y-2">
-          <li>Gemma 3 27B - is an open access LLM that is being hosted on the researcher’s server. Since it is a locally hosted LLM, student submissions are not sent to a third party via API, but instead are processed locally. 
-            Depending on how many users are using the system, it may take some time to return a result. As the local LLM doesn't cost us any API fees, the usage quota per user is set very high. The model achieves a 
+          <li>Gemma 3 27B - is an open access LLM that is being hosted on the researcher’s server. Since it is a locally hosted LLM, student submissions are not sent to a third party via API, but instead are processed locally.
+            Depending on how many users are using the system, it may take some time to return a result. As the local LLM doesn’t cost us any API fees, the usage quota per user is set very high. The model achieves a
             Quadratic Weighted Kappa (QWK) of 0.83 against ground truth scores from ETS, surpassing ETS’s own internal e-rater engine.</li>
-          <li>OpenAI's GPT 3.5 Turbo. The submission will be sent to OpenAI’s servers for assessment. This was our first attempt at finetuning an advanced LLM for AWE. This is the model that was used in the above mentioned Wang, Q., & Gayed, J. M. (2024) paper. 
-            The model achieves a QWK of 0.78 and a Root Mean Square Error (RMSE) of 0.57 against ground truth scores from ETS, rivaling ETS’s e-rater engine.</li>
-          <li>OpenAI's GPT 4o. The submission will be sent to OpenAI’s servers for assessment. The more advanced OpenAI model achieves even better results with a QWK nearing 0.9 against ground truth scores from ETS, a substantial improvement over ETS’s own system.</li>
         </ul>
         </p>
       </section>
@@ -61,15 +58,13 @@
         </ul>
       </section>
 
-      <section id="rubric">
-        <h2 class="text-2xl font-semibold mb-3">ETS Rubric Used by AiAWE</h2>
-        <div class="mt-8 max-w-3xl mx-auto">
-        <img
-        src="@/assets/imgs/toeflrubric.png"
-        alt="ETS TOEFL RUBRIC"
-        class="w-full hover:opacity-90 transition-opacity"
-        />
-        </div>
+      <section>
+        <h2 class="text-2xl font-semibold mb-3">Scoring Rubric</h2>
+        <p>The publicly-available models are evaluated against the ETS TOEFL Independent
+        Writing Rubric.
+        <router-link to="/rubric" class="text-primary hover:underline">View the rubric →</router-link></p>
+        <p class="mt-2">The Waseda-developed models use an internal rubric that is not
+        publicly available at this time.</p>
       </section>
       
       <section>

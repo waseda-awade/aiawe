@@ -22,9 +22,6 @@ const routes = [
         path: 'dashboard',
         name: 'dashboard',
         component: DashboardView,
-        meta: {
-          requiresAuth: true,
-        },
       },
       {
         path: 'change-password',
@@ -46,6 +43,11 @@ const routes = [
         path: 'terms',
         name: 'terms',
         component: () => import('@/views/TermsView.vue'),
+      },
+      {
+        path: 'rubric',
+        name: 'rubric',
+        component: () => import('@/views/RubricView.vue'),
       },
     ],
   },

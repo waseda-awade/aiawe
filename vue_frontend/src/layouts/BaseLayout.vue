@@ -23,15 +23,7 @@ onMounted(() => {
 
     <!-- Main Content -->
     <main class="flex-grow container mx-auto px-4 py-8">
-      <router-view v-slot="{ Component }">
-        <transition
-          name="fade"
-          mode="out-in"
-          appear
-        >
-          <component :is="Component" />
-        </transition>
-      </router-view>
+      <router-view />
     </main>
 
     <!-- Footer -->
