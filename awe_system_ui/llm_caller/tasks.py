@@ -145,11 +145,11 @@ def process_openai_request(
         if request_params.feedback_language and request_params.feedback_language != "English":
             system_prompt = system_prompt + (
                 f"\n\nIMPORTANT: Write the entire \"reasoning\" field in "
-                f"{request_params.feedback_language}, including the labels for all six points "
-                f"(translate the category labels into {request_params.feedback_language} as well, "
-                f"not just the explanations). Keep the JSON structure exactly as specified, keep "
-                f"\"score\" as a number, keep the \"\\n\\n\" separators between the six points, and "
-                f"do not use any markdown formatting."
+                f"{request_params.feedback_language}, including any section labels "
+                f"(translate them, don't leave them in English). Keep the JSON structure "
+                f"exactly as specified, keep \"score\" as a number, preserve the same "
+                f"formatting and separators your instructions already require, and do not "
+                f"use any markdown formatting."
             )
 
         # Call OpenAI API
