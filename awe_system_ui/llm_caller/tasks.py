@@ -65,6 +65,7 @@ class LLMRequestParams:
     temperature: float
     system_prompt: str
     user_prompt_template: str
+    feedback_language: str = "English"
 
 
 def call_openai_api(
@@ -140,11 +141,22 @@ def process_openai_request(
             base_url=api_request.model.url,
         )
 
+        system_prompt = request_params.system_prompt
+        if request_params.feedback_language and request_params.feedback_language != "English":
+            system_prompt = system_prompt + (
+                f"\n\nIMPORTANT: Write the entire \"reasoning\" field in "
+                f"{request_params.feedback_language}, including the labels for all six points "
+                f"(translate the category labels into {request_params.feedback_language} as well, "
+                f"not just the explanations). Keep the JSON structure exactly as specified, keep "
+                f"\"score\" as a number, keep the \"\\n\\n\" separators between the six points, and "
+                f"do not use any markdown formatting."
+            )
+
         # Call OpenAI API
         result = call_openai_api(
             client=client,
             model_name=request_params.model_name,
-            system_prompt=request_params.system_prompt,
+            system_prompt=system_prompt,
             user_prompt=user_prompt,  # Use the formatted prompt
             temperature=request_params.temperature,
             lora=api_request.model.get_lora_param(),

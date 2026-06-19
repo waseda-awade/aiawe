@@ -97,6 +97,7 @@ class APIRequestViewSet(viewsets.ModelViewSet):
             temperature=llm_config.temperature,
             system_prompt=llm_config.system_prompt,
             user_prompt_template=llm_config.user_prompt_template,
+            feedback_language=api_request.feedback_language,
         )
 
         # Ensure the actual task execution happens after transaction commit

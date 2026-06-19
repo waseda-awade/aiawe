@@ -220,6 +220,11 @@ class APIRequest(AccessControlMixin, LLMRequestBase):
         default=False,
         help_text="Soft delete flag - True means this request is deleted",
     )
+    feedback_language = models.CharField(
+        max_length=32,
+        default="English",
+        help_text="Language the LLM should write its reasoning in.",
+    )
 
     objects = APIRequestManager()
 

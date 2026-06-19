@@ -3,6 +3,19 @@ from rest_framework import serializers
 from .models import APIRequest
 from .models import LLMModel
 
+ALLOWED_FEEDBACK_LANGUAGES = [
+    "English",
+    "Japanese",
+    "Spanish",
+    "French",
+    "German",
+    "Chinese (Simplified)",
+    "Korean",
+    "Portuguese",
+    "Italian",
+    "Arabic",
+]
+
 
 class LLMModelSerializer(serializers.ModelSerializer):
     used_quota = serializers.SerializerMethodField()
@@ -37,6 +50,11 @@ class APIRequestSerializer(serializers.ModelSerializer):
         source="model.display_name",
         read_only=True,
     )
+    feedback_language = serializers.CharField(
+        max_length=32,
+        default="English",
+        required=False,
+    )
 
     class Meta:
         model = APIRequest
@@ -51,6 +69,7 @@ class APIRequestSerializer(serializers.ModelSerializer):
             "created_at",
             "model_id",
             "model_display_name",
+            "feedback_language",
         ]
         read_only_fields = [
             "score",
@@ -59,6 +78,11 @@ class APIRequestSerializer(serializers.ModelSerializer):
             "created_at",
             "model_display_name",
         ]
+
+    def validate_feedback_language(self, value):
+        if value not in ALLOWED_FEEDBACK_LANGUAGES:
+            return "English"
+        return value
 
     def create(self, validated_data):
         model_id = validated_data.pop("model_id")
