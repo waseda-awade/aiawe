@@ -55,13 +55,43 @@
             </FormItem>
           </FormField>
 
+          <!-- Feedback language selector: all users -->
+          <FormField
+            v-slot="{ componentField }"
+            name="feedback_language"
+          >
+            <FormItem>
+              <div class="text-muted-foreground">{{ isAuthenticated ? '2.' : '1.' }} Choose the language for the written feedback.</div>
+              <Select
+                v-bind="componentField"
+                :disabled="isProcessing || isPending"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem
+                      v-for="lang in FEEDBACK_LANGUAGES"
+                      :key="lang"
+                      :value="lang"
+                    >
+                      {{ lang }}
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
           <FormField
             v-slot="{ componentField }"
             name="essay_topic"
           >
             <FormItem>
               <div class="text-muted-foreground">
-                {{ isAuthenticated ? '2.' : '1.' }} Enter the topic of your essay.
+                {{ isAuthenticated ? '3.' : '2.' }} Enter the topic of your essay.
               </div>
               <FormControl>
                 <Input
@@ -75,7 +105,7 @@
           </FormField>
 
           <div class="text-muted-foreground">
-            {{ isAuthenticated ? '3.' : '2.' }} Upload a Word document or enter your text directly.
+            {{ isAuthenticated ? '4.' : '3.' }} Upload a Word document or enter your text directly.
           </div>
           <FileUpload accept=".docx,.doc" :loading="isProcessing" :disabled="isLoading"
             @file-selected="handleFileSelected" />
@@ -309,12 +339,26 @@ const resetTurnstile = () => {
   turnstileToken.value = ''
 }
 
+const FEEDBACK_LANGUAGES = [
+  'English',
+  'Japanese',
+  'Spanish',
+  'French',
+  'German',
+  'Chinese (Simplified)',
+  'Korean',
+  'Portuguese',
+  'Italian',
+  'Arabic',
+]
+
 const form = useForm({
   validationSchema: toTypedSchema(essayFormSchema),
   initialValues: {
     essay: '',
     essay_topic: '',
     model_id: '',
+    feedback_language: 'English',
   },
 })
 
@@ -499,6 +543,7 @@ const handleSubmit = form.handleSubmit(async (values) => {
       essay: values.essay,
       essay_topic: values.essay_topic,
       model_id: Number(values.model_id),
+      feedback_language: values.feedback_language,
       ...(!isAuthenticated.value ? { turnstile_token: turnstileToken.value } : {}),
     })
     currentRequest.value = response

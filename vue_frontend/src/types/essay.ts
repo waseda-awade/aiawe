@@ -14,6 +14,7 @@ export interface EssayRequest {
   error: string | null
   status: 'PENDING' | 'COMPLETED' | 'FAILED'
   created_at: string
+  feedback_language?: string
 }
 
 export interface EssayListResponse {

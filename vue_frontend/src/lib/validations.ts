@@ -68,4 +68,5 @@ export const essayFormSchema = z.object({
     .min(1, 'Please enter the essay topic')
     .max(MAX_CHARS, `Topic cannot exceed ${MAX_CHARS} characters`),
   model_id: z.string().min(1, 'Please select a model'),
+  feedback_language: z.string().default('English').optional(),
 })

@@ -6,14 +6,21 @@ export class EssayService {
     essay,
     essay_topic,
     model_id,
+    feedback_language,
     turnstile_token,
   }: {
     essay: string
     essay_topic: string
     model_id: number
+    feedback_language?: string
     turnstile_token?: string
   }): Promise<EssayRequest> {
-    const payload: Record<string, unknown> = { essay, essay_topic, model_id }
+    const payload: Record<string, unknown> = {
+      essay,
+      essay_topic,
+      model_id,
+      feedback_language: feedback_language ?? 'English',
+    }
     if (turnstile_token) payload.turnstile_token = turnstile_token
     const response = await api.post<EssayRequest>('/requests/', payload)
     return response.data
